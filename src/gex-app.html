@@ -9,6 +9,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymer/lib/mixins/gesture-event-listeners.html">
+
 <link rel="import" href="../bower_components/app-layout/app-drawer-layout/app-drawer-layout.html">
 <link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
 <link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html">
@@ -19,20 +21,30 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../bower_components/iron-selector/iron-selector.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+
+
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+
 <link rel="import" href="my-icons.html">
 
 <link rel="lazy-import" href="gex-login.html">
-<link rel="lazy-import" href="gex-view1.html">
-<link rel="lazy-import" href="gex-view2.html">
-<link rel="lazy-import" href="gex-view3.html">
+<link rel="lazy-import" href="gex-home.html">
 <link rel="lazy-import" href="gex-view404.html">
 
 <dom-module id="gex-app">
   <template>
     <style>
       :host {
-        --app-primary-color: #4285f4;
+        --app-primary-color: #009688;
         --app-secondary-color: black;
+
+        --bch-primary-color: #E91E63;
+        --bch-light-color: #fce4ec;
+
+        --ge-primary-color: #2196f3;
+        --ge-light-color: #e3f2fd;
 
         position: absolute;
         top: 0;
@@ -45,6 +57,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         color: #fff;
         background-color: var(--app-primary-color);
       }
+
+      iron-pages {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
     </style>
 
     <app-location route="{{route}}"></app-location>
@@ -54,6 +72,23 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         data="{{routeData}}"
         tail="{{subroute}}"></app-route>
 
+    <!-- PACS pull dialog -->
+    <paper-dialog id="dialog" modal>
+      <h2>Scrollable</h2>
+      <paper-dialog-scrollable>
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+      </paper-dialog-scrollable>
+      <div class="buttons">
+        <paper-button dialog-dismiss>Close</paper-button>
+      </div>
+    </paper-dialog>
+
     <!-- Main content -->
     <app-header-layout has-scrolling-region>
 
@@ -61,8 +96,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <app-toolbar>
           <div main-title>GEXplorer</div>
           <div hidden$="[[!login]]">
-            Logout
-            <paper-icon-button icon="my-icons:close"></paper-icon-button>
+            <button on-tap="handleLogout">Logout</button>
+            <!--Logout
+            <paper-icon-button icon="my-icons:close" on-tap="handleLogout"></paper-icon-button>-->
           </div>
         </app-toolbar>
       </app-header>
@@ -72,18 +108,21 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           attr-for-selected="name"
           fallback-selection="view404"
           role="main">
-        <gex-login name="login"></gex-login>
-        <gex-view1 name="view1"></gex-view1>
-        <gex-view2 name="view2"></gex-view2>
-        <gex-view3 name="view3"></gex-view3>
-        <gex-view404 name="view404"></gex-view404>
+        <gex-login
+          name="login"
+          on-login="handleLogin"></gex-login>
+        <gex-home
+          name="home"
+          on-open-dialog="handleOpenDialog"></gex-home>
+        <gex-view404
+          name="view404"></gex-view404>
       </iron-pages>
     </app-header-layout>
 
   </template>
 
   <script>
-    class GEXApp extends Polymer.Element {
+    class GEXApp extends Polymer.GestureEventListeners(Polymer.Element) {
 
       static get is() { return 'gex-app'; }
 
@@ -99,7 +138,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           subroute: String,
           login: {
             type: Boolean,
-            value: true,
+            value: false,
           }
         };
       }
@@ -142,6 +181,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       _showPage404() {
         this.page = 'view404';
+      }
+
+      handleLogin() {
+        this.login = true;
+        this.page = 'home';
+      }
+
+      handleLogout() {
+        this.login = false;
+        this.page = 'login';
+      }
+
+      handleOpenDialog() {
+        this.$.dialog.open();
       }
     }
 

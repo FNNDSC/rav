@@ -1,4 +1,6 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymer/lib/mixins/gesture-event-listeners.html">
+
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="gex-login">
@@ -13,12 +15,29 @@
 
     <div class="card">
         Login page
+        <button on-tap="handleLogin">Login</button>
     </div>
   </template>
 
   <script>
-    class GEXLogin extends Polymer.Element {
+    class GEXLogin extends Polymer.GestureEventListeners(Polymer.Element) {
       static get is() { return 'gex-login'; }
+
+      handleLogin(event) {
+        event.stopPropagation();
+        event.preventDefault();
+        const loginEvent = new CustomEvent(
+          'login',
+          {
+            detail: {
+              login: true,
+            },
+            bubbles: true,
+            composed: true,
+          }
+        );
+        this.dispatchEvent(loginEvent);
+      }
     }
 
     window.customElements.define(GEXLogin.is, GEXLogin);
