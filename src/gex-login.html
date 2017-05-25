@@ -1,0 +1,26 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="gex-login">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+
+        padding: 10px;
+      }
+    </style>
+
+    <div class="card">
+        Login page
+    </div>
+  </template>
+
+  <script>
+    class GEXLogin extends Polymer.Element {
+      static get is() { return 'gex-login'; }
+    }
+
+    window.customElements.define(GEXLogin.is, GEXLogin);
+  </script>
+</dom-module>
