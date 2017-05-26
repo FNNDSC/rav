@@ -37,14 +37,28 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <template>
     <style>
       :host {
-        --app-primary-color: #009688;
-        --app-secondary-color: black;
+        --dark-primary-color:       #212121;
+        --default-primary-color:    #424242;
+        --light-primary-color:      #9e9e9e;
+        --text-primary-color:       #FFFFFF;
+        --accent-color:             #CCFF00;
+        --primary-background-color: #BBDEFB;
+        --primary-text-color:       #212121;
+        --secondary-text-color:     #757575;
+        --disabled-text-color:      #BDBDBD;
+        --divider-color:            #BDBDBD;
 
         --bch-primary-color: #E91E63;
         --bch-light-color: #fce4ec;
 
         --ge-primary-color: #2196f3;
         --ge-light-color: #e3f2fd;
+
+        /* paper-input */
+        --paper-input-container-focus-color: var(--accent-color);
+        --paper-input-container-invalid-color: red;
+        --paper-input-container-color: var(--primary-text-color);  
+        --paper-input-container-input-color: var(--primary-text-color);  
 
         position: absolute;
         top: 0;
@@ -55,7 +69,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       app-header {
         color: #fff;
-        background-color: var(--app-primary-color);
+        background-color: var(--default-primary-color);
       }
 
       iron-pages {
@@ -138,7 +152,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           subroute: String,
           login: {
             type: Boolean,
-            value: false,
+            observer: '_loginChanged',
           }
         };
       }
@@ -155,6 +169,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         // Get root pattern for app-route, for more info about `rootPath` see:
         // https://www.polymer-project.org/2.0/docs/upgrade#urls-in-templates
         this.rootPattern = (new URL(this.rootPath)).pathname;
+      }
+
+      ready() {
+        super.ready();
+
+        if (sessionStorage.getItem('username') &&
+            sessionStorage.getItem('token')) {
+          this.login = true;
+        } else {
+          this.login = false;
+        }
       }
 
       _routePageChanged(page) {
@@ -185,16 +210,32 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       handleLogin() {
         this.login = true;
-        this.page = 'home';
+        // this.page = 'home';
       }
 
       handleLogout() {
         this.login = false;
-        this.page = 'login';
+        // this.page = 'login';
       }
 
       handleOpenDialog() {
         this.$.dialog.open();
+      }
+
+      _loginChanged(login) {
+        if (login === undefined) {
+          return;
+        }
+
+        if (!login) {
+          sessionStorage.removeItem('username');
+          sessionStorage.removeItem('token');
+          this.set('route.path', '/login/');
+        } else {
+          if (this.page === 'login') {
+            this.set('route.path', '/home/');
+          }
+        }
       }
     }
 
