@@ -28,6 +28,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 
 <link rel="import" href="my-icons.html">
+<link rel="import" href="pacs-pull/gex-pacs-pull.html">
 
 <link rel="lazy-import" href="gex-login.html">
 <link rel="lazy-import" href="gex-home.html">
@@ -48,8 +49,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         --disabled-text-color:      #BDBDBD;
         --divider-color:            #BDBDBD;
 
-        --bch-primary-color: #E91E63;
-        --bch-light-color: #fce4ec;
+        --bch-primary-color: #CCFF00;
+        --bch-light-color: #EFA;
 
         --ge-primary-color: #2196f3;
         --ge-light-color: #e3f2fd;
@@ -87,21 +88,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         tail="{{subroute}}"></app-route>
 
     <!-- PACS pull dialog -->
-    <paper-dialog id="dialog" modal>
-      <h2>Scrollable</h2>
-      <paper-dialog-scrollable>
-        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-      </paper-dialog-scrollable>
-      <div class="buttons">
-        <paper-button dialog-dismiss>Close</paper-button>
-      </div>
-    </paper-dialog>
+    <gex-pacs-pull id="PACSPull"></gex-pacs-pull>
 
     <!-- Main content -->
     <app-header-layout has-scrolling-region>
@@ -110,9 +97,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <app-toolbar>
           <div main-title>GEXplorer</div>
           <div hidden$="[[!login]]">
-            <button on-tap="handleLogout">Logout</button>
-            <!--Logout
-            <paper-icon-button icon="my-icons:close" on-tap="handleLogout"></paper-icon-button>-->
+            <paper-button on-tap="handleLogout">Logout</paper-button>
           </div>
         </app-toolbar>
       </app-header>
@@ -219,7 +204,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
 
       handleOpenDialog() {
-        this.$.dialog.open();
+        this.$.PACSPull.open();
       }
 
       _loginChanged(login) {
@@ -235,6 +220,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           if (this.page === 'login') {
             this.set('route.path', '/home/');
           }
+          this.$.PACSPull.fetchPlugins();
         }
       }
     }

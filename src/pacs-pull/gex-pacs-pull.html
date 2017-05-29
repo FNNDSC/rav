@@ -1,0 +1,218 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<link rel="import" href="../../bower_components/app-layout/app-toolbar/app-toolbar.html">
+
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+
+<link rel="import" href="../../bower_components/chips-api/chips-api.html">
+
+<link rel="import" href="gex-pacs-query.html">
+<link rel="import" href="gex-pacs-move.html">
+<link rel="import" href="gex-pacs-error.html">
+
+<dom-module id="gex-pacs-pull">
+  <template>
+    <style>
+      :host {
+        display: flex;
+        position: relative;
+      }
+      iron-pages {
+        display: flex;
+        width: 100%;
+      }
+    </style>
+
+    <chips-api
+      id="API"
+      on-response="_blockEvent"
+      on-error="_blockEvent"></chips-api>
+
+    <paper-dialog id="dialog" modal>
+      <app-toolbar>
+        <div main-title>PACS Pull</div>
+        <paper-button dialog-dismiss>Close</paper-button>
+      </app-toolbar>
+
+      <paper-dialog-scrollable>
+        <iron-pages
+          selected="{{page}}"
+          selected-item="{{selectedItem}}"
+          attr-for-selected="name"
+          fallback-selection="error404"
+          role="main">
+          <gex-pacs-query
+              id="query"
+              name="query"
+              on-response="_handleResponse"
+              on-resize="_handleResize"
+              settings="{{settings}}"
+              instance="{{queryInstance}}"></gex-pacs-query>
+          <gex-pacs-move
+              id="move"
+              name="move"
+              data="[[data]]"
+              settings="[[settings]]"
+              previous-instance="[[queryInstance]]"
+              on-response="_handleResponse"
+              on-page="_handlePage"></gex-pacs-move>
+          <gex-pacs-error
+              id="error"
+              name="error"
+              on-page="_handlePage"
+              error="[[error]]"></gex-pacs-error>
+        </iron-pages>
+      </paper-dialog-scrollable>
+
+      <div class="buttons">
+        <paper-button id="next" on-tap="_handleNext">Next</paper-button>
+      </div>
+    </paper-dialog>
+
+  </template>
+
+  <script>
+    class GEXPacsPull extends Polymer.Element {
+      static get is() {
+        return 'gex-pacs-pull';
+      }
+    
+      static get properties() {
+        return {
+          page: {
+            type: String,
+            reflectToAttribute: true,
+            value: 'query',
+          },
+          plugins: {
+            type: Array,
+            value: [],
+            observer: '_pluginsChanged',
+          },
+          selectedItem: {
+            type: Object,
+            value: {},
+          },
+          settings: {
+            type: Object,
+            value: {
+              aet: 'CHIPS',
+              aec: 'ORTHANC',
+              aet_listener: 'CHIPS',
+              server_ip: '192.168.1.110',
+              server_port: '4242',
+            },
+          },
+          data: {
+            type: Object,
+          },
+          error: {
+            type: Object,
+          },
+          queryInstance: {
+            type: Number,
+            value: -1,
+          },
+          pluginsStatus: {
+            type: String,
+            value: '',
+          }
+        };
+      }
+
+      ready() {
+        super.ready();
+      }
+
+      fetchPlugins() {
+        this.pluginsStatus = 'fetching';
+
+        // through the API
+        var data = {};
+        data.auth = {
+          type: 'token',
+          token: sessionStorage.getItem('token'),
+        };
+        data.params = {};
+        data.params.limit = 9999;
+        data.params.page_size = 9999;
+        this.$.API.request('GET', 'plugins', data)
+          .then(this._handlePluginsResponse.bind(this))
+          .catch(this._handlePluginsError.bind(this));
+      }
+
+      open() {
+        this.$.dialog.open();
+      }
+
+      _pluginsChanged(plugins) {
+        // Polymer 2.0 will call with `undefined` on initialization.
+        // Ignore until we are properly called with a string.
+        if (plugins === undefined) {
+          return;
+        }
+        for (let i = 0; i < this.plugins.length; i++) {
+            if (this.plugins[i].data.name === 'pacsquery') {
+              this.$.query.target = plugins[i].links.instances;
+            }
+            if (this.plugins[i].data.name === 'pacsretrieve') {
+              this.$.move.target = plugins[i].links.instances;
+            }
+          }
+      }
+      _handleResponse(response) {
+        if (response) {
+          const data = response.detail.data;
+          if (data.status === 'error') {
+            this.error = data;
+            this.page = 'error';
+          } else if (data.status === 'close') {
+            const closeEvent = new CustomEvent('close');
+            this.dispatchEvent(closeEvent);
+          } else {
+            this.data = data.data;
+            this.page = 'move';
+          }
+        }
+      }
+      _handlePage(event) {
+        event.stopPropagation();
+        if (event &&
+            event.detail) {
+          const page = event.detail.page;
+          this.page = page;
+        }
+      }
+      reset() {
+        this.page = 'query';
+        this.$.move.reset();
+      }
+
+      _handleResize() {
+        this.$.dialog.notifyResize();
+      }
+
+      _handleNext() {
+        this.selectedItem.next();
+      }
+
+      _blockEvent(event) {
+        event.stopPropagation();
+      }
+
+      _handlePluginsResponse(response) {
+        this.pluginsStatus = 'success';
+        this.plugins = response.data;
+      }
+      _handlePluginsError(error) {
+        this.pluginStatus = 'error';
+        console.log(error);
+      }
+    }
+    window.customElements.define(GEXPacsPull.is, GEXPacsPull);
+  </script>
+</dom-module>
