@@ -306,8 +306,9 @@
         this.loading = false;
         this.loadingSteps = [];
 
-        var queryResponseEvent = new CustomEvent(
-          'response', {detail: {
+        const queryResponseEvent = new CustomEvent(
+          'response', {
+            detail: {
               data: response,
             },
           }
@@ -320,7 +321,7 @@
         this.loading = false;
         this.loadingSteps = [];
 
-        var queryResponseEvent = new CustomEvent(
+        const queryResponseEvent = new CustomEvent(
           'response', {detail: {
               data: error,
             },

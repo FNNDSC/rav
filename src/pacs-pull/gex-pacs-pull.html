@@ -6,9 +6,11 @@
 
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../../bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
-<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 
 <link rel="import" href="../../bower_components/chips-api/chips-api.html">
+
+<link rel="import" href="../my-icons.html">
 
 <link rel="import" href="gex-pacs-query.html">
 <link rel="import" href="gex-pacs-move.html">
@@ -26,7 +28,7 @@
         margin-top: 0;
       }
 
-      iron-pages {
+      iron-pages.content {
         display: flex;
         width: 100%;
       }
@@ -40,11 +42,11 @@
     <paper-dialog id="dialog" modal>
       <app-toolbar>
         <div main-title>PACS Pull</div>
-        <paper-button dialog-dismiss>Close</paper-button>
+        <paper-icon-button icon="my-icons:close" on-tap="_handleClose"></paper-icon-button>
       </app-toolbar>
 
       <paper-dialog-scrollable>
-        <iron-pages
+        <iron-pages class="content"
           selected="{{page}}"
           selected-item="{{selectedItem}}"
           attr-for-selected="name"
@@ -62,6 +64,7 @@
               name="move"
               data="[[data]]"
               settings="[[settings]]"
+              selection="{{selection}}"
               previous-instance="[[queryInstance]]"
               on-response="_handleResponse"
               on-page="_handlePage"></gex-pacs-move>
@@ -74,7 +77,20 @@
       </paper-dialog-scrollable>
 
       <div class="buttons">
-        <paper-button id="next" on-tap="_handleNext">Next</paper-button>
+        <iron-pages class="buttons"
+          selected="{{page}}"
+          attr-for-selected="name"
+          fallback-selection="error404"
+          role="main">
+          <div name="query" >
+            <paper-button on-tap="_handleNext">Query PACS</paper-button>
+          </div>
+          <div name="move" >
+            <paper-button on-tap="_gotoQuery">New query</paper-button>
+            <paper-button disabled$="[[_isSelectionEmpty(selection)]]" on-tap="_handleNext">Pull Data ({{selection.length}})</paper-button>
+          </div>
+          <div name="error404"></div>
+        </iron-pages>
       </div>
     </paper-dialog>
 
@@ -92,12 +108,14 @@
             type: String,
             reflectToAttribute: true,
             value: 'query',
+            observer: '_pageChanged',
           },
           plugins: {
             type: Array,
             value: [],
             observer: '_pluginsChanged',
           },
+          selection: Array,
           selectedItem: {
             type: Object,
             value: {},
@@ -169,6 +187,7 @@
             }
           }
       }
+
       _handleResponse(response) {
         if (response) {
           const data = response.detail.data;
@@ -176,14 +195,18 @@
             this.error = data;
             this.page = 'error';
           } else if (data.status === 'close') {
-            const closeEvent = new CustomEvent('close');
-            this.dispatchEvent(closeEvent);
+            this.$.dialog.close();
           } else {
             this.data = data.data;
             this.page = 'move';
           }
         }
       }
+
+      _pageChanged(page) {
+        this._handleResize();
+      }
+
       _handlePage(event) {
         event.stopPropagation();
         if (event &&
@@ -192,6 +215,7 @@
           this.page = page;
         }
       }
+
       reset() {
         this.page = 'query';
         this.$.move.reset();
@@ -215,7 +239,21 @@
       }
       _handlePluginsError(error) {
         this.pluginStatus = 'error';
-        console.log(error);
+      }
+
+      _gotoQuery() {
+        this.page = 'query';
+      }
+
+      _isSelectionEmpty(selection) {
+        return selection.length <= 0;
+      }
+
+      _handleClose() {
+        this.$.dialog.close();
+        this.reset();
+        const fetchData = new CustomEvent('fetch-data');
+        this.dispatchEvent(fetchData);
       }
     }
     window.customElements.define(GEXPacsPull.is, GEXPacsPull);
