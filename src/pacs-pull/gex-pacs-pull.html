@@ -67,7 +67,7 @@
               settings="[[settings]]"
               selection="{{selection}}"
               previous-instance="[[queryInstance]]"
-              instance="{{moveInstance}}"
+              plugin-instance="{{moveInstance}}"
               on-response="_handleResponse"
               on-page="_handlePage"></gex-pacs-move>
           <gex-pacs-error
@@ -158,7 +158,7 @@
             observer: '_feedIdChanged',
           },
           moveInstance: {
-            type: String,
+            type: Object,
             observer: '_moveInstanceChanged',
           },
         };

@@ -30,6 +30,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="my-icons.html">
 <link rel="import" href="pacs-pull/gex-pacs-pull.html">
 
+<link rel="import" href="../bower_components/chips-api/chips-api.html">
+<link rel="import" href="../bower_components/chips-api/behaviors/chips-plugin-behavior.html">
+
 <link rel="lazy-import" href="gex-login.html">
 <link rel="lazy-import" href="gex-home.html">
 <link rel="lazy-import" href="gex-view404.html">
@@ -87,6 +90,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         data="{{routeData}}"
         tail="{{subroute}}"></app-route>
 
+    <chips-api
+      id="API"></chips-api>
+
     <!-- PACS pull dialog -->
     <gex-pacs-pull id="PACSPull" on-fetch-data="_handleFetchData"></gex-pacs-pull>
 
@@ -121,7 +127,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   </template>
 
   <script>
-    class GEXApp extends Polymer.GestureEventListeners(Polymer.Element) {
+    class GEXApp extends CHIPSPluginBehavior(Polymer.GestureEventListeners(Polymer.Element)) {
 
       static get is() { return 'gex-app'; }
 
@@ -144,8 +150,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             value: '',
           },
           pluginInstance: {
-            type: String,
-            value: '',
+            type: Object,
+            value: {},
           },
         };
       }
@@ -234,13 +240,25 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       _handleFetchData(event) {
         const detail = event.detail;
+        console.log(detail);
         this.feedId = detail.feedId;
         this.pluginInstance = detail.pluginInstance;
 
-        // wait for plugin instance to finish
-        // fetch files
-        // pass files to "home"
-        // order files
+        this._getPluginInstanceFiles(this.pluginInstance);
+      }
+
+      _getPluginInstanceFiles(pluginInstance) {
+        const data = {};
+        data.auth = {
+          type: 'token',
+          token: sessionStorage.getItem('token'),
+        };
+        this.$.API.handleAs = 'json';
+        this.__waitEndPlugin(this.$.API, data, pluginInstance, true)
+        .then((result) => {
+          console.log(result);
+          // fetch the files!
+        });
       }
     }
 

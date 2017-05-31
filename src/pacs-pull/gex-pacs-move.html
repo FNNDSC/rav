@@ -147,9 +147,9 @@
             type: Number,
             value: -1,
           },
-          instance: {
-            type: String,
-            value: -1,
+          pluginInstance: {
+            type: Object,
+            value: {},
             notify: true,
           },
           target: {
@@ -213,7 +213,7 @@
       }
 
       _handleRetrieveResponse(response) {
-        this.instance = String(response.data[0].data.id);
+        this.set('pluginInstance', response.data[0]);
         const closeEvent = new CustomEvent(
           'response', {detail: {
               data: {
@@ -222,7 +222,14 @@
             },
           }
         );
-        this.dispatchEvent(closeEvent);
+
+        // booo :(
+        // backend hangs if we do not wait a bit....
+        window.setTimeout(
+          () => {
+            this.dispatchEvent(closeEvent);
+          }, 1000)
+        
       }
 
       _handleRetrieveError(error) {
