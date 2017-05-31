@@ -147,6 +147,11 @@
             type: Number,
             value: -1,
           },
+          instance: {
+            type: String,
+            value: -1,
+            notify: true,
+          },
           target: {
             type: String,
             value: '',
@@ -208,6 +213,7 @@
       }
 
       _handleRetrieveResponse(response) {
+        this.instance = String(response.data[0].data.id);
         const closeEvent = new CustomEvent(
           'response', {detail: {
               data: {
@@ -238,7 +244,6 @@
         this.$.selectionColumn.selectAll = true;
         this.$.selectionColumn.selectAll = false;
       }
-
 
     }
 

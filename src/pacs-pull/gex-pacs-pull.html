@@ -54,6 +54,7 @@
           role="main">
           <gex-pacs-query
               id="query"
+              feed-id="{{feedId}}"
               name="query"
               on-response="_handleResponse"
               on-resize="_handleResize"
@@ -66,6 +67,7 @@
               settings="[[settings]]"
               selection="{{selection}}"
               previous-instance="[[queryInstance]]"
+              instance="{{moveInstance}}"
               on-response="_handleResponse"
               on-page="_handlePage"></gex-pacs-move>
           <gex-pacs-error
@@ -87,7 +89,7 @@
           </div>
           <div name="move" >
             <paper-button on-tap="_gotoQuery">New query</paper-button>
-            <paper-button disabled$="[[_isSelectionEmpty(selection)]]" on-tap="_handleNext">Pull Data ({{selection.length}})</paper-button>
+            <paper-button disabled$="[[disablePull]]" on-tap="_handleNext">Pull Data ({{selection.length}})</paper-button>
           </div>
           <div name="error404"></div>
         </iron-pages>
@@ -115,7 +117,14 @@
             value: [],
             observer: '_pluginsChanged',
           },
-          selection: Array,
+          selection:{
+            type: Array,
+            value: [],
+          },
+          disablePull: {
+            type: Boolean,
+            value: true,
+          },
           selectedItem: {
             type: Object,
             value: {},
@@ -143,8 +152,22 @@
           pluginsStatus: {
             type: String,
             value: '',
-          }
+          },
+          feedId: {
+            type: String,
+            observer: '_feedIdChanged',
+          },
+          moveInstance: {
+            type: String,
+            observer: '_moveInstanceChanged',
+          },
         };
+      }
+
+      static get observers() {
+        return [
+            '_selectionChanged(selection.*)'
+          ]
       }
 
       ready() {
@@ -195,7 +218,20 @@
             this.error = data;
             this.page = 'error';
           } else if (data.status === 'close') {
-            this.$.dialog.close();
+
+            // let app know we need to fetch the latest feed
+            const fetchData = new CustomEvent(
+              'fetch-data',
+              {
+                detail: {
+                  feedId: this.feedId,
+                  pluginInstance: this.moveInstance,
+              },
+            });
+
+            this.dispatchEvent(fetchData);
+            // regular close workflow
+            this._handleClose();
           } else {
             this.data = data.data;
             this.page = 'move';
@@ -245,15 +281,27 @@
         this.page = 'query';
       }
 
-      _isSelectionEmpty(selection) {
-        return selection.length <= 0;
+      _selectionChanged(selectionObject) {
+        const path = selectionObject.path;
+        const value = selectionObject.value;
+        if (path === 'selection.length') {
+          this.disablePull = (value <= 0);
+        } else if (path === 'selection') {
+          this.disablePull = (value.length <= 0);
+        }
       }
 
       _handleClose() {
         this.$.dialog.close();
         this.reset();
-        const fetchData = new CustomEvent('fetch-data');
-        this.dispatchEvent(fetchData);
+      }
+
+      _feedIdChanged(feedId) {
+        console.log(feedId);
+      }
+
+      _moveInstanceChanged(instance) {
+        console.log(instance);
       }
     }
     window.customElements.define(GEXPacsPull.is, GEXPacsPull);
