@@ -118,6 +118,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           on-login="handleLogin"></gex-login>
         <gex-home
           name="home"
+          files="[[files]]"
           on-open-dialog="handleOpenDialog"></gex-home>
         <gex-view404
           name="view404"></gex-view404>
@@ -145,14 +146,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             type: Boolean,
             observer: '_loginChanged',
           },
-          feedId: {
-            type: String,
-            value: '',
+          feed: {
+            type: Object,
+            value: {},
           },
           pluginInstance: {
             type: Object,
             value: {},
+            observer: '_pluginInstanceChanged',
           },
+          files: {
+            type: Array,
+            value: [],
+          }
         };
       }
 
@@ -240,14 +246,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       _handleFetchData(event) {
         const detail = event.detail;
-        console.log(detail);
-        this.feedId = detail.feedId;
-        this.pluginInstance = detail.pluginInstance;
-
-        this._getPluginInstanceFiles(this.pluginInstance);
+        this.set('feed', {
+          href: detail.feedLink
+          },
+        );
+        this.set('pluginInstance', detail.pluginInstance);
       }
 
-      _getPluginInstanceFiles(pluginInstance) {
+      _waitForPluginInstanceFinished(pluginInstance) {
         const data = {};
         data.auth = {
           type: 'token',
@@ -256,10 +262,72 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.$.API.handleAs = 'json';
         this.__waitEndPlugin(this.$.API, data, pluginInstance, true)
         .then((result) => {
-          console.log(result);
-          // fetch the files!
+          this.__formatPlugin(result, this.feed);
+          this.set('pluginInstance', result);
         });
       }
+
+      _pluginInstanceChanged(pluginInstance) {
+        if (pluginInstance === undefined || !pluginInstance.data) {
+          return;
+        }
+
+        if (pluginInstance.data.status === 'started') {
+          // wait until finished
+          this._waitForPluginInstanceFinished(pluginInstance);
+        } else if (pluginInstance.data.status ===  'finishedSuccessfully') {
+          // fetch files
+          this._fetchFiles(pluginInstance);
+        } else {
+          console.log(`Un-handled plugin instance status: ${pluginInstance.data.status}`)
+        }
+      }
+
+      _fetchFiles(pluginInstance) {
+
+        const data = {};
+        data.auth = {
+          type: 'token',
+          token: sessionStorage.getItem('token'),
+        };
+        data.params = {};
+        data.params.limit = 9999;
+        data.params.page_size = 9999;
+        this.$.API.handleAs = 'json';
+        this.__getFilesPlugin(this.$.API, data, pluginInstance)
+          .then(this._handleFilesResponse.bind(this))
+          .catch(this._handleFilesError.bind(this));
+        }
+
+        _handleFilesError(error) {
+          console.log(error);
+        }
+
+        _handleFilesResponse(response) {
+          if (response.length <= 0) {
+            this.set('files', []);
+            return;
+          }
+
+          const responseTargetID = response[0].data.plugin_inst_id;
+          const currentTargetID =
+            this.pluginInstance.data.id;
+          if (responseTargetID !== currentTargetID) {
+            //
+            console.log(
+              `Discard response for plugin ${responseTargetID}
+              (current plugin: ${currentTargetID})`);
+            return;
+          }
+
+          const files = [];
+          for (const file of response) {
+            this.__formatFile(file);
+            files.push(file);
+          }
+
+          this.set('files', files);
+        }
     }
 
     window.customElements.define(GEXApp.is, GEXApp);

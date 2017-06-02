@@ -54,7 +54,7 @@
           role="main">
           <gex-pacs-query
               id="query"
-              feed-id="{{feedId}}"
+              feed-link="{{feedLink}}"
               name="query"
               on-response="_handleResponse"
               on-resize="_handleResize"
@@ -153,9 +153,9 @@
             type: String,
             value: '',
           },
-          feedId: {
+          feedLink: {
             type: String,
-            observer: '_feedIdChanged',
+            observer: '_feedLinkChanged',
           },
           moveInstance: {
             type: Object,
@@ -224,7 +224,7 @@
               'fetch-data',
               {
                 detail: {
-                  feedId: this.feedId,
+                  feedLink: this.feedLink,
                   pluginInstance: this.moveInstance,
               },
             });
@@ -296,8 +296,8 @@
         this.reset();
       }
 
-      _feedIdChanged(feedId) {
-        console.log(feedId);
+      _feedLinkChanged(feedLink) {
+        console.log(feedLink);
       }
 
       _moveInstanceChanged(instance) {

@@ -1,10 +1,13 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../bower_components/polymer/lib/elements/dom-if.html">
+<link rel="import" href="../bower_components/polymer/lib/elements/dom-repeat.html">
 <link rel="import" href="../bower_components/polymer/lib/mixins/gesture-event-listeners.html">
 
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
 
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+
+<link rel="import" href="../bower_components/chips-api/chips-api.html">
 
 <link rel="import" href="shared-styles.html">
 <link rel="import" href="my-icons.html">
@@ -69,12 +72,22 @@
       }
     </style>
 
+    <chips-api
+      id="API"></chips-api>
+
     <div hidden$="[[!visibleBCH]]" class="panel bch">
       <app-toolbar>
         <div main-title>BCH PACS</div>
         <paper-icon-button icon="my-icons:search" on-tap="handleBCH"></paper-icon-button>
         <paper-icon-button icon="my-icons:close" on-tap="hideBCH"></paper-icon-button>
       </app-toolbar>
+        <template is="dom-repeat" items="[[data]]">
+          <p>
+            <div>[[item.details.series.date]]</div>
+            <div>[[item.details.series.description]]</div>
+            <div>[[item.details.series.files]]</div>
+          </p>
+        </template>
     </div>
     <div hidden$="[[visibleBCH]]" class="bch">
       <paper-icon-button icon="my-icons:chevron-right" on-tap="showBCH"></paper-icon-button>
@@ -108,6 +121,28 @@
 
       static get properties() {
         return {
+          files: {
+            type: Array,
+            value: [],
+            observer: '_filesChanged',
+          },
+          data: {
+            type: Array,
+            value: [],
+          },
+          dataMap: {
+            type: Object,
+            value: new Map(),
+          },
+          dataSelected: {
+            type: Object,
+            value: {},
+            observer: '_dataSelectedChanged',
+          },
+          urlsSelected: {
+            type: Array,
+            value: [],
+          },
           visibleGE: {
             type: Boolean,
             value: true,
@@ -153,6 +188,155 @@
 
       showGE() {
         this.visibleGE = true;
+      }
+
+      _seriesStructure() {
+        return {
+          data: [],
+          preview: null,
+          details: {
+            series: {
+              date: 'no value provided',
+              description: 'no value provided',
+              files: 0,
+            },
+          },
+        }
+      }
+
+      _filesChanged(files) {
+        // clear the map
+        this.dataMap.clear();
+        for (const file of files) {
+          // handle DCM files
+          if (file.data.fname.endsWith('.dcm')) {
+            this._handleDCM(file);
+          } else if (file.data.fname.endsWith('preview.jpg')) {
+            this._handleJPG(file);
+          }
+        }
+        // convert data map to array for polymer dom-repeat to kick in
+        this._updateDataArray();
+      }
+
+      _handleDCM(file) {
+        const series = this._getSeriesFromFile(file);
+        series.data.push(file);
+      }
+
+      _handleJPG(file) {
+        const series = this._getSeriesFromFile(file);
+        // create unique ID and attach file to preview
+        file.data.id = `id${file.href.match(/\d+/)['0']}`;
+        series.preview = file;
+        this._fetchPreview(series);
+      }
+
+      _getSeriesFromFile(file) {
+        // get series directory
+        const relativeFname = file.data.relative_fname;
+        const relativeDirectory =
+          relativeFname.slice(0, relativeFname.lastIndexOf('/'));
+        
+        // find series in the map
+        let series = this.dataMap.get(relativeDirectory);
+        if (series === null || series === undefined) {
+          // add new series  in the map if not present
+          series = this._seriesStructure();
+          this.dataMap.set(relativeDirectory, series);
+        }
+        return series;
+      }
+
+      _fetchPreview(series) {
+        //
+        const apiData = {};
+        apiData.auth = {
+          type: 'token',
+          token: sessionStorage.getItem('token'),
+        };
+        apiData.params = {};
+        // fetch ressource then update it all...
+        this.$.API.handleAs = 'blob';
+        this.$.API.request('GET', series.preview.links.file_resource, apiData)
+        .then((response) => {
+          // const target =
+          //   this.shadowRoot.querySelector(`#${series.data.id}`);
+          var urlCreator = window.URL || window.webkitURL;
+          var imageURL = urlCreator.createObjectURL(response);
+          series.preview.imageURL = imageURL;
+          // target.onload = this.centerThumbnail.bind(this);
+          // target.src = imageUrl;
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+      }
+
+      _updateDataArray() {
+        // Map to array
+        const dataArray = [];
+        // update map data
+        function logMapElements(value, key) {
+            // set study series description
+            let seriesDate = 'no value provided';
+            let seriesDescription = 'no value provided';
+            const fullName = value.data[0].data.fname;
+            const splitName = fullName.split('/');
+            if (splitName.length >= 2) {
+              const directory = splitName[splitName.length - 2];
+              const splitSeries = directory.split('-');
+              if (splitSeries.length === 3) {
+                seriesDescription = splitSeries[0];
+                seriesDate = splitSeries[1];
+                if (seriesDate.length === 8) {
+                  seriesDate = `
+                    ${seriesDate.substring(0, 4)}-
+                    ${seriesDate.substring(4, 6)}-
+                    ${seriesDate.substring(6, 8)}`;
+                }
+              }
+            }
+            value.details.series.date = seriesDate;
+            value.details.series.description = seriesDescription;
+            // set study date
+            // set files
+            value.details.series.files = value.data.length + ' file';
+            if (value.data.length > 1) {
+              value.details.series.files += 's';
+            }
+            //
+            value.selected = false;
+            value.path = [];
+            value.path.push(dataArray.length);
+            dataArray.push(value);
+        }
+        
+        this.dataMap.forEach(logMapElements);
+        // update data
+        this.set('data', dataArray);
+        console.log
+      }
+
+      _handleSeriesSelected(event) {
+        // unselect previous if any
+        if (this.dataSelected.selected !== undefined) {
+          this.set(['data', ...this.dataSelected.path, 'selected'], false);
+        }
+        // select current
+        const targetSeries = event.model.__data.item;
+        this.set('dataSelected', targetSeries);
+        this.set(['data', ...targetSeries.path, 'selected'], true);
+      }
+
+      _dataSelectedChanged(dataSelected) {
+        if (dataSelected === undefined || !dataSelected.data) {
+          return;
+        }
+        const urlsSelected = dataSelected.data.map(function(obj) {
+          return `${obj.links.file_resource}`;
+        });
+        this.set('urlsSelected', urlsSelected);
       }
     }
 
