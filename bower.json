@@ -22,7 +22,9 @@
     "paper-input": "PolymerElements/paper-input#^2.0.0",
     "paper-spinner": "PolymerElements/paper-spinner#^2.0.0",
     "vaadin-grid": "v3.0.0-alpha1",
-    "iron-collapse": "PolymerElements/iron-collapse#^2.0.0"
+    "iron-collapse": "PolymerElements/iron-collapse#^2.0.0",
+    "three.js": "mrdoob/three.js#dev",
+    "ami": "fnndsc/ami#dev"
   },
   "resolutions": {
     "polymer": "^2.0.0-rc.3",
@@ -33,11 +35,6 @@
     "iron-a11y-keys-behavior": "1 - 2",
     "paper-styles": "1 - 2",
     "paper-behaviors": "1 - 2",
-    "iron-behaviors": "1 - 2",
-    "iron-checked-element-behavior": "1 - 2",
-    "iron-validatable-behavior": "1 - 2",
-    "iron-form-element-behavior": "1 - 2",
-    "paper-ripple": "1 - 2",
     "iron-scroll-target-behavior": "^v2.0.0"
   },
   "devDependencies": {

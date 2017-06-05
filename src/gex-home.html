@@ -9,6 +9,11 @@
 
 <link rel="import" href="../bower_components/chips-api/chips-api.html">
 
+<link rel="import" href="elements/ami-viewer-2d.html">
+
+
+<link rel="import" href="import-ami.html">
+
 <link rel="import" href="shared-styles.html">
 <link rel="import" href="my-icons.html">
 
@@ -18,21 +23,22 @@
       :host {
         display: flex;
         flex: 1;
-        /*padding: 10px;*/
+        background-color: var(--default-primary-color);
+        color: var(--text-primary-color);
+        font-weight: lighter;
       }
 
       .content {
         flex: 1;
         display: flex;
         flex-direction: column;
-        background-color: #fff;
-        margin-left: 10px;
-        margin-right: 10px;
+        background-color: var(--dark-primary-color);
       }
 
       .panel {
         width: 256px;
-        background-color: #fff;
+        display: flex;
+        flex-direction: column;
       }
 
       .viewers {
@@ -53,13 +59,11 @@
         background-color: var(--ge-light-color);
       }
 
-      .bch {
-        background-color: #fff;
+      /*.bch {
         border-left: 3px solid var(--bch-primary-color);
       }
 
       .ge {
-        background-color: #fff;
         border-right: 3px solid var(--ge-primary-color);
       }
 
@@ -69,6 +73,42 @@
 
       #ge {
         border-top: 1px solid var(--ge-primary-color);
+      }*/
+
+      .series {
+        flex: 1;
+        overflow: auto;
+      }
+
+      .previewContainer {
+        height: 96px;
+        overflow: hidden;
+      }
+
+      .seriesPreview {
+        display: flex;
+        margin: 4px;
+        padding: 4px;
+        border: 1px solid rgba(0, 0, 0, 0);
+      }
+
+      .seriesPreview:hover {
+        cursor: pointer;
+        background-color: var(--dark-primary-color);
+      }
+
+      .seriesPreview[selected] {
+        border-color: #ccff00;
+      }
+
+      img {
+        min-width: 96px;
+        min-height: 96px;
+        background-color: #000;
+      }
+
+      [hidden] {
+        display: none;
       }
     </style>
 
@@ -81,25 +121,57 @@
         <paper-icon-button icon="my-icons:search" on-tap="handleBCH"></paper-icon-button>
         <paper-icon-button icon="my-icons:close" on-tap="hideBCH"></paper-icon-button>
       </app-toolbar>
-        <template is="dom-repeat" items="[[data]]">
-          <p>
-            <div>[[item.details.series.date]]</div>
-            <div>[[item.details.series.description]]</div>
-            <div>[[item.details.series.files]]</div>
-          </p>
+      <div class="series">
+
+        <template is="dom-if" if="[[running]]">
+          Running....
         </template>
+
+        <template is="dom-if" if="[[fetching]]">
+          Fetching...
+        </template>
+
+        <template is="dom-if" if="[[done]]">
+          <!--DATA TO VISUALIZE-->
+          <template is="dom-if" if="[[data.length]]">
+            <template is="dom-repeat" items="[[data]]">
+              <div class="seriesPreview"
+                selected$="[[item.selected]]"
+                on-tap="_handleSeriesSelected">
+                <div class="previewContainer">
+                  <img
+                    id$="[[item.preview.data.id]]"
+                    on-mousemove='onMove'
+                    on-mouseout='centerThumbnail'>
+                </div>
+                <div>
+                  <div>[[item.details.series.date]]</div>
+                  <div>[[item.details.series.descridivtion]]</div>
+                  <div>[[item.details.series.files]]</div>
+                </div>
+              </div>
+            </template>
+          </template>
+  
+          <!--NO DATA TO VISUALIZE-->
+          <template is="dom-if" if="[[!data.length]]">
+            No data available.
+          </template>
+        </template>
+      </div>
     </div>
     <div hidden$="[[visibleBCH]]" class="bch">
       <paper-icon-button icon="my-icons:chevron-right" on-tap="showBCH"></paper-icon-button>
     </div>
 
     <div class="content">
-      <app-toolbar>
+      <!--<app-toolbar>
         <div main-title>Viewer actions</div>
-      </app-toolbar>
+      </app-toolbar>-->
       <div class="viewers">
-        <div id="bch"></div>
-        <div id="ge"></div>
+        <ami-viewer-2d class="viewers"></ami-viewer-2d>
+        <!--<div id="bch"></div>-->
+        <!--<div id="ge"></div>-->
       </div>
     </div>
 
@@ -121,6 +193,14 @@
 
       static get properties() {
         return {
+          fetching: {
+            type: Boolean,
+            value: false,
+          },
+          done: {
+            type: Boolean,
+            value: false,
+          },
           files: {
             type: Array,
             value: [],
@@ -139,9 +219,14 @@
             value: {},
             observer: '_dataSelectedChanged',
           },
+          running: {
+            type: Boolean,
+            value: false,
+          },
           urlsSelected: {
             type: Array,
             value: [],
+            observer: '_urlsSelectedChanged',
           },
           visibleGE: {
             type: Boolean,
@@ -151,6 +236,14 @@
             type: Boolean,
             value: true,
           },
+          stack: {
+            type: Object,
+            value: {},
+          },
+          slice: {
+            type: Object,
+            value: {},
+          }
         };
       }
 
@@ -257,16 +350,17 @@
         };
         apiData.params = {};
         // fetch ressource then update it all...
+        series.preview.imageURL = '';
         this.$.API.handleAs = 'blob';
         this.$.API.request('GET', series.preview.links.file_resource, apiData)
         .then((response) => {
-          // const target =
-          //   this.shadowRoot.querySelector(`#${series.data.id}`);
-          var urlCreator = window.URL || window.webkitURL;
-          var imageURL = urlCreator.createObjectURL(response);
+          const target =
+            this.shadowRoot.querySelector(`#${series.preview.data.id}`);
+          const urlCreator = window.URL || window.webkitURL;
+          const imageURL = urlCreator.createObjectURL(response);
           series.preview.imageURL = imageURL;
-          // target.onload = this.centerThumbnail.bind(this);
-          // target.src = imageUrl;
+          target.onload = this.centerThumbnail.bind(this);
+          target.src = imageURL;
         })
         .catch((error) => {
           console.log(error);
@@ -315,7 +409,6 @@
         this.dataMap.forEach(logMapElements);
         // update data
         this.set('data', dataArray);
-        console.log
       }
 
       _handleSeriesSelected(event) {
@@ -337,6 +430,90 @@
           return `${obj.links.file_resource}`;
         });
         this.set('urlsSelected', urlsSelected);
+      }
+
+      _urlsSelectedChanged(urls) {
+        if(urls === undefined ||
+        urls.length <= 0) {
+          return;
+        }
+
+        // need to fetch with "chips api" to pass token properly
+        const LoadersVolume = AMI.default.Loaders.Volume;
+        const loader = new LoadersVolume();
+
+        const dataAPI = {};
+        dataAPI.auth = {
+          type: 'token',
+          token: sessionStorage.getItem('token')
+        };
+
+        const fetch = (url) => {
+          this.$.API.handleAs = 'arraybuffer';
+          return this.$.API.request( 'GET', url, dataAPI );
+        }
+
+        // default load sequence promise
+        const loadSequence = (url) => {
+          return fetch(url)
+            .then((rawData) => {
+              return loader.parse({
+                url: url,
+                buffer: rawData,
+                });
+            })
+            .catch(function(error) {
+              window.console.log('oops... something went wrong...');
+              window.console.log(error);
+            });
+        }
+
+        const load = (url) => {
+          // if we load a single file, convert it to an array
+          if (!Array.isArray(url)) {
+            url = [url];
+          }
+          const loadSequences = [];
+          url.forEach((file) => {
+            loadSequences.push(
+              loadSequence(file)
+            );
+          });
+          return Promise.all(loadSequences);
+        }
+
+        return load(urls)
+          .then((series) => {
+            // merge series
+            const mergedSeries = series[0].mergeSeries(series);
+            const firstSeries = mergedSeries[0];
+            return firstSeries;
+          })
+          .then((series) => {
+            // update the "stack"!
+            console.log(series);
+          });
+      }
+
+      onMove(e) {
+        const target = e.currentTarget;
+        const normalizedPosition =
+          (e.clientX - target.offsetLeft) / target.clientWidth;
+        this.positionThumbnail(normalizedPosition, target);
+      }
+
+      centerThumbnail(e) {
+        const target = e.currentTarget;
+        this.positionThumbnail(0.5, target);
+      }
+
+      positionThumbnail(normalizedPosition, target) {
+        const THUMBNAIL_HEIGHT = 96;
+        const TOTAL_HEIGHT = target.offsetHeight;
+        const nbFrames = TOTAL_HEIGHT / THUMBNAIL_HEIGHT;
+        const offset = Math.floor(normalizedPosition * nbFrames) * THUMBNAIL_HEIGHT;
+        target.style.transform =
+          `translateY(-${offset}px)`;
       }
     }
 
