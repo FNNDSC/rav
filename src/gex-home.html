@@ -6,11 +6,13 @@
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
 
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/paper-slider/paper-slider.html">
+<link rel="import" href="../bower_components/paper-toggle-button/paper-toggle-button.html">
 
 <link rel="import" href="../bower_components/chips-api/chips-api.html">
 
 <link rel="import" href="elements/ami-viewer-2d.html">
-
+<link rel="import" href="elements/series-preview.html">
 
 <link rel="import" href="import-ami.html">
 
@@ -75,37 +77,19 @@
         border-top: 1px solid var(--ge-primary-color);
       }*/
 
-      .series {
+      .series, .controls {
         flex: 1;
         overflow: auto;
       }
 
-      .previewContainer {
-        height: 96px;
-        overflow: hidden;
+      .controls > paper-slider {
+        width: 100%;
       }
 
-      .seriesPreview {
-        display: flex;
-        margin: 4px;
-        padding: 4px;
-        border: 1px solid rgba(0, 0, 0, 0);
-      }
-
-      .seriesPreview:hover {
-        cursor: pointer;
-        background-color: var(--dark-primary-color);
-      }
-
-      .seriesPreview[selected] {
-        border-color: #ccff00;
-      }
-
-      img {
-        min-width: 96px;
-        min-height: 96px;
-        background-color: #000;
-      }
+      /*paper-slider {
+        --paper-slider-knob-color: #ccff00;
+        --paper-slider-active-color: #ccff00;
+      }*/
 
       [hidden] {
         display: none;
@@ -117,7 +101,7 @@
 
     <div hidden$="[[!visibleBCH]]" class="panel bch">
       <app-toolbar>
-        <div main-title>BCH PACS</div>
+        <div main-title>PACS Panel</div>
         <paper-icon-button icon="my-icons:search" on-tap="handleBCH"></paper-icon-button>
         <paper-icon-button icon="my-icons:close" on-tap="hideBCH"></paper-icon-button>
       </app-toolbar>
@@ -135,21 +119,7 @@
           <!--DATA TO VISUALIZE-->
           <template is="dom-if" if="[[data.length]]">
             <template is="dom-repeat" items="[[data]]">
-              <div class="seriesPreview"
-                selected$="[[item.selected]]"
-                on-tap="_handleSeriesSelected">
-                <div class="previewContainer">
-                  <img
-                    id$="[[item.preview.data.id]]"
-                    on-mousemove='onMove'
-                    on-mouseout='centerThumbnail'>
-                </div>
-                <div>
-                  <div>[[item.details.series.date]]</div>
-                  <div>[[item.details.series.descridivtion]]</div>
-                  <div>[[item.details.series.files]]</div>
-                </div>
-              </div>
+              <series-preview series="[[item]]" on-tap="_handleSeriesSelected"><series-preview>
             </template>
           </template>
   
@@ -169,7 +139,7 @@
         <div main-title>Viewer actions</div>
       </app-toolbar>-->
       <div class="viewers">
-        <ami-viewer-2d class="viewers"></ami-viewer-2d>
+        <ami-viewer-2d id="render" class="viewers" stack-scene="[[stackScene]]"></ami-viewer-2d>
         <!--<div id="bch"></div>-->
         <!--<div id="ge"></div>-->
       </div>
@@ -177,10 +147,16 @@
 
     <div hidden$="[[!visibleGE]]" class="panel ge">
       <app-toolbar>
-        <div main-title>GE S3</div>
-        <paper-icon-button icon="my-icons:search" on-tap="handleGE"></paper-icon-button>
+        <div main-title>Control Panel</div>
         <paper-icon-button icon="my-icons:close" on-tap="hideGE"></paper-icon-button>
       </app-toolbar>
+      <div class="controls">
+        <paper-slider value="{{stackIndex}}" immediate-value="{{stackIndex}}" min="0" max="[[stackMaxIndex]]"></paper-slider>
+        <paper-slider value="{{stackWindowWidth}}" immediate-value="{{stackWindowWidth}}" min="1" max="[[stackIntensityRange]]"></paper-slider>
+        <paper-slider value="{{stackWindowCenter}}" immediate-value="{{stackWindowCenter}}" min="[[stackIntensityMin]]" max="[[stackIntensityMax]]"></paper-slider>
+        <paper-toggle-button checked="{{stackInterpolation}}"></paper-toggle-button>
+        <paper-toggle-button checked="{{stackIntensityAuto}}"></paper-toggle-button>
+      </div>
     </div>
     <div hidden$="[[visibleGE]]" class="ge">
       <paper-icon-button icon="my-icons:chevron-left" on-tap="showGE"></paper-icon-button>
@@ -231,18 +207,65 @@
           visibleGE: {
             type: Boolean,
             value: true,
+            observer: '_visibleGEChanged',
           },
           visibleBCH: {
             type: Boolean,
             value: true,
           },
-          stack: {
+          series: {
             type: Object,
             value: {},
           },
-          slice: {
+          stackHelper: {
             type: Object,
             value: {},
+            observer: '_stackHelperChanged',
+          },
+          stackScene: {
+            type: Object,
+            value: {},
+          },
+          stackIndex: {
+            type: Number,
+            value: 0,
+            observer: '_stackIndexChanged',
+          },
+          stackMaxIndex: {
+            type: Number,
+            value: 0,
+          },
+          stackWindowWidth: {
+            type: Number,
+            value: 0,
+            observer: '_stackWindowWidthChanged',
+          },
+          stackWindowCenter: {
+            type: Number,
+            value: 0,
+            observer: '_stackWindowCenterChanged',
+          },
+          stackIntensityRange: {
+            type: Number,
+            value: 0,
+          },
+          stackIntensityMin: {
+            type: Number,
+            value: 0,
+          },
+          stackIntensityMax: {
+            type: Number,
+            value: 0,
+          },
+          stackInterpolation: {
+            type: Boolean,
+            value: true,
+            observer: '_stackInterpolationChanged',
+          },
+          stackIntensityAuto: {
+            type: Boolean,
+            value: false,
+            observer: '_stackIntensityAutoChanged',
           }
         };
       }
@@ -298,8 +321,13 @@
       }
 
       _filesChanged(files) {
+        if(files === undefined) {
+          return;
+        }
+
         // clear the map
         this.dataMap.clear();
+
         for (const file of files) {
           // handle DCM files
           if (file.data.fname.endsWith('.dcm')) {
@@ -308,8 +336,18 @@
             this._handleJPG(file);
           }
         }
+
         // convert data map to array for polymer dom-repeat to kick in
         this._updateDataArray();
+
+        // fetch previews
+        // we need to do it after _updateDataArray
+        // so "path" is set in the series
+        for(const series of this.data) {
+          if (series.preview !== null) {
+            this._fetchPreview(series);
+          }
+        }
       }
 
       _handleDCM(file) {
@@ -319,10 +357,7 @@
 
       _handleJPG(file) {
         const series = this._getSeriesFromFile(file);
-        // create unique ID and attach file to preview
-        file.data.id = `id${file.href.match(/\d+/)['0']}`;
         series.preview = file;
-        this._fetchPreview(series);
       }
 
       _getSeriesFromFile(file) {
@@ -350,17 +385,10 @@
         };
         apiData.params = {};
         // fetch ressource then update it all...
-        series.preview.imageURL = '';
         this.$.API.handleAs = 'blob';
         this.$.API.request('GET', series.preview.links.file_resource, apiData)
         .then((response) => {
-          const target =
-            this.shadowRoot.querySelector(`#${series.preview.data.id}`);
-          const urlCreator = window.URL || window.webkitURL;
-          const imageURL = urlCreator.createObjectURL(response);
-          series.preview.imageURL = imageURL;
-          target.onload = this.centerThumbnail.bind(this);
-          target.src = imageURL;
+          this.set(['data', ...series.path, 'preview.blob'], response);
         })
         .catch((error) => {
           console.log(error);
@@ -487,34 +515,104 @@
             // merge series
             const mergedSeries = series[0].mergeSeries(series);
             const firstSeries = mergedSeries[0];
+            console.log(firstSeries);
             return firstSeries;
           })
           .then((series) => {
-            // update the "stack"!
-            console.log(series);
+            this.set('series', series);
+            
+            // cleanup
+            if (this.stackHelper !== null &&
+              this.stackHelper._stack) {
+              this.stackScene.remove(this.stackHelper);
+              this.stackHelper.dispose();
+              this.stackHelper = null;
+            }
+
+            // new stack Helper
+            console.log('create stack Helper');
+            const stackHelper = new AMI.default.Helpers.Stack(series.stack[0]);
+            this.set('stackHelper', stackHelper);
+            const stackScene = new THREE.Scene();
+            stackScene.add(this.stackHelper);
+            this.set('stackScene', stackScene)
+          })
+          .catch((error) => {
+            console.log(error);
           });
       }
 
-      onMove(e) {
-        const target = e.currentTarget;
-        const normalizedPosition =
-          (e.clientX - target.offsetLeft) / target.clientWidth;
-        this.positionThumbnail(normalizedPosition, target);
+      _stackHelperChanged(stackHelper) {
+        if (stackHelper === undefined ||
+            stackHelper === null ||
+           !stackHelper._stack) {
+          return;
+        }
+
+        console.log(stackHelper);
+       
+        // acquisition direction by default
+        const stack = stackHelper.stack;
+
+        // orientation
+        stackHelper.orientation = 0;
+
+        // index
+        
+        const index = stackHelper.index;
+        this.stackMaxIndex = stackHelper.orientationMaxIndex;
+        this.stackIndex = index;
+        
+
+        // intensity
+        this.stackIntensityMin = stack.minMax[0];
+        this.stackIntensityMax = stack.minMax[1];
+        this.stackIntensityRange = stack.minMax[1] - stack.minMax[0];
+        this.stackWindowWidth = this.stackIntensityRange;
+        this.stackWindowCenter = stack.minMax[0] + this.stackIntensityRange / 2;
+        
+        // extra
+        this.stackInterpolation = true;
+        this.set('stackHelper.slice.interpolation', this.stackInterpolation ? 1 : 0);
+        this.stackIntensityAuto = false;
+        this.set('stackHelper.slice.intensityAuto', this.stackIntensityAuto );
+
       }
 
-      centerThumbnail(e) {
-        const target = e.currentTarget;
-        this.positionThumbnail(0.5, target);
+      _stackIndexChanged(index) {
+        this.set('stackHelper.index', index);
+
+        if (this.stackIntensityAuto) {
+          this.stackWindowWidth = this.stackHelper.slice.windowWidth;
+          this.stackWindowCenter = this.stackHelper.slice.windowCenter;
+        }
       }
 
-      positionThumbnail(normalizedPosition, target) {
-        const THUMBNAIL_HEIGHT = 96;
-        const TOTAL_HEIGHT = target.offsetHeight;
-        const nbFrames = TOTAL_HEIGHT / THUMBNAIL_HEIGHT;
-        const offset = Math.floor(normalizedPosition * nbFrames) * THUMBNAIL_HEIGHT;
-        target.style.transform =
-          `translateY(-${offset}px)`;
+      _stackWindowWidthChanged(width) {
+        this.set('stackHelper.slice.windowWidth', width);
       }
+
+      _stackWindowCenterChanged(center) {
+        this.set('stackHelper.slice.windowCenter', center);
+      }
+
+      _stackInterpolationChanged(interpolation) {
+        this.set('stackHelper.slice.interpolation', interpolation ? 1 : 0);
+      }
+
+      _stackIntensityAutoChanged(auto) {
+        this.set('stackHelper.slice.intensityAuto', auto);
+
+        if (auto) {
+          this.stackWindowWidth = this.stackHelper.slice.windowWidth;
+          this.stackWindowCenter = this.stackHelper.slice.windowCenter;
+        }
+      }
+
+      _visibleGEChanged(visible) {
+        this.$.render.resize()
+      }
+      
     }
 
     window.customElements.define(GEXHome.is, GEXHome);

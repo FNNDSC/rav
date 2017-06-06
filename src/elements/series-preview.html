@@ -5,55 +5,68 @@
 
     <style>
       .previewContainer {
-        height: 128px;
+        height: 96px;
         overflow: hidden;
-        position: relative;
       }
+
+      .seriesPreview {
+        display: flex;
+        margin: 4px;
+        padding: 4px;
+        border: 1px solid rgba(0, 0, 0, 0);
+      }
+
+      .seriesPreview:hover {
+        cursor: pointer;
+        background-color: var(--dark-primary-color);
+      }
+
+      .seriesPreview[selected] {
+        border-color: #ccff00;
+      }
+
       img {
         min-width: 96px;
         min-height: 96px;
         background-color: #000;
       }
+
       .about {
-          position: absolute;
-          bottom: 0;
-          left:0;
-          right: 0;
+        /*position: absolute;
+        bottom: 0;
+        left:0;
+        right: 0;*/
         padding: 2px;
         flex: 1;
         min-width: 0;
+        font-size: 12px;
+        color: var(--secondary-text-color);
       }
+
       .about > div {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
-      .description {
-        color: var(--primary-text-color);
-        font-size: 12px;
-      }
-      .date, #files {
-        color: var(--secondary-text-color);
-        font-size: 12px;
-      }
+
     </style>
-    <div item="[[series]]" class="dataInstance">
+
+    <div class="seriesPreview"
+      selected$="[[series.selected]]">
       <div class="previewContainer">
         <img
-            src="[[series.preview.imageURL]]"
-            on-mousemove='onMove'
-            on-mouseout='centerThumbnail'>
-
-        <div class="about">
-            <div class="description">[[series.details.series.description]]</div>
-            <div class="date">[[series.details.series.date]]</div>
-            <div id="files">[[series.details.series.files]]</div>
-        </div>
-
+          id="image"
+          on-mousemove='onMove'
+          on-mouseout='centerThumbnail'>
+      </div>
+      <div class="about">
+        <div class="description">[[series.details.series.description]]</div>
+        <div class="date">[[series.details.series.date]]</div>
+        <div class="files">[[series.details.series.files]]</div>
       </div>
     </div>
 
-    </template>
+  </template>
 
   <script>
     class SeriesPreview extends Polymer.Element {
@@ -67,6 +80,44 @@
             value: {},
           },
         };
+      }
+
+      static get observers() {
+        return [
+            '_previewBlobChanged(series.preview.blob)',
+          ]
+      }
+
+      onMove(e) {
+        const target = e.currentTarget;
+        const normalizedPosition =
+          (e.clientX - target.offsetLeft) / target.clientWidth;
+        this.positionThumbnail(normalizedPosition, target);
+      }
+
+      centerThumbnail(e) {
+        const target = e.currentTarget;
+        this.positionThumbnail(0.5, target);
+      }
+
+      positionThumbnail(normalizedPosition, target) {
+        const THUMBNAIL_HEIGHT = 96;
+        const TOTAL_HEIGHT = target.offsetHeight;
+        const nbFrames = TOTAL_HEIGHT / THUMBNAIL_HEIGHT;
+        const offset = Math.floor(normalizedPosition * nbFrames) * THUMBNAIL_HEIGHT;
+        target.style.transform =
+          `translateY(-${offset}px)`;
+      }
+
+      _previewBlobChanged(previewBlob) {
+        if (previewBlob === undefined) {
+          return;
+        }
+
+        const urlCreator = window.URL || window.webkitURL;
+        const imageURL = urlCreator.createObjectURL(previewBlob);
+        this.$.image.onload = this.centerThumbnail.bind(this);
+        this.$.image.src = imageURL;
       }
     }
     window.customElements.define(SeriesPreview.is, SeriesPreview);

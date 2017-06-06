@@ -24,7 +24,9 @@
     "vaadin-grid": "v3.0.0-alpha1",
     "iron-collapse": "PolymerElements/iron-collapse#^2.0.0",
     "three.js": "mrdoob/three.js#dev",
-    "ami": "fnndsc/ami#dev"
+    "ami": "fnndsc/ami#dev",
+    "paper-slider": "PolymerElements/paper-slider#^2.0.0",
+    "paper-toggle-button": "PolymerElements/paper-toggle-button#^2.0.0"
   },
   "resolutions": {
     "polymer": "^2.0.0-rc.3",
