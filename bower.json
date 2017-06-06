@@ -26,7 +26,11 @@
     "three.js": "mrdoob/three.js#dev",
     "ami": "fnndsc/ami#dev",
     "paper-slider": "PolymerElements/paper-slider#^2.0.0",
-    "paper-toggle-button": "PolymerElements/paper-toggle-button#^2.0.0"
+    "paper-toggle-button": "PolymerElements/paper-toggle-button#^2.0.0",
+    "paper-dropdown-menu": "PolymerElements/paper-dropdown-menu#^2.0.0",
+    "paper-listbox": "PolymerElements/paper-listbox#^2.0.0",
+    "paper-item": "PolymerElements/paper-item#^2.0.0",
+    "web-animations-js": "web-animations/web-animations-js#2.2.5"
   },
   "resolutions": {
     "polymer": "^2.0.0-rc.3",
@@ -37,7 +41,9 @@
     "iron-a11y-keys-behavior": "1 - 2",
     "paper-styles": "1 - 2",
     "paper-behaviors": "1 - 2",
-    "iron-scroll-target-behavior": "^v2.0.0"
+    "iron-scroll-target-behavior": "^v2.0.0",
+    "iron-iconset-svg": "1 - 2",
+    "iron-icon": "1 - 2"
   },
   "devDependencies": {
     "web-component-tester": "Polymer/web-component-tester#^6.0.0-prerelease.7"

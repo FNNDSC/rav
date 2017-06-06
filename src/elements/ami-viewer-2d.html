@@ -8,6 +8,7 @@
     <style>
       :host {
         display: block;
+        position: relative;
       }
 
       #container {
@@ -16,9 +17,60 @@
         overflow: hidden;
       }
 
-    </style>
-    <div id="container">
+      #orientation {
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        overflow:hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
 
+      }
+
+      .direction {
+        z-index: 1;
+        color: #fff;
+        text-transform: uppercase;
+        font-size: 16px;
+        position: absolute;
+        margin: 14px;
+        padding: 4px;
+        text-align: center;
+        background-color: rgba(0, 0, 0, .3);
+      }
+
+      #top {
+        top: 24px;
+      }
+
+      #bottom {
+        bottom: 0;
+      }
+
+      #left {
+        left: 0;
+      }
+
+      #right {
+        right: 0;
+      }
+
+    </style>
+
+    <div id="orientation">
+      <div id="top" class="direction"></div>
+      <div id="bottom" class="direction"></div>
+      <div id="left" class="direction"></div>
+      <div id="right" class="direction"></div>
+    </div>
+
+    <div id="container">
     </div>
 
     </template>
@@ -43,6 +95,11 @@
             value: {},
             observer: '_stackSceneChanged',
           },
+          orientation: {
+            type: String,
+            value: 'default',
+            observer: '_orientationChanged',
+          }
         };
       }
 
@@ -57,7 +114,7 @@
         this._scene = null;
         this._clipPlane = null;
         this._stackHelper = null;
-        this._orientation = 'default';
+        this.orientation = 'default';
 
         this._initScene();
         this._initCamera();
@@ -161,38 +218,60 @@
             [stack.xCosine, stack.yCosine, stack.zCosine];
           this._camera.box = box;
           this._camera.canvas = canvas;
-          this._camera.orientation = this._orientation;
+          this._camera.orientation = this.orientation;
           this._camera.update();
           this._camera.fitBox(2, 1);
 
           stackHelper.orientation = this._camera.stackOrientation;
-          // 8 OK, 89 no
           stackHelper.index = Math.floor(stackHelper.orientationMaxIndex/2);
+
+          this.updateLabels(this._camera.directionsLabel, this._stackHelper.stack.modality);
         }
       }
 
       resize() {
-        // should pass width/height from parent to give parent control
-        // needs up/right vectors to work...
-        console.log(this._container);
-        console.log(this._camera);
-
-        const canvas = {
-          width: this._container.clientWidth,
-          height: this._container.clientHeight,
-        };
-
-        this._camera.canvas = canvas;
-        this._camera.fitBox(2);
-
-        this._renderer.setSize(this._container.clientWidth, this._container.clientHeight);
-
-        // update info to draw borders properly
         if (this._stackHelper) {
+          const canvas = {
+            width: this._container.clientWidth,
+            height: this._container.clientHeight,
+          };
+
+          this._camera.canvas = canvas;
+          this._camera.fitBox(2, 1);
+
+          this._renderer.setSize(this._container.clientWidth, this._container.clientHeight);
+
+          // update info to draw borders properly
           this._stackHelper.slice.canvasWidth = this._container.clientWidth;
           this._stackHelper.slice.canvasHeight = this._container.clientHeight;
         }
       }
+
+      _orientationChanged(orientation) {
+        if (orientation === undefined ||
+        orientation === '') {
+          return;
+        }
+
+        if (this._stackHelper &&
+        this._stackHelper.stack) {
+          this._camera.orientation = orientation;
+          this._camera.update();
+          this._camera.fitBox(2, 1);
+
+          //
+          this.updateLabels(this._camera.directionsLabel, this._stackHelper.stack.modality);
+        }
+      }
+
+      updateLabels(labels, modality) {
+        if (modality === 'CR' || modality === 'DX') return;
+
+        this.$.top.innerHTML = labels[0];
+        this.$.bottom.innerHTML = labels[1];
+        this.$.right.innerHTML = labels[2];
+        this.$.left.innerHTML = labels[3];
+        }
     }
     window.customElements.define(AMIViewer2D.is, AMIViewer2D);
   </script>
