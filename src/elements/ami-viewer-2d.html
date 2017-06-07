@@ -17,7 +17,7 @@
         overflow: hidden;
       }
 
-      #orientation {
+      #overlay {
         left: 0;
         right: 0;
         top: 0;
@@ -33,41 +33,67 @@
 
       }
 
-      .direction {
+      #overlay > div {
         z-index: 1;
         color: #fff;
-        text-transform: uppercase;
-        font-size: 16px;
         position: absolute;
-        margin: 14px;
-        padding: 4px;
+        margin: 4px;
+        padding: 2px 10px;
+      }
+
+      .direction {
+        font-size: 16px;
+        text-transform: uppercase;
+      }
+
+      .information {
+        font-size: 14px;
+      }
+
+      .top {
+        top: 0;
         text-align: center;
-        background-color: rgba(0, 0, 0, .3);
       }
 
-      #top {
-        top: 24px;
-      }
-
-      #bottom {
+      .bottom {
         bottom: 0;
+        text-align: center;
       }
 
-      #left {
+      .left {
         left: 0;
+        text-align: left;
       }
 
-      #right {
+      .right {
         right: 0;
+        text-align: right;
       }
 
     </style>
 
-    <div id="orientation">
-      <div id="top" class="direction"></div>
-      <div id="bottom" class="direction"></div>
-      <div id="left" class="direction"></div>
-      <div id="right" class="direction"></div>
+    <div id="overlay">
+      <div id="top" class="top direction"></div>
+      <div id="bottom" class="bottom direction"></div>
+      <div id="left" class="left direction"></div>
+      <div id="right" class="right direction"></div>
+
+      <div id="topLeft" class="top left information">
+        <div>Image Size: 123 x 432</div>
+        <div>WW: [[stackWindowWidth]] WL: [[stackWindowCenter]]</div>
+        <div>X: 0 Y: 565 Z: 4 Value: 123</div>
+      </div>
+      <div id="topRight" class="top right information">
+        <div>Patient ID</div>
+        <div>Study Description</div>
+        <div>Series Description</div>
+      </div>
+      <div id="bottomLeft" class="bottom left information">
+        <div>Im: [[stackIndex]]/[[stackIndexMax]]</div>
+      </div>
+      <div id="bottomRight" class="bottom right information">
+        <div>Study Date: March 12, 2016</div>
+      </div>
     </div>
 
     <div id="container">
@@ -89,6 +115,7 @@
           stackHelper: {
             type: Object,
             value: {},
+            observer: '_stackHelperChanged',
           },
           stackScene: {
             type: Object,
@@ -99,8 +126,32 @@
             type: String,
             value: 'default',
             observer: '_orientationChanged',
+          },
+          stackIndex: {
+            type: Number,
+            notify: true,
+          },
+          stackIndexMax: {
+            type: Number,
+            notify: true,
+          },
+          stackWindowWidth: {
+            type: Number,
+          },
+          stackWindowCenter: {
+            type: Number,
           }
         };
+      }
+
+      constructor() {
+        super();
+        this._onScrollBound = this._onScroll.bind(this);
+      }
+
+      disconnectedCallback() {
+        super.disconnectedCallback();
+        this._controls.removeEventListener('OnScroll', this._onScrollBound);
       }
 
       ready() {
@@ -113,13 +164,16 @@
         this._slice = null;
         this._scene = null;
         this._clipPlane = null;
-        this._stackHelper = null;
+        this.stackHelper = null;
         this.orientation = 'default';
 
         this._initScene();
         this._initCamera();
         this._initControls();
         this._initRenderer();
+
+        // attach event listeners
+        this._controls.addEventListener('OnScroll', this._onScrollBound);
 
         // add dummy cube for testing
         const geometry = new THREE.BoxGeometry(200, 200, 200);
@@ -182,16 +236,16 @@
         }
 
         this._scene = stackScene;
+        const stackHelper = this._scene.children[0];
+        this.set('stackHelper', stackHelper);
         this.update();
       }
 
       update() {
-        const stackHelper = this._scene.children[0];
-        if (stackHelper) {
-          this._stackHelper = stackHelper;
-          const stack = stackHelper.stack;
-          stackHelper.slice.canvasWidth = this._container.clientWidth;
-          stackHelper.slice.canvasHeight = this._container.clientHeight;
+        if (this.stackHelper) {
+          const stack = this.stackHelper.stack;
+          this.stackHelper.slice.canvasWidth = this._container.clientWidth;
+          this.stackHelper.slice.canvasHeight = this._container.clientHeight;
 
           // set camera
           const worldbb = stack.worldBoundingBox();
@@ -222,15 +276,15 @@
           this._camera.update();
           this._camera.fitBox(2, 1);
 
-          stackHelper.orientation = this._camera.stackOrientation;
-          stackHelper.index = Math.floor(stackHelper.orientationMaxIndex/2);
+          this.stackHelper.orientation = this._camera.stackOrientation;
+          this.stackHelper.index = Math.floor(this.stackHelper.orientationMaxIndex/2);
 
-          this.updateLabels(this._camera.directionsLabel, this._stackHelper.stack.modality);
+          this.updateLabels(this._camera.directionsLabel, this.stackHelper.stack.modality);
         }
       }
 
       resize() {
-        if (this._stackHelper) {
+        if (this.stackHelper) {
           const canvas = {
             width: this._container.clientWidth,
             height: this._container.clientHeight,
@@ -242,8 +296,8 @@
           this._renderer.setSize(this._container.clientWidth, this._container.clientHeight);
 
           // update info to draw borders properly
-          this._stackHelper.slice.canvasWidth = this._container.clientWidth;
-          this._stackHelper.slice.canvasHeight = this._container.clientHeight;
+          this.stackHelper.slice.canvasWidth = this._container.clientWidth;
+          this.stackHelper.slice.canvasHeight = this._container.clientHeight;
         }
       }
 
@@ -253,25 +307,49 @@
           return;
         }
 
-        if (this._stackHelper &&
-        this._stackHelper.stack) {
+        if (this.stackHelper &&
+        this.stackHelper.stack) {
           this._camera.orientation = orientation;
           this._camera.update();
           this._camera.fitBox(2, 1);
 
           //
-          this.updateLabels(this._camera.directionsLabel, this._stackHelper.stack.modality);
+          this.updateLabels(this._camera.directionsLabel, this.stackHelper.stack.modality);
         }
       }
 
       updateLabels(labels, modality) {
         if (modality === 'CR' || modality === 'DX') return;
-
-        this.$.top.innerHTML = labels[0];
-        this.$.bottom.innerHTML = labels[1];
-        this.$.right.innerHTML = labels[2];
-        this.$.left.innerHTML = labels[3];
+          this.$.top.innerHTML = labels[0];
+          this.$.bottom.innerHTML = labels[1];
+          this.$.right.innerHTML = labels[2];
+          this.$.left.innerHTML = labels[3];
         }
+
+      _stackHelperChanged(stackHelper) {
+        if(stackHelper === undefined ||
+        stackHelper == null ||
+        !stackHelper._stack) {
+          return;
+        }
+
+        console.log(stackHelper);
+      }
+
+      _onScroll(event) {
+        if (event.delta > 0) {
+          if (this.stackHelper.index >= this.stackHelper.orientationMaxIndex - 1) {
+            return false;
+          }
+          this.stackHelper.index += 1;
+        } else {
+          if (this.stackHelper.index <= 0) {
+            return false;
+          }
+          this.stackHelper.index -= 1;
+        }
+        this.stackIndex = this.stackHelper.index;
+      }
     }
     window.customElements.define(AMIViewer2D.is, AMIViewer2D);
   </script>

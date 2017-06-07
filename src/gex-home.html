@@ -103,9 +103,14 @@
         color: var(--secondary-text-color);
       }
 
+      paper-dropdown-menu {
+        flex: 1;
+      }
+
       paper-slider {
         --paper-slider-knob-color: #ccff00;
         --paper-slider-active-color: #ccff00;
+        --paper-slider-input: {width: 64px}
       }
 
       paper-toggle-button {
@@ -165,7 +170,13 @@
         <div main-title>Viewer actions</div>
       </app-toolbar>-->
       <div class="viewers">
-        <ami-viewer-2d id="render" class="viewers" stack-scene="[[stackScene]]"></ami-viewer-2d>
+        <ami-viewer-2d
+          id="render"
+          class="viewers"
+          stack-scene="[[stackScene]]"
+          stack-index="{{stackIndex}}"
+          stack-window-width="[[stackWindowWidth]]"
+          stack-window-center="[[stackWindowCenter]]"></ami-viewer-2d>
         <!--<div id="bch"></div>-->
         <!--<div id="ge"></div>-->
       </div>
@@ -332,6 +343,21 @@
             observer: '_stackOrientationChanged',
           }
         };
+      }
+
+      constructor() {
+        super();
+        this._resizeListenerBound = this._resizeListener.bind(this);
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+        window.addEventListener('resize', this._resizeListenerBound);
+      }
+
+      disconnectedCallback() {
+        super.disconnectedCallback();
+        window.removeEventListener('resize', this._resizeListenerBound);
       }
 
       handleBCH(event) {
@@ -599,7 +625,8 @@
             this.set('stackHelper', stackHelper);
             const stackScene = new THREE.Scene();
             stackScene.add(this.stackHelper);
-            this.set('stackScene', stackScene)
+            this.set('stackScene', stackScene);
+            this.$.render.resize();
           })
           .catch((error) => {
             console.log(error);
@@ -672,11 +699,15 @@
       }
 
       _visibleGEChanged(visible) {
-        this.$.render.resize()
+        this.$.render.resize();
       }
 
       _visibleBCHChanged(visible) {
-        this.$.render.resize()
+        this.$.render.resize();
+      }
+
+      _resizeListener() {
+        this.$.render.resize();
       }
 
       _stackOrientationChanged(orientation) {
