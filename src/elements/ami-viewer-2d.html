@@ -79,9 +79,9 @@
       <div id="right" class="right direction"></div>
 
       <div id="topLeft" class="top left information">
-        <div>Image Size: 123 x 432</div>
+        <div>Image Size: [[sizeX]] x [[sizeY]]</div>
         <div>WW: [[stackWindowWidth]] WL: [[stackWindowCenter]]</div>
-        <div>X: 0 Y: 565 Z: 4 Value: 123</div>
+        <div>I: [[mouseI]] J: [[mouseJ]] K: [[mouseK]] Value: [[mouseValue]]</div>
       </div>
       <div id="topRight" class="top right information">
         <div>Patient ID</div>
@@ -89,7 +89,7 @@
         <div>Series Description</div>
       </div>
       <div id="bottomLeft" class="bottom left information">
-        <div>Im: [[stackIndex]]/[[stackIndexMax]]</div>
+        <div>Im: [[stackIndex]]/[[stackMaxIndex]]</div>
       </div>
       <div id="bottomRight" class="bottom right information">
         <div>Study Date: March 12, 2016</div>
@@ -115,7 +115,6 @@
           stackHelper: {
             type: Object,
             value: {},
-            observer: '_stackHelperChanged',
           },
           stackScene: {
             type: Object,
@@ -127,18 +126,40 @@
             value: 'default',
             observer: '_orientationChanged',
           },
+          stackOrientation: {
+            type: Number,
+            value: 0,
+            notify: true,
+          },
           stackIndex: {
             type: Number,
             notify: true,
           },
-          stackIndexMax: {
+          stackMaxIndex: {
             type: Number,
-            notify: true,
           },
           stackWindowWidth: {
             type: Number,
           },
           stackWindowCenter: {
+            type: Number,
+          },
+          sizeX: {
+            type: Number,
+          },
+          sizeY: {
+            type: Number,
+          },
+          mouseI: {
+            type: Number,
+          },
+          mouseJ: {
+            type: Number,
+          },
+          mouseK: {
+            type: Number,
+          },
+          mouseValue: {
             type: Number,
           }
         };
@@ -147,11 +168,13 @@
       constructor() {
         super();
         this._onScrollBound = this._onScroll.bind(this);
+        this._onMouseMoveBound = this._onMouseMove.bind(this);
       }
 
       disconnectedCallback() {
         super.disconnectedCallback();
         this._controls.removeEventListener('OnScroll', this._onScrollBound);
+        this._container.removeEventListener('mousemove', this._onMouseMoveBound);
       }
 
       ready() {
@@ -174,6 +197,7 @@
 
         // attach event listeners
         this._controls.addEventListener('OnScroll', this._onScrollBound);
+        this._container.addEventListener('mousemove', this._onMouseMoveBound);
 
         // add dummy cube for testing
         const geometry = new THREE.BoxGeometry(200, 200, 200);
@@ -231,7 +255,8 @@
       }
 
       _stackSceneChanged(stackScene) {
-        if (stackScene === undefined || !stackScene.children) {
+        if (stackScene === undefined
+          || !stackScene.children) {
           return;
         }
 
@@ -277,8 +302,10 @@
           this._camera.fitBox(2, 1);
 
           this.stackHelper.orientation = this._camera.stackOrientation;
+          this.stackOrientation = this._camera.stackOrientation;
           this.stackHelper.index = Math.floor(this.stackHelper.orientationMaxIndex/2);
 
+          this.updateInformation();
           this.updateLabels(this._camera.directionsLabel, this.stackHelper.stack.modality);
         }
       }
@@ -313,27 +340,30 @@
           this._camera.update();
           this._camera.fitBox(2, 1);
 
+          this.stackOrientation = this._camera.stackOrientation;
+
           //
+          this.updateInformation();
           this.updateLabels(this._camera.directionsLabel, this.stackHelper.stack.modality);
         }
       }
 
       updateLabels(labels, modality) {
-        if (modality === 'CR' || modality === 'DX') return;
-          this.$.top.innerHTML = labels[0];
-          this.$.bottom.innerHTML = labels[1];
-          this.$.right.innerHTML = labels[2];
-          this.$.left.innerHTML = labels[3];
-        }
-
-      _stackHelperChanged(stackHelper) {
-        if(stackHelper === undefined ||
-        stackHelper == null ||
-        !stackHelper._stack) {
+        if (modality === 'CR' || modality === 'DX') {
           return;
         }
 
-        console.log(stackHelper);
+        this.$.top.innerHTML = labels[0];
+        this.$.bottom.innerHTML = labels[1];
+        this.$.right.innerHTML = labels[2];
+        this.$.left.innerHTML = labels[3];
+      }
+
+      updateInformation() {
+        const stack = this.stackHelper.stack;
+        const orientation = this.stackHelper.orientation;
+        this.sizeX = stack._dimensionsIJK.getComponent((orientation + 1) % 2);
+        this.sizeY = stack._dimensionsIJK.getComponent((orientation + 2) % 2);
       }
 
       _onScroll(event) {
@@ -349,6 +379,26 @@
           this.stackHelper.index -= 1;
         }
         this.stackIndex = this.stackHelper.index;
+      }
+
+      _onMouseMove(event) {
+        const mouse = {
+          x: ((event.clientX - this._container.parentNode.host.offsetLeft) / this._container.clientWidth) * 2 - 1,
+          y: - ((event.clientY - this._container.parentNode.host.offsetTop) / this._container.clientHeight) * 2 + 1,
+        };
+
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouse, this._camera);
+
+        const intersects = raycaster.intersectObject(this._scene, true);
+        if (intersects.length > 0) {
+          let ijk =
+            AMI.default.Models.Stack.worldToData(this.stackHelper.stack, intersects[0].point);
+          this.mouseI = ijk.x;
+          this.mouseJ = ijk.y;
+          this.mouseK = ijk.z;
+          this.mouseValue = AMI.default.Models.Stack.value(this.stackHelper.stack, ijk);
+        }
       }
     }
     window.customElements.define(AMIViewer2D.is, AMIViewer2D);

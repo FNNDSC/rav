@@ -5,17 +5,12 @@
 
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
 
-<link rel="import" href="../bower_components/neon-animation/web-animations.html">
-<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
-<link rel="import" href="../bower_components/paper-item/paper-item.html">
-<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
-<link rel="import" href="../bower_components/paper-slider/paper-slider.html">
-<link rel="import" href="../bower_components/paper-toggle-button/paper-toggle-button.html">
 
 <link rel="import" href="../bower_components/chips-api/chips-api.html">
 
 <link rel="import" href="elements/ami-viewer-2d.html">
+<link rel="import" href="elements/control-panel.html">
 <link rel="import" href="elements/series-preview.html">
 
 <link rel="import" href="import-ami.html">
@@ -58,41 +53,10 @@
         flex:1;
       }
 
-      .viewers > #bch {
-        background-color: var(--bch-light-color);
-      }
-
-      .viewers > #ge {
-        background-color: var(--ge-light-color);
-      }
-
-      /*.bch {
-        border-left: 3px solid var(--bch-primary-color);
-      }
-
-      .ge {
-        border-right: 3px solid var(--ge-primary-color);
-      }
-
-      #bch {
-        border-top: 1px solid var(--bch-primary-color);
-      }
-
-      #ge {
-        border-top: 1px solid var(--ge-primary-color);
-      }*/
-
-      .series, .controls {
+      .series{
         flex: 1;
         overflow-y: auto;
         overflow-x: hidden;
-      }
-
-      .controls > div {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 4px;
       }
 
       .label {
@@ -101,22 +65,6 @@
         /*min-width: 0;*/
         font-size: 12px;
         color: var(--secondary-text-color);
-      }
-
-      paper-dropdown-menu {
-        flex: 1;
-      }
-
-      paper-slider {
-        --paper-slider-knob-color: #ccff00;
-        --paper-slider-active-color: #ccff00;
-        --paper-slider-input: {width: 64px}
-      }
-
-      paper-toggle-button {
-        --paper-toggle-button-checked-bar-color: #ccff00;
-        --paper-toggle-button-checked-button-color: #ccff00;
-        --paper-toggle-button-checked-ink-color: #ccff00;
       }
 
       [hidden] {
@@ -166,19 +114,17 @@
     </div>
 
     <div class="content">
-      <!--<app-toolbar>
-        <div main-title>Viewer actions</div>
-      </app-toolbar>-->
       <div class="viewers">
         <ami-viewer-2d
           id="render"
           class="viewers"
           stack-scene="[[stackScene]]"
           stack-index="{{stackIndex}}"
+          stack-max-index="[[stackMaxIndex]]"
+          orientation="{{orientation}}"
+          stack-orientation="{{stackOrientationIndex}}"
           stack-window-width="[[stackWindowWidth]]"
           stack-window-center="[[stackWindowCenter]]"></ami-viewer-2d>
-        <!--<div id="bch"></div>-->
-        <!--<div id="ge"></div>-->
       </div>
     </div>
 
@@ -187,45 +133,15 @@
         <div main-title>Control Panel</div>
         <paper-icon-button icon="my-icons:close" on-tap="hideGE"></paper-icon-button>
       </app-toolbar>
-      <div class="controls">
-
-        <div class="orientation">
-          <paper-dropdown-menu label="Orientation" selected-item-label="{{stackOrientation}}">
-            <paper-listbox slot="dropdown-content" class="dropdown-content" selected="0">
-              <paper-item>default</paper-item>
-              <paper-item>axial</paper-item>
-              <paper-item>coronal</paper-item>
-              <paper-item>sagittal</paper-item>
-            </paper-listbox>
-          </paper-dropdown-menu>
-        </div>
-
-        <div class="index">
-          <div class="label">Slice Index</div>
-          <paper-slider value="{{stackIndex}}" immediate-value="{{stackIndex}}" min="0" max="[[stackMaxIndex]]" editable></paper-slider>
-        </div>
-
-        <div class="windowWidth">
-          <div class="label">Window Width</div>
-          <paper-slider value="{{stackWindowWidth}}" immediate-value="{{stackWindowWidth}}" min="1" max="[[stackIntensityRange]]" editable></paper-slider>
-        </div>
-
-        <div class="windowCenter">
-          <div class="label">Window Level</div>
-          <paper-slider value="{{stackWindowCenter}}" immediate-value="{{stackWindowCenter}}" min="[[stackIntensityMin]]" max="[[stackIntensityMax]]" editable></paper-slider>
-        </div>
-
-        <div class="interpolation">
-          <div class="label">Voxel Interpolation</div>
-          <paper-toggle-button checked="{{stackInterpolation}}"></paper-toggle-button>
-        </div>
-
-        <div class="intensityAuto">
-          <div class="label">Auto Intensity</div>
-          <paper-toggle-button checked="{{stackIntensityAuto}}"></paper-toggle-button>
-        </div>
-
-      </div>
+      <control-panel
+        stack-helper="{{stackHelper}}"
+        stack-index="{{stackIndex}}"
+        stack-max-index="{{stackMaxIndex}}"
+        orientation="{{orientation}}"
+        stack-orientation="{{stackOrientationIndex}}"
+        stack-window-width="{{stackWindowWidth}}"
+        stack-window-center="{{stackWindowCenter}}"
+      ></control-panel>
     </div>
     <div hidden$="[[visibleGE]]" class="ge">
       <paper-icon-button icon="my-icons:chevron-left" on-tap="showGE"></paper-icon-button>
@@ -290,58 +206,11 @@
           stackHelper: {
             type: Object,
             value: {},
-            observer: '_stackHelperChanged',
           },
           stackScene: {
             type: Object,
             value: {},
           },
-          stackIndex: {
-            type: Number,
-            value: 0,
-            observer: '_stackIndexChanged',
-          },
-          stackMaxIndex: {
-            type: Number,
-            value: 0,
-          },
-          stackWindowWidth: {
-            type: Number,
-            value: 0,
-            observer: '_stackWindowWidthChanged',
-          },
-          stackWindowCenter: {
-            type: Number,
-            value: 0,
-            observer: '_stackWindowCenterChanged',
-          },
-          stackIntensityRange: {
-            type: Number,
-            value: 0,
-          },
-          stackIntensityMin: {
-            type: Number,
-            value: 0,
-          },
-          stackIntensityMax: {
-            type: Number,
-            value: 0,
-          },
-          stackInterpolation: {
-            type: Boolean,
-            value: true,
-            observer: '_stackInterpolationChanged',
-          },
-          stackIntensityAuto: {
-            type: Boolean,
-            value: false,
-            observer: '_stackIntensityAutoChanged',
-          },
-          stackOrientation: {
-            type: String,
-            value: 'default',
-            observer: '_stackOrientationChanged',
-          }
         };
       }
 
@@ -615,87 +484,23 @@
             if (this.stackHelper !== null &&
               this.stackHelper._stack) {
               this.stackScene.remove(this.stackHelper);
+              this.stackScene = null;
               this.stackHelper.dispose();
               this.stackHelper = null;
             }
 
             // new stack Helper
-            console.log('create stack Helper');
             const stackHelper = new AMI.default.Helpers.Stack(series.stack[0]);
-            this.set('stackHelper', stackHelper);
+            this.stackHelper = stackHelper;
             const stackScene = new THREE.Scene();
             stackScene.add(this.stackHelper);
-            this.set('stackScene', stackScene);
+
+            this.stackScene = stackScene;
             this.$.render.resize();
           })
           .catch((error) => {
             console.log(error);
           });
-      }
-
-      _stackHelperChanged(stackHelper) {
-        if (stackHelper === undefined ||
-            stackHelper === null ||
-           !stackHelper._stack) {
-          return;
-        }
-
-        console.log(stackHelper);
-       
-        // acquisition direction by default
-        const stack = stackHelper.stack;
-
-        // orientation
-        stackHelper.orientation = 0;
-
-        // index
-        this.stackMaxIndex = stackHelper.orientationMaxIndex;
-        this.stackIndex = Math.floor(this.stackMaxIndex/2);
-        
-
-        // intensity
-        this.stackIntensityMin = stack.minMax[0];
-        this.stackIntensityMax = stack.minMax[1];
-        this.stackIntensityRange = stack.minMax[1] - stack.minMax[0];
-        this.stackWindowWidth = this.stackIntensityRange;
-        this.stackWindowCenter = stack.minMax[0] + this.stackIntensityRange / 2;
-        
-        // extra
-        this.stackInterpolation = true;
-        this.set('stackHelper.slice.interpolation', this.stackInterpolation ? 1 : 0);
-        this.stackIntensityAuto = false;
-        this.set('stackHelper.slice.intensityAuto', this.stackIntensityAuto );
-
-      }
-
-      _stackIndexChanged(index) {
-        this.set('stackHelper.index', index);
-
-        if (this.stackIntensityAuto) {
-          this.stackWindowWidth = this.stackHelper.slice.windowWidth;
-          this.stackWindowCenter = this.stackHelper.slice.windowCenter;
-        }
-      }
-
-      _stackWindowWidthChanged(width) {
-        this.set('stackHelper.slice.windowWidth', width);
-      }
-
-      _stackWindowCenterChanged(center) {
-        this.set('stackHelper.slice.windowCenter', center);
-      }
-
-      _stackInterpolationChanged(interpolation) {
-        this.set('stackHelper.slice.interpolation', interpolation ? 1 : 0);
-      }
-
-      _stackIntensityAutoChanged(auto) {
-        this.set('stackHelper.slice.intensityAuto', auto);
-
-        if (auto) {
-          this.stackWindowWidth = this.stackHelper.slice.windowWidth;
-          this.stackWindowCenter = this.stackHelper.slice.windowCenter;
-        }
       }
 
       _visibleGEChanged(visible) {
@@ -709,23 +514,6 @@
       _resizeListener() {
         this.$.render.resize();
       }
-
-      _stackOrientationChanged(orientation) {
-        if (orientation === undefined ||
-        orientation === '') {
-          return;
-        }
-
-        if (this.stackHelper &&
-          this.stackHelper.stack) {
-          this.$.render.orientation = orientation;
-          this.stackHelper.orientation = this.$.render._camera.stackOrientation;
-
-          this.stackMaxIndex = this.stackHelper.orientationMaxIndex;
-          this.stackIndex = Math.floor(this.stackMaxIndex/2);
-        }
-      }
-      
     }
 
     window.customElements.define(GEXHome.is, GEXHome);

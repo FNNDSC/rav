@@ -1,0 +1,251 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/lib/mixins/gesture-event-listeners.html">
+
+<link rel="import" href="../../bower_components/neon-animation/web-animations.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-slider/paper-slider.html">
+<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
+
+<dom-module id="control-panel">
+  <template>
+
+    <style>
+      :host {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+      .container {
+        flex: 1;
+      }
+    
+      .container > div {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4px;
+      }
+
+      .label {
+        flex: 0;
+        padding: 2px;
+        /*min-width: 0;*/
+        font-size: 12px;
+        color: var(--secondary-text-color);
+      }
+
+      paper-button, paper-dropdown-menu {
+        flex: 1;
+      }
+
+      paper-slider {
+        --paper-slider-knob-color: #ccff00;
+        --paper-slider-active-color: #ccff00;
+        --paper-slider-input: {width: 64px}
+      }
+
+      paper-toggle-button {
+        --paper-toggle-button-checked-bar-color: #ccff00;
+        --paper-toggle-button-checked-button-color: #ccff00;
+        --paper-toggle-button-checked-ink-color: #ccff00;
+      }
+    </style>
+
+    <div class="container">
+        <div class="orientation">
+            <paper-dropdown-menu label="Orientation" selected-item-label="{{orientation}}">
+            <paper-listbox slot="dropdown-content" class="dropdown-content" selected="0">
+                <paper-item>default</paper-item>
+                <paper-item>axial</paper-item>
+                <paper-item>coronal</paper-item>
+                <paper-item>sagittal</paper-item>
+            </paper-listbox>
+            </paper-dropdown-menu>
+        </div>
+
+        <div class="index">
+            <div class="label">Slice Index</div>
+            <paper-slider value="{{stackIndex}}" immediate-value="{{stackIndex}}" min="0" max="[[stackMaxIndex]]" editable></paper-slider>
+        </div>
+
+        <div class="windowWidth">
+            <div class="label">Window Width</div>
+            <paper-slider value="{{stackWindowWidth}}" immediate-value="{{stackWindowWidth}}" min="1" max="[[stackIntensityRange]]" editable></paper-slider>
+        </div>
+
+        <div class="windowCenter">
+            <div class="label">Window Level</div>
+            <paper-slider value="{{stackWindowCenter}}" immediate-value="{{stackWindowCenter}}" min="[[stackIntensityMin]]" max="[[stackIntensityMax]]" editable></paper-slider>
+        </div>
+
+        <div class="interpolation">
+            <div class="label">Voxel Interpolation</div>
+            <paper-toggle-button checked="{{stackInterpolation}}"></paper-toggle-button>
+        </div>
+
+        <div class="intensityAuto">
+            <div class="label">Auto Intensity</div>
+            <paper-toggle-button checked="{{stackIntensityAuto}}"></paper-toggle-button>
+        </div>
+
+        <div class="reset">
+            <paper-button on-tap="_resetStackHelper">reset settings</paper-button>
+        </div>
+    </div>
+
+  </template>
+
+  <script>
+    class ControlPanel extends Polymer.GestureEventListeners(Polymer.Element) {
+      static get is() {
+        return 'control-panel';
+      }
+      static get properties() {
+        return {
+          stackHelper: {
+            type: Object,
+            value: {},
+            observer: '_stackHelperChanged',
+          },
+          stackIndex: {
+            type: Number,
+            value: 0,
+            observer: '_stackIndexChanged',
+            notify: true,
+          },
+          stackIntensityMin: {
+            type: Number,
+            value: 0,
+          },
+          stackIntensityRange: {
+            type: Number,
+            value: 0,
+          },
+          stackInterpolation: {
+            type: Boolean,
+            value: false,
+            observer: '_stackInterpolationChanged',
+          },
+          stackIntensityAuto: {
+            type: Boolean,
+            value: false,
+            observer: '_stackIntensityAutoChanged',
+          },
+          stackMaxIndex: {
+            type: Number,
+            value: 0,
+            notify: true,
+          },
+          orientation: {
+            type: String,
+            value: 'default',
+            notify: true,
+          },
+          stackOrientation: {
+            type: Number,
+            value: 0,
+            observer: '_stackOrientationChanged',
+          },
+          stackWindowWidth: {
+            type: Number,
+            value: 0,
+            observer: '_stackWindowWidthChanged',
+            notify: true,
+          },
+          stackWindowCenter: {
+            type: Number,
+            value: 0,
+            observer: '_stackWindowCenterChanged',
+            notify: true,
+          },
+        };
+      }
+
+      _stackHelperChanged(stackHelper) {
+        if (stackHelper === undefined ||
+          stackHelper === null ||
+          !stackHelper._stack) {
+          return;
+        }
+
+        // acquisition direction by default
+        const stack = stackHelper.stack;
+
+        // orientation
+        this.orientation = 'default';
+
+        // index
+        stackHelper.orientation = 0;
+        this.stackMaxIndex = stackHelper.orientationMaxIndex;
+        this.stackIndex = Math.floor(this.stackMaxIndex/2);
+        
+        // intensity
+        this.stackIntensityMin = stack.minMax[0];
+        this.stackIntensityMax = stack.minMax[1];
+        this.stackIntensityRange = stack.minMax[1] - stack.minMax[0];
+        this.stackWindowWidth = this.stackIntensityRange;
+        this.stackWindowCenter = stack.minMax[0] + this.stackIntensityRange / 2;
+        
+        // extra
+        this.stackInterpolation = true;
+        this.set('stackHelper.slice.interpolation', this.stackInterpolation ? 1 : 0);
+        this.stackIntensityAuto = false;
+        this.set('stackHelper.slice.intensityAuto', this.stackIntensityAuto );
+      }
+      
+      _resetStackHelper() {
+        this._stackHelperChanged(this.stackHelper);
+      }
+
+
+      _stackIndexChanged(index) {
+        this.set('stackHelper.index', index);
+
+        if (this.stackIntensityAuto) {
+          this.stackWindowWidth = this.stackHelper.slice.windowWidth;
+          this.stackWindowCenter = this.stackHelper.slice.windowCenter;
+        }
+      }
+
+      _stackWindowWidthChanged(width) {
+        this.set('stackHelper.slice.windowWidth', width);
+      }
+
+      _stackWindowCenterChanged(center) {
+        this.set('stackHelper.slice.windowCenter', center);
+      }
+
+      _stackInterpolationChanged(interpolation) {
+        this.set('stackHelper.slice.interpolation', interpolation ? 1 : 0);
+      }
+
+      _stackIntensityAutoChanged(auto) {
+        this.set('stackHelper.slice.intensityAuto', auto);
+
+        if (auto) {
+          this.stackWindowWidth = this.stackHelper.slice.windowWidth;
+          this.stackWindowCenter = this.stackHelper.slice.windowCenter;
+        }
+      }
+
+      _stackOrientationChanged(stackOrientation) {
+        if (stackOrientation === undefined ||
+        stackOrientation === '') {
+          return;
+        }
+
+      if (this.stackHelper &&
+          this.stackHelper.stack) {
+          this.stackHelper.orientation = stackOrientation;
+
+          this.stackMaxIndex = this.stackHelper.orientationMaxIndex;
+          this.stackIndex = Math.floor(this.stackMaxIndex/2);
+        }
+      }
+    }
+    window.customElements.define(ControlPanel.is, ControlPanel);
+  </script>
+</dom-module>
