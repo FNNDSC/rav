@@ -67,6 +67,10 @@
         color: var(--secondary-text-color);
       }
 
+      .ge {
+        max-height: 192px;
+      }
+
       [hidden] {
         display: none;
       }
@@ -105,6 +109,15 @@
           </template>
         </template>
       </div>
+      <div class="ge" hidden$="[[!stackHelper._stack]]">
+        <app-toolbar>
+          <div main-title>Find on GE</div>
+          <paper-icon-button icon="my-icons:search" on-tap="handleGE"></paper-icon-button>
+        </app-toolbar>
+        <div class="series">
+          <series-preview series="[[data.0]]" on-tap="_handleSeriesSelected"><series-preview>
+        </div>
+      </div>
       <div class="label">
         Copyright (c) 2016 The FNNDSC Project Authors. All rights reserved.</iron-icon>
       </div>
@@ -125,10 +138,21 @@
           stack-orientation="{{stackOrientationIndex}}"
           stack-window-width="[[stackWindowWidth]]"
           stack-window-center="[[stackWindowCenter]]"></ami-viewer-2d>
+        <ami-viewer-2d
+          id="render2"
+          class="viewers"
+          stack-scene="[[stackScene]]"
+          stack-index="{{stackIndex}}"
+          stack-max-index="[[stackMaxIndex]]"
+          orientation="{{orientation}}"
+          stack-orientation="{{stackOrientationIndex}}"
+          stack-window-width="[[stackWindowWidth]]"
+          stack-window-center="[[stackWindowCenter]]"></ami-viewer-2d>
       </div>
+
     </div>
 
-    <div hidden$="[[!visibleGE]]" class="panel ge">
+    <div hidden$="[[!visibleGE]]" class="panel">
       <app-toolbar>
         <div main-title>Control Panel</div>
         <paper-icon-button icon="my-icons:close" on-tap="hideGE"></paper-icon-button>
@@ -247,6 +271,14 @@
 
       handleGE(event) {
         console.log('fetch GE data');
+        // get patient age
+        // start new plugin
+            //         if (this.plugins[i].data.name === 'pacsretrieve') {
+            //   this.$.move.target = plugins[i].links.instances;
+            // }
+            // previous id
+        // fetch response
+        // show response
       }
 
       hideBCH() {
@@ -474,7 +506,6 @@
             // merge series
             const mergedSeries = series[0].mergeSeries(series);
             const firstSeries = mergedSeries[0];
-            console.log(firstSeries);
             return firstSeries;
           })
           .then((series) => {
@@ -497,6 +528,7 @@
 
             this.stackScene = stackScene;
             this.$.render.resize();
+            this.$.render2.resize();
           })
           .catch((error) => {
             console.log(error);
@@ -505,14 +537,17 @@
 
       _visibleGEChanged(visible) {
         this.$.render.resize();
+        this.$.render2.resize();
       }
 
       _visibleBCHChanged(visible) {
         this.$.render.resize();
+        this.$.render2.resize();
       }
 
       _resizeListener() {
         this.$.render.resize();
+        this.$.render2.resize();
       }
     }
 

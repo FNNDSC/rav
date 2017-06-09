@@ -59,7 +59,8 @@
               on-response="_handleResponse"
               on-resize="_handleResize"
               settings="{{settings}}"
-              instance="{{queryInstance}}"></gex-pacs-query>
+              instance="{{queryInstance}}"
+              target="[[queryLink]]"></gex-pacs-query>
           <gex-pacs-move
               id="move"
               name="move"
@@ -68,6 +69,7 @@
               selection="{{selection}}"
               previous-instance="[[queryInstance]]"
               plugin-instance="{{moveInstance}}"
+              target="[[moveLink]]"
               on-response="_handleResponse"
               on-page="_handlePage"></gex-pacs-move>
           <gex-pacs-error
@@ -112,11 +114,6 @@
             value: 'query',
             observer: '_pageChanged',
           },
-          plugins: {
-            type: Array,
-            value: [],
-            observer: '_pluginsChanged',
-          },
           selection:{
             type: Array,
             value: [],
@@ -149,10 +146,6 @@
             type: Number,
             value: -1,
           },
-          pluginsStatus: {
-            type: String,
-            value: '',
-          },
           feedLink: {
             type: String,
             observer: '_feedLinkChanged',
@@ -160,6 +153,14 @@
           moveInstance: {
             type: Object,
             observer: '_moveInstanceChanged',
+          },
+          queryLink: {
+            type: 'String',
+            value: '',
+          },
+          moveLink: {
+            type: 'String',
+            value: '',
           },
         };
       }
@@ -174,41 +175,8 @@
         super.ready();
       }
 
-      fetchPlugins() {
-        this.pluginsStatus = 'fetching';
-
-        // through the API
-        var data = {};
-        data.auth = {
-          type: 'token',
-          token: sessionStorage.getItem('token'),
-        };
-        data.params = {};
-        data.params.limit = 9999;
-        data.params.page_size = 9999;
-        this.$.API.request('GET', 'plugins', data)
-          .then(this._handlePluginsResponse.bind(this))
-          .catch(this._handlePluginsError.bind(this));
-      }
-
       open() {
         this.$.dialog.open();
-      }
-
-      _pluginsChanged(plugins) {
-        // Polymer 2.0 will call with `undefined` on initialization.
-        // Ignore until we are properly called with a string.
-        if (plugins === undefined) {
-          return;
-        }
-        for (let i = 0; i < this.plugins.length; i++) {
-            if (this.plugins[i].data.name === 'pacsquery') {
-              this.$.query.target = plugins[i].links.instances;
-            }
-            if (this.plugins[i].data.name === 'pacsretrieve') {
-              this.$.move.target = plugins[i].links.instances;
-            }
-          }
       }
 
       _handleResponse(response) {
@@ -267,14 +235,6 @@
 
       _blockEvent(event) {
         event.stopPropagation();
-      }
-
-      _handlePluginsResponse(response) {
-        this.pluginsStatus = 'success';
-        this.plugins = response.data;
-      }
-      _handlePluginsError(error) {
-        this.pluginStatus = 'error';
       }
 
       _gotoQuery() {

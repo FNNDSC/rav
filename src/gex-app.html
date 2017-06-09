@@ -94,7 +94,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       id="API"></chips-api>
 
     <!-- PACS pull dialog -->
-    <gex-pacs-pull id="PACSPull" on-fetch-data="_handleFetchData"></gex-pacs-pull>
+    <gex-pacs-pull
+      id="PACSPull"
+      move-link="[[moveLink]]"
+      query-link="[[queryLink]]"
+      plugins="[[plugins]]"
+      on-fetch-data="_handleFetchData"></gex-pacs-pull>
 
     <!-- Main content -->
     <app-header-layout has-scrolling-region>
@@ -122,6 +127,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           done="[[done]]"
           files="[[files]]"
           running="[[running]]"
+          ge-link="[[geLink]]"
           on-open-dialog="handleOpenDialog"></gex-home>
         <gex-view404
           name="view404"></gex-view404>
@@ -166,6 +172,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             type: Array,
             value: [],
           },
+          plugins: {
+            type: Array,
+            value: [],
+            observer: '_pluginsChanged',
+          },
           done: {
             type: Boolean,
             value: true,
@@ -173,6 +184,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           running: {
             type: Boolean,
             value: false,
+          },
+          moveLink: {
+            type: String,
+            value: '',
+          },
+          queryLink: {
+            type: String,
+            value: '',
+          },
+          geLink: {
+            type: String,
+            value: '',
           },
         };
       }
@@ -255,7 +278,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           if (this.page === 'login') {
             this.set('route.path', '/home/');
           }
-          this.$.PACSPull.fetchPlugins();
+          this.fetchPlugins();
         }
       }
 
@@ -324,35 +347,75 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           });
         }
 
-        _handleFilesError(error) {
-          console.log(error);
+      _handleFilesError(error) {
+        console.log(error);
+      }
+
+      _handleFilesResponse(response) {
+        if (response.length <= 0) {
+          this.set('files', []);
+          return;
         }
 
-        _handleFilesResponse(response) {
-          if (response.length <= 0) {
-            this.set('files', []);
-            return;
-          }
-
-          const responseTargetID = response[0].data.plugin_inst_id;
-          const currentTargetID =
-            this.pluginInstance.data.id;
-          if (responseTargetID !== currentTargetID) {
-            //
-            console.log(
-              `Discard response for plugin ${responseTargetID}
-              (current plugin: ${currentTargetID})`);
-            return;
-          }
-
-          const files = [];
-          for (const file of response) {
-            this.__formatFile(file);
-            files.push(file);
-          }
-
-          this.set('files', files);
+        const responseTargetID = response[0].data.plugin_inst_id;
+        const currentTargetID =
+          this.pluginInstance.data.id;
+        if (responseTargetID !== currentTargetID) {
+          //
+          console.log(
+            `Discard response for plugin ${responseTargetID}
+            (current plugin: ${currentTargetID})`);
+          return;
         }
+
+        const files = [];
+        for (const file of response) {
+          this.__formatFile(file);
+          files.push(file);
+        }
+
+        this.set('files', files);
+      }
+
+      fetchPlugins() {
+        // through the API
+        var data = {};
+        data.auth = {
+          type: 'token',
+          token: sessionStorage.getItem('token'),
+        };
+        data.params = {};
+        data.params.limit = 9999;
+        data.params.page_size = 9999;
+        this.$.API.request('GET', 'plugins', data)
+          .then(this._handlePluginsResponse.bind(this))
+          .catch(this._handlePluginsError.bind(this));
+      }
+
+      _handlePluginsResponse(response) {
+        this.plugins = response.data;
+      }
+  
+      _handlePluginsError(error) {
+        window.console.log(error);
+      }
+
+      _pluginsChanged(plugins) {
+        // Polymer 2.0 will call with `undefined` on initialization.
+        // Ignore until we are properly called with a string.
+        if (plugins === undefined) {
+          return;
+        }
+        for (let i = 0; i < this.plugins.length; i++) {
+          if (this.plugins[i].data.name === 'pacsquery') {
+            this.queryLink = plugins[i].links.instances;
+          }
+          if (this.plugins[i].data.name === 'pacsretrieve') {
+            this.moveLink = plugins[i].links.instances;
+            this.geLink = plugins[i].links.instances;
+          }
+        }
+      }
     }
 
     window.customElements.define(GEXApp.is, GEXApp);
