@@ -15,6 +15,9 @@
 
 <link rel="import" href="import-ami.html">
 
+<link rel="import" href="../../bower_components/chips-api/chips-api.html">
+<link rel="import" href="../../bower_components/chips-api/behaviors/chips-plugin-behavior.html">
+
 <link rel="import" href="shared-styles.html">
 <link rel="import" href="my-icons.html">
 
@@ -38,7 +41,7 @@
       }
 
       .panel {
-        width: 256px;
+        width: 192px;
         display: flex;
         flex-direction: column;
       }
@@ -46,7 +49,7 @@
       .viewers {
         flex: 1;
         display:flex;
-        flex-direction: column;
+        flex-direction: rows;
       }
 
       .viewers > div {
@@ -81,7 +84,7 @@
 
     <div hidden$="[[!visibleBCH]]" class="panel bch">
       <app-toolbar>
-        <div main-title>PACS Panel</div>
+        <div main-title>PACS</div>
         <paper-icon-button icon="my-icons:search" on-tap="handleBCH"></paper-icon-button>
         <paper-icon-button icon="my-icons:close" on-tap="hideBCH"></paper-icon-button>
       </app-toolbar>
@@ -115,7 +118,9 @@
           <paper-icon-button icon="my-icons:search" on-tap="handleGE"></paper-icon-button>
         </app-toolbar>
         <div class="series">
-          <series-preview series="[[data.0]]" on-tap="_handleSeriesSelected"><series-preview>
+          <template is="dom-repeat" items="[[dataG]]">
+            <series-preview series="[[item]]" on-tap="_handleGESeriesSelected"><series-preview>
+          </template>
         </div>
       </div>
       <div class="label">
@@ -141,20 +146,20 @@
         <ami-viewer-2d
           id="render2"
           class="viewers"
-          stack-scene="[[stackScene]]"
-          stack-index="{{stackIndex}}"
-          stack-max-index="[[stackMaxIndex]]"
-          orientation="{{orientation}}"
-          stack-orientation="{{stackOrientationIndex}}"
-          stack-window-width="[[stackWindowWidth]]"
-          stack-window-center="[[stackWindowCenter]]"></ami-viewer-2d>
+          stack-scene="[[stackSceneGE]]"
+          stack-index="{{stackIndexGE}}"
+          stack-max-index="[[stackMaxIndexGE]]"
+          orientation="{{orientationGE}}"
+          stack-orientation="{{stackOrientationIndexGE}}"
+          stack-window-width="[[stackWindowWidthGE]]"
+          stack-window-center="[[stackWindowCenterGE]]"></ami-viewer-2d>
       </div>
 
     </div>
 
     <div hidden$="[[!visibleGE]]" class="panel">
       <app-toolbar>
-        <div main-title>Control Panel</div>
+        <div main-title>Control PACS</div>
         <paper-icon-button icon="my-icons:close" on-tap="hideGE"></paper-icon-button>
       </app-toolbar>
       <control-panel
@@ -167,13 +172,28 @@
         stack-window-center="{{stackWindowCenter}}"
       ></control-panel>
     </div>
+    <div hidden$="[[!visibleGE]]" class="panel">
+      <app-toolbar>
+        <div main-title>Control GE</div>
+        <paper-icon-button icon="my-icons:close" on-tap="hideGE"></paper-icon-button>
+      </app-toolbar>
+      <control-panel
+        stack-helper="{{stackHelperGE}}"
+        stack-index="{{stackIndexGE}}"
+        stack-max-index="{{stackMaxIndexGE}}"
+        orientation="{{orientationGE}}"
+        stack-orientation="{{stackOrientationIndexGE}}"
+        stack-window-width="{{stackWindowWidthGE}}"
+        stack-window-center="{{stackWindowCenterGE}}"
+      ></control-panel>
+    </div>
     <div hidden$="[[visibleGE]]" class="ge">
       <paper-icon-button icon="my-icons:chevron-left" on-tap="showGE"></paper-icon-button>
     </div>
   </template>
 
   <script>
-    class GEXHome extends Polymer.GestureEventListeners(Polymer.Element) {
+    class GEXHome extends CHIPSPluginBehavior(Polymer.GestureEventListeners(Polymer.Element)) {
       static get is() { return 'gex-home'; }
 
       static get properties() {
@@ -204,6 +224,24 @@
             value: {},
             observer: '_dataSelectedChanged',
           },
+          filesG: {
+            type: Array,
+            value: [],
+            observer: '_filesGChanged',
+          },
+          dataG: {
+            type: Array,
+            value: [],
+          },
+          dataGMap: {
+            type: Object,
+            value: new Map(),
+          },
+          dataGSelected: {
+            type: Object,
+            value: {},
+            observer: '_dataGSelectedChanged',
+          },
           running: {
             type: Boolean,
             value: false,
@@ -212,6 +250,11 @@
             type: Array,
             value: [],
             observer: '_urlsSelectedChanged',
+          },
+          urlsGESelected: {
+            type: Array,
+            value: [],
+            observer: '_urlsGESelectedChanged',
           },
           visibleGE: {
             type: Boolean,
@@ -232,6 +275,26 @@
             value: {},
           },
           stackScene: {
+            type: Object,
+            value: {},
+          },
+          seriesGE: {
+            type: Object,
+            value: {},
+          },
+          stackHelperGE: {
+            type: Object,
+            value: {},
+          },
+          stackSceneGE: {
+            type: Object,
+            value: {},
+          },
+          geLink: {
+            type: String,
+            value: '',
+          },
+          previousInstance: {
             type: Object,
             value: {},
           },
@@ -270,15 +333,51 @@
       }
 
       handleGE(event) {
-        console.log('fetch GE data');
-        // get patient age
-        // start new plugin
-            //         if (this.plugins[i].data.name === 'pacsretrieve') {
-            //   this.$.move.target = plugins[i].links.instances;
-            // }
-            // previous id
-        // fetch response
-        // show response
+        const data = {};
+        data.auth = {
+          type: 'token',
+          token: sessionStorage.getItem('token'),
+        };
+        //
+        data.body = {};
+        data.body.template = {};
+        // the prefix:
+        data.body.template.data = [
+          {name: 'prefix', value: ''},
+          {name: 'sleep', value: ''},
+          {name: 'previous_id', value: ''},
+        ];
+        data.body.data = {};
+        data.body.data['prefix'] = 'ge';
+        data.body.data['sleep'] = '10';
+        data.body.data['previous_id'] = this.previousInstance.data.id;
+
+        this.$.API.handleAs = 'json';
+        const start = this.__startPlugin(this.$.API, this.geLink, data);
+        start.then(this._handleRetrieveResponse.bind(this))
+          .catch(this._handleRetrieveError.bind(this));
+      }
+
+      _handleRetrieveResponse(response) {
+        const fetchData = new CustomEvent(
+          'fetch-data',
+          {
+            detail: {
+              feedLink: this.feedLink,
+              pluginInstance: response.data[0],
+          },
+        });
+
+        // booo :(
+        // backend hangs if we do not wait a bit....
+        window.setTimeout(
+          () => {
+            this.dispatchEvent(fetchData);
+          }, 1000);
+      }
+
+      _handleRetrieveError(error) {
+        console.log(error);
       }
 
       hideBCH() {
@@ -316,58 +415,70 @@
           return;
         }
 
+        this._handleFilesChanged(files, 'data', this.dataMap);
+      }
+
+      _filesGChanged(filesGE) {
+        if(filesGE === undefined) {
+          return;
+        }
+
+        this._handleFilesChanged(filesGE, 'dataG', this.dataGMap);
+      }
+
+      _handleFilesChanged(files, targetLabel, targetMap) {
         // clear the map
-        this.dataMap.clear();
+        targetMap.clear();
 
         for (const file of files) {
           // handle DCM files
           if (file.data.fname.endsWith('.dcm')) {
-            this._handleDCM(file);
+            this._handleDCM(file, targetMap);
           } else if (file.data.fname.endsWith('preview.jpg')) {
-            this._handleJPG(file);
+            this._handleJPG(file, targetMap);
           }
         }
 
         // convert data map to array for polymer dom-repeat to kick in
-        this._updateDataArray();
+        this._updateDataArray(targetLabel, targetMap);
 
         // fetch previews
         // we need to do it after _updateDataArray
         // so "path" is set in the series
-        for(const series of this.data) {
+        for(const series of this[targetLabel]) {
           if (series.preview !== null) {
-            this._fetchPreview(series);
+            this._fetchPreview(series, targetLabel);
           }
         }
       }
 
-      _handleDCM(file) {
-        const series = this._getSeriesFromFile(file);
+      _handleDCM(file, targetMap) {
+        const series = this._getSeriesFromFile(file, targetMap);
         series.data.push(file);
       }
 
-      _handleJPG(file) {
-        const series = this._getSeriesFromFile(file);
+      _handleJPG(file, targetMap) {
+        const series = this._getSeriesFromFile(file, targetMap);
         series.preview = file;
       }
 
-      _getSeriesFromFile(file) {
+      _getSeriesFromFile(file, targetMap) {
         // get series directory
         const relativeFname = file.data.relative_fname;
         const relativeDirectory =
           relativeFname.slice(0, relativeFname.lastIndexOf('/'));
         
         // find series in the map
-        let series = this.dataMap.get(relativeDirectory);
+        let series = targetMap.get(relativeDirectory);
         if (series === null || series === undefined) {
           // add new series  in the map if not present
           series = this._seriesStructure();
-          this.dataMap.set(relativeDirectory, series);
+          targetMap.set(relativeDirectory, series);
         }
         return series;
       }
 
-      _fetchPreview(series) {
+      _fetchPreview(series, target) {
         //
         const apiData = {};
         apiData.auth = {
@@ -379,14 +490,14 @@
         this.$.API.handleAs = 'blob';
         this.$.API.request('GET', series.preview.links.file_resource, apiData)
         .then((response) => {
-          this.set(['data', ...series.path, 'preview.blob'], response);
+          this.set([target, ...series.path, 'preview.blob'], response);
         })
         .catch((error) => {
           console.log(error);
         });
       }
 
-      _updateDataArray() {
+      _updateDataArray(target, targetMap) {
         // Map to array
         const dataArray = [];
         // update map data
@@ -425,30 +536,130 @@
             dataArray.push(value);
         }
         
-        this.dataMap.forEach(logMapElements);
+        targetMap.forEach(logMapElements);
         // update data
-        this.set('data', dataArray);
+        this.set(target, dataArray);
       }
 
       _handleSeriesSelected(event) {
-        // unselect previous if any
-        if (this.dataSelected.selected !== undefined) {
-          this.set(['data', ...this.dataSelected.path, 'selected'], false);
+        const targetSeries = event.model.__data.item;
+        this._handleSelected(targetSeries, 'dataSelected', 'data');
+      }
+
+      _handleGESeriesSelected(event) {
+        const targetSeries = event.model.__data.item;
+        this._handleSelected(targetSeries, 'dataGSelected', 'dataG');
+      }
+
+      _handleSelected(targetSeries, selection, data) {
+        if (this[selection].selected !== undefined) {
+          this.set([data, ...this[selection].path, 'selected'], false);
         }
         // select current
-        const targetSeries = event.model.__data.item;
-        this.set('dataSelected', targetSeries);
-        this.set(['data', ...targetSeries.path, 'selected'], true);
+        this.set(selection, targetSeries);
+        this.set([data, ...targetSeries.path, 'selected'], true);
       }
 
       _dataSelectedChanged(dataSelected) {
-        if (dataSelected === undefined || !dataSelected.data) {
+        this._handleSelectedChanged(dataSelected, 'urlsSelected');
+      }
+
+      _dataGSelectedChanged(dataGSelected) {
+        this._handleSelectedChanged(dataGSelected, 'urlsGESelected');
+      }
+
+      _handleSelectedChanged(selection, targetLabel) {
+        if (selection === undefined || !selection.data) {
           return;
         }
-        const urlsSelected = dataSelected.data.map(function(obj) {
+        const urlsSelected = selection.data.map(function(obj) {
           return `${obj.links.file_resource}`;
         });
-        this.set('urlsSelected', urlsSelected);
+        this.set(targetLabel, urlsSelected);
+      }
+
+      _urlsGESelectedChanged(urls) {
+        if(urls === undefined ||
+        urls.length <= 0) {
+          return;
+        }
+
+        // need to fetch with "chips api" to pass token properly
+        const LoadersVolume = AMI.default.Loaders.Volume;
+        const loader = new LoadersVolume();
+
+        const dataAPI = {};
+        dataAPI.auth = {
+          type: 'token',
+          token: sessionStorage.getItem('token')
+        };
+
+        const fetch = (url) => {
+          this.$.API.handleAs = 'arraybuffer';
+          return this.$.API.request( 'GET', url, dataAPI );
+        }
+
+        // default load sequence promise
+        const loadSequence = (url) => {
+          return fetch(url)
+            .then((rawData) => {
+              return loader.parse({
+                url: url,
+                buffer: rawData,
+                });
+            })
+            .catch(function(error) {
+              window.console.log('oops... something went wrong...');
+              window.console.log(error);
+            });
+        }
+
+        const load = (url) => {
+          // if we load a single file, convert it to an array
+          if (!Array.isArray(url)) {
+            url = [url];
+          }
+          const loadSequences = [];
+          url.forEach((file) => {
+            loadSequences.push(
+              loadSequence(file)
+            );
+          });
+          return Promise.all(loadSequences);
+        }
+
+        return load(urls)
+          .then((series) => {
+            // merge series
+            const mergedSeries = series[0].mergeSeries(series);
+            const firstSeries = mergedSeries[0];
+            return firstSeries;
+          })
+          .then((series) => {
+            this.set('seriesGE', series);
+            
+            // cleanup
+            if (this.stackHelperGE !== null &&
+              this.stackHelperGE._stack) {
+              this.stackSceneGE.remove(this.stackHelperGE);
+              this.stackSceneGE = null;
+              this.stackHelperGE.dispose();
+              this.stackHelperGE = null;
+            }
+
+            // new stack Helper
+            const stackHelperGE = new AMI.default.Helpers.Stack(series.stack[0]);
+            this.stackHelperGE = stackHelperGE;
+            const stackSceneGE = new THREE.Scene();
+            stackSceneGE.add(this.stackHelperGE);
+
+            this.stackSceneGE = stackSceneGE;
+            this.$.render.resize();
+            this.$.render2.resize();
+          })
+          .catch((error) => {
+            console.log(error);
+          });
       }
 
       _urlsSelectedChanged(urls) {

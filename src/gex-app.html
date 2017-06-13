@@ -126,9 +126,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           fetching="[[fetching]]"
           done="[[done]]"
           files="[[files]]"
+          files-g="[[filesGE]]"
           running="[[running]]"
+          previous-instance="[[pluginInstance]]"
           ge-link="[[geLink]]"
-          on-open-dialog="handleOpenDialog"></gex-home>
+          on-open-dialog="handleOpenDialog"
+          on-fetch-data="_handleFetchGEData"></gex-home>
         <gex-view404
           name="view404"></gex-view404>
       </iron-pages>
@@ -164,11 +167,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             value: {},
             observer: '_pluginInstanceChanged',
           },
+          pluginGEInstance: {
+            type: Object,
+            value: {},
+            observer: '_pluginGEInstanceChanged',
+          },
           fetching: {
             type: Boolean,
             value: false,
           },
           files: {
+            type: Array,
+            value: [],
+          },
+          filesGE: {
             type: Array,
             value: [],
           },
@@ -291,7 +303,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.set('pluginInstance', detail.pluginInstance);
       }
 
-      _waitForPluginInstanceFinished(pluginInstance) {
+      _handleFetchGEData(event) {
+        const detail = event.detail;
+        this.set('pluginGEInstance', detail.pluginInstance);
+      }
+
+      _waitForPluginInstanceFinished(pluginInstance, property) {
         this.done = false;
         this.running = true;
 
@@ -304,7 +321,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.__waitEndPlugin(this.$.API, data, pluginInstance, true)
         .then((result) => {
           this.__formatPlugin(result, this.feed);
-          this.set('pluginInstance', result);
+          this.set(property, result);
         })
         .then(() => this.running = false);
       }
@@ -316,16 +333,32 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         if (pluginInstance.data.status === 'started') {
           // wait until finished
-          this._waitForPluginInstanceFinished(pluginInstance);
+          this._waitForPluginInstanceFinished(pluginInstance, 'pluginInstance');
         } else if (pluginInstance.data.status ===  'finishedSuccessfully') {
           // fetch files
-          this._fetchFiles(pluginInstance);
+          this._fetchFiles(pluginInstance, 'pluginInstance', 'files');
         } else {
           console.log(`Un-handled plugin instance status: ${pluginInstance.data.status}`)
         }
       }
 
-      _fetchFiles(pluginInstance) {
+      _pluginGEInstanceChanged(pluginGEInstance) {
+        if (pluginGEInstance === undefined || !pluginGEInstance.data) {
+          return;
+        }
+
+        if (pluginGEInstance.data.status === 'started') {
+          // wait until finished
+          this._waitForPluginInstanceFinished(pluginGEInstance, 'pluginGEInstance');
+        } else if (pluginGEInstance.data.status ===  'finishedSuccessfully') {
+          // fetch files
+          this._fetchFiles(pluginGEInstance, 'pluginGEInstance', 'filesGE');
+        } else {
+          console.log(`Un-handled plugin instance status: ${pluginGEInstance.data.status}`)
+        }
+      }
+
+      _fetchFiles(pluginInstance, caller, target) {
         this.fetching = true;
 
         const data = {};
@@ -339,7 +372,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.$.API.handleAs = 'json';
         //
         this.__getFilesPlugin(this.$.API, data, pluginInstance)
-          .then(this._handleFilesResponse.bind(this))
+          .then(this._handleFilesResponse.bind(this, caller, target))
           .catch(this._handleFilesError.bind(this))
           .then(() => {
             this.fetching = false;
@@ -351,15 +384,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         console.log(error);
       }
 
-      _handleFilesResponse(response) {
+      _handleFilesResponse(caller, target, response) {
         if (response.length <= 0) {
-          this.set('files', []);
+          this.set(target, []);
           return;
         }
 
         const responseTargetID = response[0].data.plugin_inst_id;
         const currentTargetID =
-          this.pluginInstance.data.id;
+          this[caller].data.id;
         if (responseTargetID !== currentTargetID) {
           //
           console.log(
@@ -374,7 +407,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           files.push(file);
         }
 
-        this.set('files', files);
+        this.set(target, files);
       }
 
       fetchPlugins() {
@@ -412,8 +445,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           }
           if (this.plugins[i].data.name === 'pacsretrieve') {
             this.moveLink = plugins[i].links.instances;
-            this.geLink = plugins[i].links.instances;
           }
+          if (this.plugins[i].data.name === 'simpledsapp') {
+            this.geLink = plugins[i].links.instances;
+          }         
         }
       }
     }
