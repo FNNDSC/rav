@@ -89,27 +89,16 @@
         <paper-icon-button icon="my-icons:close" on-tap="hideBCH"></paper-icon-button>
       </app-toolbar>
       <div class="series">
-
-        <template is="dom-if" if="[[running]]">
-          Running....
+        <!--DATA TO VISUALIZE-->
+        <template is="dom-if" if="[[data.length]]">
+          <template is="dom-repeat" items="[[data]]">
+            <series-preview series="[[item]]" on-tap="_handleSeriesSelected"><series-preview>
+          </template>
         </template>
 
-        <template is="dom-if" if="[[fetching]]">
-          Fetching...
-        </template>
-
-        <template is="dom-if" if="[[done]]">
-          <!--DATA TO VISUALIZE-->
-          <template is="dom-if" if="[[data.length]]">
-            <template is="dom-repeat" items="[[data]]">
-              <series-preview series="[[item]]" on-tap="_handleSeriesSelected"><series-preview>
-            </template>
-          </template>
-  
-          <!--NO DATA TO VISUALIZE-->
-          <template is="dom-if" if="[[!data.length]]">
-            No data available.
-          </template>
+        <!--NO DATA TO VISUALIZE-->
+        <template is="dom-if" if="[[!data.length]]">
+          No data available.
         </template>
       </div>
       <div class="ge" hidden$="[[!stackHelper._stack]]">
@@ -203,6 +192,14 @@
             value: false,
           },
           done: {
+            type: Boolean,
+            value: false,
+          },
+          doneG: {
+            type: Boolean,
+            value: false,
+          },
+          fetchingG: {
             type: Boolean,
             value: false,
           },

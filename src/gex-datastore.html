@@ -1,0 +1,179 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../../bower_components/chips-api/chips-api.html">
+<link rel="import" href="../../bower_components/chips-api/behaviors/chips-plugin-behavior.html">
+
+<dom-module id="gex-datastore">
+  <template>
+    <chips-api
+      id="API"></chips-api>
+  </template>
+
+  <script>
+    class GEXDataStore extends CHIPSPluginBehavior(Polymer.Element) {
+
+      static get is() { return 'gex-datastore'; }
+
+      static get properties() {
+        return {
+          feed: {
+            type: Object,
+            value: {},
+          },
+          pluginBch: {
+            type: Object,
+            value: {},
+            observer: '_pluginBchChanged',
+          },
+          pluginBchData: {
+            type: Array,
+            value: [],
+            //   notify: true,
+          },
+          pluginBchFiles: {
+            type: Array,
+            value: [],
+            notify: true,
+            observer: '_pluginBchFilesChanged',
+          },
+          pluginBchStatus: {
+            type: String,
+            value: '',
+            notify: true,
+          },
+          pluginGe: {
+            type: Object,
+            value: {},
+            observer: '_pluginGeChanged',
+          },
+          pluginGeData: {
+            type: Array,
+            value: [],
+            //   notify: true,
+          },
+          pluginGeFiles: {
+            type: Array,
+            value: [],
+            notify: true,
+            observer: '_pluginGeFilesChanged',
+          },
+          pluginGeStatus: {
+            type: String,
+            value: '',
+            notify: true,
+          },
+        };
+      }
+    //   observers: [
+    //     '_fetchCategory(category, offline)',
+    //     '_fetchArticle(article, offline)'
+    //   ],
+        _pluginBchChanged(pluginBch) {
+          if(!pluginBch || !pluginBch.data) {
+            return;
+          }
+
+          this._pluginChanged('Bch')
+        }
+
+        _pluginBchFilesChanged(pluginBchFiles) {
+          console.log(pluginBchFiles);
+        }
+
+        _pluginGeChanged(pluginGe) {
+          if(!pluginGe || !pluginGe.data) {
+            return;
+          }
+
+          this._pluginChanged('Ge')
+        }
+
+        _pluginGeFilesChanged(pluginGeFiles) {
+          console.log(pluginGeFiles);
+        }
+
+        _pluginChanged(target) {
+          const pluginStatus = this[`plugin${target}`].data.status;
+          if (pluginStatus === 'started') {
+            // wait until finished
+            this[`plugin${target}Status`] = 'running';
+            this._waitForPluginFinished(target);
+          } else if (pluginStatus ===  'finishedSuccessfully') {
+            // fetch files
+            this[`plugin${target}Status`] = 'fetching';
+            this._fetchFiles(target);
+          } else {
+            console.log(`Un-handled plugin instance status: ${pluginStatus}`)
+          }
+        }
+
+        _waitForPluginFinished(target) {
+          const plugin = this[`plugin${target}`];
+          const data = {};
+          data.auth = {
+            type: 'token',
+            token: sessionStorage.getItem('token'),
+          };
+
+          this.$.API.handleAs = 'json';
+          this.__waitEndPlugin(this.$.API, data, plugin, true)
+          .then((result) => {
+            this.__formatPlugin(result, this.feed);
+            this.set(`plugin${target}`, result);
+          });
+        }
+
+        _fetchFiles(target) {
+          const plugin = this[`plugin${target}`];
+          const data = {};
+          data.auth = {
+            type: 'token',
+            token: sessionStorage.getItem('token'),
+          };
+          data.params = {};
+          data.params.limit = 9999;
+          data.params.page_size = 9999;
+          this.$.API.handleAs = 'json';
+          //
+          this.__getFilesPlugin(this.$.API, data, plugin)
+          .then(this._handleFilesResponse.bind(this, target))
+          .catch(this._handleFilesError.bind(this));
+        }
+
+        _handleFilesResponse(target, response) {
+          if (response.length <= 0) {
+            this.set(`files${target}`, []);
+            return;
+          }
+
+          this[`status${target}`] = 'processing';
+
+          const plugin = this[`plugin${target}`]
+          const responseTargetID = response[0].data.plugin_inst_id;
+          const currentTargetID = plugin.data.id;
+
+          if (responseTargetID !== currentTargetID) {
+            //
+            console.log(
+              `Discard response for plugin ${responseTargetID}
+              (current plugin: ${currentTargetID})`);
+            return;
+          }
+
+          const files = [];
+          for (const file of response) {
+            this.__formatFile(file);
+            files.push(file);
+          }
+
+          this.set(`plugin${target}Files`, files);
+        }
+
+        _handleFilesError(error) {
+          console.log(error);
+        }
+    }
+
+    window.customElements.define(GEXDataStore.is, GEXDataStore);
+  </script>
+</dom-module>

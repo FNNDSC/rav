@@ -33,6 +33,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/chips-api/chips-api.html">
 <link rel="import" href="../bower_components/chips-api/behaviors/chips-plugin-behavior.html">
 
+<link rel="import" href="gex-datastore.html">
+
 <link rel="lazy-import" href="gex-login.html">
 <link rel="lazy-import" href="gex-home.html">
 <link rel="lazy-import" href="gex-view404.html">
@@ -93,6 +95,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <chips-api
       id="API"></chips-api>
 
+    <gex-datastore
+      id="datastore"
+      feed="[[feed]]"
+      plugin-bch="[[pluginBch]]"
+      plugin-bch-files="{{files}}"
+      plugin-ge="[[pluginGe]]"
+      plugin-ge-files="{{filesGE}}"></gex-datastore>
+
     <!-- PACS pull dialog -->
     <gex-pacs-pull
       id="PACSPull"
@@ -123,12 +133,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           on-login="handleLogin"></gex-login>
         <gex-home
           name="home"
-          fetching="[[fetching]]"
-          done="[[done]]"
           files="[[files]]"
           files-g="[[filesGE]]"
-          running="[[running]]"
-          previous-instance="[[pluginInstance]]"
+          previous-instance="[[pluginBch]]"
           ge-link="[[geLink]]"
           on-open-dialog="handleOpenDialog"
           on-fetch-data="_handleFetchGEData"></gex-home>
@@ -162,40 +169,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             type: Object,
             value: {},
           },
-          pluginInstance: {
-            type: Object,
-            value: {},
-            observer: '_pluginInstanceChanged',
-          },
-          pluginGEInstance: {
-            type: Object,
-            value: {},
-            observer: '_pluginGEInstanceChanged',
-          },
-          fetching: {
-            type: Boolean,
-            value: false,
-          },
-          files: {
-            type: Array,
-            value: [],
-          },
-          filesGE: {
-            type: Array,
-            value: [],
-          },
           plugins: {
             type: Array,
             value: [],
             observer: '_pluginsChanged',
-          },
-          done: {
-            type: Boolean,
-            value: true,
-          },
-          running: {
-            type: Boolean,
-            value: false,
           },
           moveLink: {
             type: String,
@@ -208,6 +185,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           geLink: {
             type: String,
             value: '',
+          },
+          pluginBch: {
+            type: Object,
+            value: {},
+          },
+          pluginGe: {
+            type: Object,
+            value: {},
           },
         };
       }
@@ -300,114 +285,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           href: detail.feedLink
           },
         );
-        this.set('pluginInstance', detail.pluginInstance);
+        this.set('pluginBch', detail.pluginInstance);
       }
 
       _handleFetchGEData(event) {
         const detail = event.detail;
-        this.set('pluginGEInstance', detail.pluginInstance);
-      }
-
-      _waitForPluginInstanceFinished(pluginInstance, property) {
-        this.done = false;
-        this.running = true;
-
-        const data = {};
-        data.auth = {
-          type: 'token',
-          token: sessionStorage.getItem('token'),
-        };
-        this.$.API.handleAs = 'json';
-        this.__waitEndPlugin(this.$.API, data, pluginInstance, true)
-        .then((result) => {
-          this.__formatPlugin(result, this.feed);
-          this.set(property, result);
-        })
-        .then(() => this.running = false);
-      }
-
-      _pluginInstanceChanged(pluginInstance) {
-        if (pluginInstance === undefined || !pluginInstance.data) {
-          return;
-        }
-
-        if (pluginInstance.data.status === 'started') {
-          // wait until finished
-          this._waitForPluginInstanceFinished(pluginInstance, 'pluginInstance');
-        } else if (pluginInstance.data.status ===  'finishedSuccessfully') {
-          // fetch files
-          this._fetchFiles(pluginInstance, 'pluginInstance', 'files');
-        } else {
-          console.log(`Un-handled plugin instance status: ${pluginInstance.data.status}`)
-        }
-      }
-
-      _pluginGEInstanceChanged(pluginGEInstance) {
-        if (pluginGEInstance === undefined || !pluginGEInstance.data) {
-          return;
-        }
-
-        if (pluginGEInstance.data.status === 'started') {
-          // wait until finished
-          this._waitForPluginInstanceFinished(pluginGEInstance, 'pluginGEInstance');
-        } else if (pluginGEInstance.data.status ===  'finishedSuccessfully') {
-          // fetch files
-          this._fetchFiles(pluginGEInstance, 'pluginGEInstance', 'filesGE');
-        } else {
-          console.log(`Un-handled plugin instance status: ${pluginGEInstance.data.status}`)
-        }
-      }
-
-      _fetchFiles(pluginInstance, caller, target) {
-        this.fetching = true;
-
-        const data = {};
-        data.auth = {
-          type: 'token',
-          token: sessionStorage.getItem('token'),
-        };
-        data.params = {};
-        data.params.limit = 9999;
-        data.params.page_size = 9999;
-        this.$.API.handleAs = 'json';
-        //
-        this.__getFilesPlugin(this.$.API, data, pluginInstance)
-          .then(this._handleFilesResponse.bind(this, caller, target))
-          .catch(this._handleFilesError.bind(this))
-          .then(() => {
-            this.fetching = false;
-            this.done = true;
-          });
-        }
-
-      _handleFilesError(error) {
-        console.log(error);
-      }
-
-      _handleFilesResponse(caller, target, response) {
-        if (response.length <= 0) {
-          this.set(target, []);
-          return;
-        }
-
-        const responseTargetID = response[0].data.plugin_inst_id;
-        const currentTargetID =
-          this[caller].data.id;
-        if (responseTargetID !== currentTargetID) {
-          //
-          console.log(
-            `Discard response for plugin ${responseTargetID}
-            (current plugin: ${currentTargetID})`);
-          return;
-        }
-
-        const files = [];
-        for (const file of response) {
-          this.__formatFile(file);
-          files.push(file);
-        }
-
-        this.set(target, files);
+        this.set('pluginGe', detail.pluginInstance);
       }
 
       fetchPlugins() {
