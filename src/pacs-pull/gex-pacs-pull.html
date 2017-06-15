@@ -185,12 +185,11 @@
           if (data.status === 'error') {
             this.error = data;
             this.page = 'error';
-            console.log(response);
           } else if (data.status === 'close') {
 
             // let app know we need to fetch the latest feed
             const fetchData = new CustomEvent(
-              'fetch-data',
+              'start-move',
               {
                 detail: {
                   feedLink: this.feedLink,

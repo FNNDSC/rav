@@ -99,17 +99,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       id="datastore"
       feed="[[feed]]"
       plugin-bch="[[pluginBch]]"
-      plugin-bch-files="{{files}}"
+      plugin-bch-data="{{data}}"
       plugin-ge="[[pluginGe]]"
-      plugin-ge-files="{{filesGE}}"></gex-datastore>
+      plugin-ge-data="{{dataGE}}"></gex-datastore>
 
     <!-- PACS pull dialog -->
     <gex-pacs-pull
       id="PACSPull"
       move-link="[[moveLink]]"
       query-link="[[queryLink]]"
-      plugins="[[plugins]]"
-      on-fetch-data="_handleFetchData"></gex-pacs-pull>
+      on-start-move="_handleStartMove"></gex-pacs-pull>
 
     <!-- Main content -->
     <app-header-layout has-scrolling-region>
@@ -133,12 +132,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           on-login="handleLogin"></gex-login>
         <gex-home
           name="home"
-          files="[[files]]"
-          files-g="[[filesGE]]"
+          data="[[data]]"
+          data-g="[[dataGE]]"
           previous-instance="[[pluginBch]]"
           ge-link="[[geLink]]"
           on-open-dialog="handleOpenDialog"
-          on-fetch-data="_handleFetchGEData"></gex-home>
+          on-start-ge="_handleStartGE"></gex-home>
         <gex-view404
           name="view404"></gex-view404>
       </iron-pages>
@@ -279,7 +278,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }
       }
 
-      _handleFetchData(event) {
+      _handleStartMove(event) {
         const detail = event.detail;
         this.set('feed', {
           href: detail.feedLink
@@ -288,7 +287,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.set('pluginBch', detail.pluginInstance);
       }
 
-      _handleFetchGEData(event) {
+      _handleStartGE(event) {
         const detail = event.detail;
         this.set('pluginGe', detail.pluginInstance);
       }

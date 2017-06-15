@@ -203,36 +203,18 @@
             type: Boolean,
             value: false,
           },
-          files: {
-            type: Array,
-            value: [],
-            observer: '_filesChanged',
-          },
           data: {
             type: Array,
             value: [],
-          },
-          dataMap: {
-            type: Object,
-            value: new Map(),
           },
           dataSelected: {
             type: Object,
             value: {},
             observer: '_dataSelectedChanged',
           },
-          filesG: {
-            type: Array,
-            value: [],
-            observer: '_filesGChanged',
-          },
           dataG: {
             type: Array,
             value: [],
-          },
-          dataGMap: {
-            type: Object,
-            value: new Map(),
           },
           dataGSelected: {
             type: Object,
@@ -357,7 +339,7 @@
 
       _handleRetrieveResponse(response) {
         const fetchData = new CustomEvent(
-          'fetch-data',
+          'start-ge',
           {
             detail: {
               feedLink: this.feedLink,
@@ -391,151 +373,6 @@
 
       showGE() {
         this.visibleGE = true;
-      }
-
-      _seriesStructure() {
-        return {
-          data: [],
-          preview: null,
-          details: {
-            series: {
-              date: 'no value provided',
-              description: 'no value provided',
-              files: 0,
-            },
-          },
-        }
-      }
-
-      _filesChanged(files) {
-        if(files === undefined) {
-          return;
-        }
-
-        this._handleFilesChanged(files, 'data', this.dataMap);
-      }
-
-      _filesGChanged(filesGE) {
-        if(filesGE === undefined) {
-          return;
-        }
-
-        this._handleFilesChanged(filesGE, 'dataG', this.dataGMap);
-      }
-
-      _handleFilesChanged(files, targetLabel, targetMap) {
-        // clear the map
-        targetMap.clear();
-
-        for (const file of files) {
-          // handle DCM files
-          if (file.data.fname.endsWith('.dcm')) {
-            this._handleDCM(file, targetMap);
-          } else if (file.data.fname.endsWith('preview.jpg')) {
-            this._handleJPG(file, targetMap);
-          }
-        }
-
-        // convert data map to array for polymer dom-repeat to kick in
-        this._updateDataArray(targetLabel, targetMap);
-
-        // fetch previews
-        // we need to do it after _updateDataArray
-        // so "path" is set in the series
-        for(const series of this[targetLabel]) {
-          if (series.preview !== null) {
-            this._fetchPreview(series, targetLabel);
-          }
-        }
-      }
-
-      _handleDCM(file, targetMap) {
-        const series = this._getSeriesFromFile(file, targetMap);
-        series.data.push(file);
-      }
-
-      _handleJPG(file, targetMap) {
-        const series = this._getSeriesFromFile(file, targetMap);
-        series.preview = file;
-      }
-
-      _getSeriesFromFile(file, targetMap) {
-        // get series directory
-        const relativeFname = file.data.relative_fname;
-        const relativeDirectory =
-          relativeFname.slice(0, relativeFname.lastIndexOf('/'));
-        
-        // find series in the map
-        let series = targetMap.get(relativeDirectory);
-        if (series === null || series === undefined) {
-          // add new series  in the map if not present
-          series = this._seriesStructure();
-          targetMap.set(relativeDirectory, series);
-        }
-        return series;
-      }
-
-      _fetchPreview(series, target) {
-        //
-        const apiData = {};
-        apiData.auth = {
-          type: 'token',
-          token: sessionStorage.getItem('token'),
-        };
-        apiData.params = {};
-        // fetch ressource then update it all...
-        this.$.API.handleAs = 'blob';
-        this.$.API.request('GET', series.preview.links.file_resource, apiData)
-        .then((response) => {
-          this.set([target, ...series.path, 'preview.blob'], response);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-      }
-
-      _updateDataArray(target, targetMap) {
-        // Map to array
-        const dataArray = [];
-        // update map data
-        function logMapElements(value, key) {
-            // set study series description
-            let seriesDate = 'no value provided';
-            let seriesDescription = 'no value provided';
-            const fullName = value.data[0].data.fname;
-            const splitName = fullName.split('/');
-            if (splitName.length >= 2) {
-              const directory = splitName[splitName.length - 2];
-              const splitSeries = directory.split('-');
-              if (splitSeries.length === 3) {
-                seriesDescription = splitSeries[0];
-                seriesDate = splitSeries[1];
-                if (seriesDate.length === 8) {
-                  seriesDate = `
-                    ${seriesDate.substring(0, 4)}-
-                    ${seriesDate.substring(4, 6)}-
-                    ${seriesDate.substring(6, 8)}`;
-                }
-              }
-            }
-            value.details.series.date = seriesDate;
-            value.details.series.description = seriesDescription;
-            // set study date
-            // set files
-            value.details.series.files = value.data.length + ' file';
-            if (value.data.length > 1) {
-              value.details.series.files += 's';
-            }
-            //
-            value.selected = false;
-            value.path = [];
-            value.path.push(dataArray.length);
-            dataArray.push(value);
-        }
-        
-        targetMap.forEach(logMapElements);
-        // update data
-        this.set(target, dataArray);
       }
 
       _handleSeriesSelected(event) {
@@ -575,57 +412,50 @@
         this.set(targetLabel, urlsSelected);
       }
 
-      _urlsGESelectedChanged(urls) {
-        if(urls === undefined ||
-        urls.length <= 0) {
-          return;
-        }
-
-        // need to fetch with "chips api" to pass token properly
-        const LoadersVolume = AMI.default.Loaders.Volume;
-        const loader = new LoadersVolume();
-
+      _fetchUrl(url) {
         const dataAPI = {};
         dataAPI.auth = {
           type: 'token',
           token: sessionStorage.getItem('token')
         };
+        this.$.API.handleAs = 'arraybuffer';
+        return this.$.API.request( 'GET', url, dataAPI );
+      }
 
-        const fetch = (url) => {
-          this.$.API.handleAs = 'arraybuffer';
-          return this.$.API.request( 'GET', url, dataAPI );
-        }
+      _loadUrl(url) {
+        const LoadersVolume = AMI.default.Loaders.Volume;
+        const loader = new LoadersVolume();
 
-        // default load sequence promise
-        const loadSequence = (url) => {
-          return fetch(url)
-            .then((rawData) => {
-              return loader.parse({
-                url: url,
-                buffer: rawData,
-                });
-            })
-            .catch(function(error) {
-              window.console.log('oops... something went wrong...');
-              window.console.log(error);
-            });
-        }
-
-        const load = (url) => {
-          // if we load a single file, convert it to an array
-          if (!Array.isArray(url)) {
-            url = [url];
-          }
-          const loadSequences = [];
-          url.forEach((file) => {
-            loadSequences.push(
-              loadSequence(file)
-            );
+        return this._fetchUrl(url)
+          .then((arrayBuffer) => {
+            return loader.parse({
+              url: url,
+              buffer: arrayBuffer,
+              });
+          })
+          .catch(function(error) {
+            window.console.log('oops... something went wrong...');
+            window.console.log(error);
           });
-          return Promise.all(loadSequences);
+      }
+
+      _loadUrls(urls) {
+        const loadSequences = [];
+        urls.forEach((url) => {
+          loadSequences.push(
+            this._loadUrl(url)
+          );
+        });
+        return Promise.all(loadSequences);
+      }
+
+      _urlsGESelectedChanged(urls) {
+        if(urls === undefined ||
+          urls.length <= 0) {
+          return;
         }
 
-        return load(urls)
+        return this._loadUrls(urls)
           .then((series) => {
             // merge series
             const mergedSeries = series[0].mergeSeries(series);
@@ -661,55 +491,11 @@
 
       _urlsSelectedChanged(urls) {
         if(urls === undefined ||
-        urls.length <= 0) {
+          urls.length <= 0) {
           return;
         }
 
-        // need to fetch with "chips api" to pass token properly
-        const LoadersVolume = AMI.default.Loaders.Volume;
-        const loader = new LoadersVolume();
-
-        const dataAPI = {};
-        dataAPI.auth = {
-          type: 'token',
-          token: sessionStorage.getItem('token')
-        };
-
-        const fetch = (url) => {
-          this.$.API.handleAs = 'arraybuffer';
-          return this.$.API.request( 'GET', url, dataAPI );
-        }
-
-        // default load sequence promise
-        const loadSequence = (url) => {
-          return fetch(url)
-            .then((rawData) => {
-              return loader.parse({
-                url: url,
-                buffer: rawData,
-                });
-            })
-            .catch(function(error) {
-              window.console.log('oops... something went wrong...');
-              window.console.log(error);
-            });
-        }
-
-        const load = (url) => {
-          // if we load a single file, convert it to an array
-          if (!Array.isArray(url)) {
-            url = [url];
-          }
-          const loadSequences = [];
-          url.forEach((file) => {
-            loadSequences.push(
-              loadSequence(file)
-            );
-          });
-          return Promise.all(loadSequences);
-        }
-
-        return load(urls)
+        return this._loadUrls(urls)
           .then((series) => {
             // merge series
             const mergedSeries = series[0].mergeSeries(series);
