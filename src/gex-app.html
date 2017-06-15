@@ -100,8 +100,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       feed="[[feed]]"
       plugin-bch="[[pluginBch]]"
       plugin-bch-data="{{data}}"
+      plugin-bch-status="{{dataStatus}}"
       plugin-ge="[[pluginGe]]"
-      plugin-ge-data="{{dataGE}}"></gex-datastore>
+      plugin-ge-data="{{dataGE}}"
+      plugin-ge-status="{{dataGEStatus}}"></gex-datastore>
 
     <!-- PACS pull dialog -->
     <gex-pacs-pull
@@ -133,7 +135,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <gex-home
           name="home"
           data="[[data]]"
+          data-status="[[dataStatus]]"
           data-g="[[dataGE]]"
+          data-ge-status="[[dataGEStatus]]"
           previous-instance="[[pluginBch]]"
           ge-link="[[geLink]]"
           on-open-dialog="handleOpenDialog"

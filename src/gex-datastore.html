@@ -136,6 +136,12 @@
             this._fetchPreview(series, target);
           }
         }
+
+        let status = 'ready';
+        if (files.length === 0) {
+          status = 'empty';
+        }
+        this.set(`plugin${target}Status`, status);
       }
 
       _fetchPreview(series, target) {
@@ -253,6 +259,7 @@
           this[`plugin${target}Status`] = 'fetching';
           this._fetchFiles(target);
         } else {
+          this[`plugin${target}Status`] = 'error';
           console.log(`Un-handled plugin instance status: ${pluginStatus}`)
         }
       }

@@ -198,17 +198,6 @@
         // attach event listeners
         this._controls.addEventListener('OnScroll', this._onScrollBound);
         this._container.addEventListener('mousemove', this._onMouseMoveBound);
-
-        // add dummy cube for testing
-        const geometry = new THREE.BoxGeometry(200, 200, 200);
-        const material = new THREE.MeshBasicMaterial({
-            color: 0xff0000,
-            wireframe: true
-        });
-        this._mesh = new THREE.Mesh(geometry, material);
-        this._scene.add(this._mesh);
-
-        this._animate();
       }
 
       _initScene() {
@@ -248,10 +237,18 @@
         this.animationFrameID = requestAnimationFrame(() => {this._animate()} );
         this._controls.update();
         this._renderer.clear();
-
-        this._mesh.rotation.x += 0.01;
-        this._mesh.rotation.y += 0.02;
         this._renderer.render( this._scene, this._camera );
+      }
+
+      startRenderingLoop() {
+        if (this.animationFrameID === -1) {
+          this._animate();
+        }
+      }
+
+      stopRenderingLoop() {
+        window.cancelAnimationFrame(this.animationFrameID);
+        this.animationFrameID = -1;
       }
 
       _stackSceneChanged(stackScene) {

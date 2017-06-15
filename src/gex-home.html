@@ -89,19 +89,31 @@
         <paper-icon-button icon="my-icons:close" on-tap="hideBCH"></paper-icon-button>
       </app-toolbar>
       <div class="series">
-        <!--DATA TO VISUALIZE-->
-        <template is="dom-if" if="[[data.length]]">
+
+        <!-- Empty-->
+        <template is="dom-if" if="[[_isEmpty(dataStatus)]]">
+          No data loaded.
+        </template>
+
+        <!-- Running plugin -->
+        <template is="dom-if" if="[[_isRunning(dataStatus)]]">
+          Running plugin.
+        </template>
+
+        <!-- Fetching data -->
+        <template is="dom-if" if="[[_isFetching(dataStatus)]]">
+          Fetching files.
+        </template>
+
+        <!-- Fetching ready -->
+        <template is="dom-if" if="[[_isReady(dataStatus)]]">
           <template is="dom-repeat" items="[[data]]">
             <series-preview series="[[item]]" on-tap="_handleSeriesSelected"><series-preview>
           </template>
         </template>
 
-        <!--NO DATA TO VISUALIZE-->
-        <template is="dom-if" if="[[!data.length]]">
-          No data available.
-        </template>
       </div>
-      <div class="ge" hidden$="[[!stackHelper._stack]]">
+      <div class="ge" hidden$="[[!_isReady(dataStatus)]]">
         <app-toolbar>
           <div main-title>Find on GE</div>
           <paper-icon-button icon="my-icons:search" on-tap="handleGE"></paper-icon-button>
@@ -187,25 +199,14 @@
 
       static get properties() {
         return {
-          fetching: {
-            type: Boolean,
-            value: false,
-          },
-          done: {
-            type: Boolean,
-            value: false,
-          },
-          doneG: {
-            type: Boolean,
-            value: false,
-          },
-          fetchingG: {
-            type: Boolean,
-            value: false,
-          },
           data: {
             type: Array,
             value: [],
+          },
+          dataStatus: {
+            type: String,
+            value: '',
+            observer: '_dataStatusChanged',
           },
           dataSelected: {
             type: Object,
@@ -215,6 +216,10 @@
           dataG: {
             type: Array,
             value: [],
+          },
+          dataGStatus: {
+            type: String,
+            value: '',
           },
           dataGSelected: {
             type: Object,
@@ -483,10 +488,22 @@
 
             this.$.render.resize();
             this.$.render2.resize();
+
+            // start rendering loop
+            this.$.render.startRenderingLoop();
+            this.$.render2.startRenderingLoop();
           })
           .catch((error) => {
             console.log(error);
           });
+      }
+
+      _dataStatusChanged(status) {
+        if (status !== 'ready') {
+          // stop rendering loops
+          this.$.render.stopRenderingLoop();
+          this.$.render2.stopRenderingLoop();
+        } 
       }
 
       _visibleGEChanged(visible) {
@@ -502,6 +519,23 @@
       _resizeListener() {
         this.$.render.resize();
         this.$.render2.resize();
+      }
+
+      _isEmpty(status) {
+        console.log(status);
+        return status === 'empty';
+      }
+
+      _isRunning(status) {
+        return status === 'running';
+      }
+
+      _isFetching(status) {
+        return status === 'fetching';
+      }
+
+      _isReady(status) {
+        return status === 'ready';
       }
     }
 
