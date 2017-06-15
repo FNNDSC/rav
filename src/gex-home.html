@@ -125,7 +125,7 @@
         <ami-viewer-2d
           id="render"
           class="viewers"
-          stack-scene="[[stackScene]]"
+          stack-scene="[[stackSceneBch]]"
           stack-index="{{stackIndex}}"
           stack-max-index="[[stackMaxIndex]]"
           orientation="{{orientation}}"
@@ -135,7 +135,7 @@
         <ami-viewer-2d
           id="render2"
           class="viewers"
-          stack-scene="[[stackSceneGE]]"
+          stack-scene="[[stackSceneGe]]"
           stack-index="{{stackIndexGE}}"
           stack-max-index="[[stackMaxIndexGE]]"
           orientation="{{orientationGE}}"
@@ -152,7 +152,7 @@
         <paper-icon-button icon="my-icons:close" on-tap="hideGE"></paper-icon-button>
       </app-toolbar>
       <control-panel
-        stack-helper="{{stackHelper}}"
+        stack-helper="{{stackHelperBch}}"
         stack-index="{{stackIndex}}"
         stack-max-index="{{stackMaxIndex}}"
         orientation="{{orientation}}"
@@ -167,7 +167,7 @@
         <paper-icon-button icon="my-icons:close" on-tap="hideGE"></paper-icon-button>
       </app-toolbar>
       <control-panel
-        stack-helper="{{stackHelperGE}}"
+        stack-helper="{{stackHelperGe}}"
         stack-index="{{stackIndexGE}}"
         stack-max-index="{{stackMaxIndexGE}}"
         orientation="{{orientationGE}}"
@@ -225,16 +225,6 @@
             type: Boolean,
             value: false,
           },
-          urlsSelected: {
-            type: Array,
-            value: [],
-            observer: '_urlsSelectedChanged',
-          },
-          urlsGESelected: {
-            type: Array,
-            value: [],
-            observer: '_urlsGESelectedChanged',
-          },
           visibleGE: {
             type: Boolean,
             value: true,
@@ -245,27 +235,19 @@
             value: true,
             observer: '_visibleBCHChanged',
           },
-          series: {
+          stackHelperBch: {
             type: Object,
             value: {},
           },
-          stackHelper: {
+          stackSceneBch: {
             type: Object,
             value: {},
           },
-          stackScene: {
+          stackHelperGe: {
             type: Object,
             value: {},
           },
-          seriesGE: {
-            type: Object,
-            value: {},
-          },
-          stackHelperGE: {
-            type: Object,
-            value: {},
-          },
-          stackSceneGE: {
+          stackSceneGe: {
             type: Object,
             value: {},
           },
@@ -395,11 +377,27 @@
       }
 
       _dataSelectedChanged(dataSelected) {
-        this._handleSelectedChanged(dataSelected, 'urlsSelected');
+        if (dataSelected === undefined || !dataSelected.data) {
+          return;
+        }
+
+        const urls = dataSelected.data.map(function(obj) {
+          return `${obj.links.file_resource}`;
+        });
+
+        this._urlsSelectedChanged(urls, 'Bch');
       }
 
       _dataGSelectedChanged(dataGSelected) {
-        this._handleSelectedChanged(dataGSelected, 'urlsGESelected');
+        if (dataGSelected === undefined || !dataGSelected.data) {
+          return;
+        }
+
+        const urls = dataGSelected.data.map(function(obj) {
+          return `${obj.links.file_resource}`;
+        });
+
+        this._urlsSelectedChanged(urls, 'Ge');
       }
 
       _handleSelectedChanged(selection, targetLabel) {
@@ -449,11 +447,14 @@
         return Promise.all(loadSequences);
       }
 
-      _urlsGESelectedChanged(urls) {
+      _urlsSelectedChanged(urls, target) {
         if(urls === undefined ||
           urls.length <= 0) {
           return;
         }
+
+        let stackHelper = this[`stackHelper${target}`];
+        let stackScene = this[`stackScene${target}`];
 
         return this._loadUrls(urls)
           .then((series) => {
@@ -463,64 +464,23 @@
             return firstSeries;
           })
           .then((series) => {
-            this.set('seriesGE', series);
-            
             // cleanup
-            if (this.stackHelperGE !== null &&
-              this.stackHelperGE._stack) {
-              this.stackSceneGE.remove(this.stackHelperGE);
-              this.stackSceneGE = null;
-              this.stackHelperGE.dispose();
-              this.stackHelperGE = null;
+            if (stackHelper !== null &&
+              stackHelper._stack) {
+              stackScene.remove(stackHelper);
+              this.set(`stackScene${target}`, null);
+              stackHelper.dispose();
+              this.set(`stackHelper${target}`, null);
             }
 
             // new stack Helper
-            const stackHelperGE = new AMI.default.Helpers.Stack(series.stack[0]);
-            this.stackHelperGE = stackHelperGE;
-            const stackSceneGE = new THREE.Scene();
-            stackSceneGE.add(this.stackHelperGE);
+            const localHelper = new AMI.default.Helpers.Stack(series.stack[0]);
+            this.set(`stackHelper${target}`, localHelper);
 
-            this.stackSceneGE = stackSceneGE;
-            this.$.render.resize();
-            this.$.render2.resize();
-          })
-          .catch((error) => {
-            console.log(error);
-          });
-      }
+            const localScene = new THREE.Scene();
+            localScene.add(localHelper);
+            this.set(`stackScene${target}`, localScene);
 
-      _urlsSelectedChanged(urls) {
-        if(urls === undefined ||
-          urls.length <= 0) {
-          return;
-        }
-
-        return this._loadUrls(urls)
-          .then((series) => {
-            // merge series
-            const mergedSeries = series[0].mergeSeries(series);
-            const firstSeries = mergedSeries[0];
-            return firstSeries;
-          })
-          .then((series) => {
-            this.set('series', series);
-            
-            // cleanup
-            if (this.stackHelper !== null &&
-              this.stackHelper._stack) {
-              this.stackScene.remove(this.stackHelper);
-              this.stackScene = null;
-              this.stackHelper.dispose();
-              this.stackHelper = null;
-            }
-
-            // new stack Helper
-            const stackHelper = new AMI.default.Helpers.Stack(series.stack[0]);
-            this.stackHelper = stackHelper;
-            const stackScene = new THREE.Scene();
-            stackScene.add(this.stackHelper);
-
-            this.stackScene = stackScene;
             this.$.render.resize();
             this.$.render2.resize();
           })

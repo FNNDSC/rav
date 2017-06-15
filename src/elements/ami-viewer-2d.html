@@ -255,8 +255,9 @@
       }
 
       _stackSceneChanged(stackScene) {
-        if (stackScene === undefined
-          || !stackScene.children) {
+        if (stackScene === undefined ||
+            stackScene === null ||
+            !stackScene.children) {
           return;
         }
 
