@@ -48,6 +48,14 @@
 
       .information {
         font-size: 14px;
+        box-sizing: border-box;
+        max-width: 50%;
+      }
+
+      .information > div {
+        text-overflow: ellipsis; 
+        overflow: hidden;
+        white-space: nowrap;
       }
 
       .top {
@@ -84,9 +92,9 @@
         <div>I: [[mouseI]] J: [[mouseJ]] K: [[mouseK]] Value: [[mouseValue]]</div>
       </div>
       <div id="topRight" class="top right information">
-        <div>Patient ID</div>
-        <div>Study Description</div>
-        <div>Series Description</div>
+        <div>[[patientID]] (age: [[patientAge]], dob: [[patientBirthdate]])</div>
+        <div>[[studyDescription]]</div>
+        <div>[[seriesDescription]]</div>
       </div>
       <div id="bottomLeft" class="bottom left information">
         <div>Im: [[stackIndex]]/[[stackMaxIndex]]</div>
@@ -143,6 +151,24 @@
           },
           stackWindowCenter: {
             type: Number,
+          },
+          patientID: {
+            type: String,
+          },
+          patientAge: {
+            type: String,
+          },
+          patientBirthdate: {
+            type: String,
+          },
+          studyDescription: {
+            type: String,
+          },
+          seriesDescription: {
+            type: String,
+          },
+          stackPatientID: {
+            type: String,
           },
           sizeX: {
             type: Number,
@@ -310,19 +336,23 @@
 
       resize() {
         if (this.stackHelper) {
+          const width = this._container.clientWidth;
+          const height = this._container.clientHeight;
+          console.log(this._container);
+          console.log(width, height);
           const canvas = {
-            width: this._container.clientWidth,
-            height: this._container.clientHeight,
+            width,
+            height,
           };
 
           this._camera.canvas = canvas;
           this._camera.fitBox(2, 1);
 
-          this._renderer.setSize(this._container.clientWidth, this._container.clientHeight);
+          this._renderer.setSize(width, height);
 
           // update info to draw borders properly
-          this.stackHelper.slice.canvasWidth = this._container.clientWidth;
-          this.stackHelper.slice.canvasHeight = this._container.clientHeight;
+          this.stackHelper.slice.canvasWidth = width;
+          this.stackHelper.slice.canvasHeight = height;
         }
       }
 

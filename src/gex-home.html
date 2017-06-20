@@ -46,10 +46,18 @@
         flex-direction: column;
       }
 
-      .viewers {
+      .viewersC {
         flex: 1;
         display:flex;
-        flex-direction: rows;
+        flex-direction: row;
+        /*height: 100%;
+        width: 100%;*/
+      }
+
+      .viewers {
+        flex: 1;
+        /*display:flex;*/
+        width: 0;
       }
 
       .viewers > div {
@@ -113,10 +121,9 @@
         </template>
 
       </div>
-      <div class="ge" hidden$="[[!_isReady(dataStatus)]]">
+      <div class="ge" hidden$="[[!_isSelected(dataSelected)]]">
         <app-toolbar>
-          <div main-title>Find on GE</div>
-          <paper-icon-button icon="my-icons:search" on-tap="handleGE"></paper-icon-button>
+          <div main-title>GE Reference [[dataGStatus]]</div>
         </app-toolbar>
         <div class="series">
           <template is="dom-repeat" items="[[dataG]]">
@@ -133,7 +140,7 @@
     </div>
 
     <div class="content">
-      <div class="viewers">
+      <div class="viewersC">
         <ami-viewer-2d
           id="render"
           class="viewers"
@@ -145,6 +152,7 @@
           stack-window-width="[[stackWindowWidth]]"
           stack-window-center="[[stackWindowCenter]]"></ami-viewer-2d>
         <ami-viewer-2d
+          hidden$="[[!_isSelected(dataGSelected)]]"
           id="render2"
           class="viewers"
           stack-scene="[[stackSceneGe]]"
@@ -173,7 +181,7 @@
         stack-window-center="{{stackWindowCenter}}"
       ></control-panel>
     </div>
-    <div hidden$="[[!visibleGE]]" class="panel">
+    <div hidden$="[[!_isSelected(dataGSelected)]]" class="panel">
       <app-toolbar>
         <div main-title>Control GE</div>
         <paper-icon-button icon="my-icons:close" on-tap="hideGE"></paper-icon-button>
@@ -458,6 +466,13 @@
           return;
         }
 
+        // cleanup GE data
+        if (target === 'Bch') {
+          this.set('dataG', []);
+          this.set('dataGSelected', {});
+          this.set('dataGStatus', 'empty');
+        }
+
         let stackHelper = this[`stackHelper${target}`];
         let stackScene = this[`stackScene${target}`];
 
@@ -472,6 +487,7 @@
             // cleanup
             if (stackHelper !== null &&
               stackHelper._stack) {
+              // reset renderers
               stackScene.remove(stackHelper);
               this.set(`stackScene${target}`, null);
               stackHelper.dispose();
@@ -489,9 +505,21 @@
             this.$.render.resize();
             this.$.render2.resize();
 
+            // update extra info
+            this.$.render.patientID = series.patientID;
+            this.$.render.patientAge = series.patientAge;
+            this.$.render.patientBorthdate = series.patientBorthdate;
+            this.$.render.studyDescription = series.studyDescription;
+            this.$.render.seriesDescription = series.seriesDescription;
+
             // start rendering loop
             this.$.render.startRenderingLoop();
             this.$.render2.startRenderingLoop();
+
+            // auto fetch GE data
+            if (target === 'Bch') {
+              this.handleGE();
+            }
           })
           .catch((error) => {
             console.log(error);
@@ -500,6 +528,11 @@
 
       _dataStatusChanged(status) {
         if (status !== 'ready') {
+          this.set('data', []);
+          this.set('dataSelected', {});
+          this.set('dataG', []);
+          this.set('dataGSelected', {});
+
           // stop rendering loops
           this.$.render.stopRenderingLoop();
           this.$.render2.stopRenderingLoop();
@@ -522,7 +555,6 @@
       }
 
       _isEmpty(status) {
-        console.log(status);
         return status === 'empty';
       }
 
@@ -536,6 +568,10 @@
 
       _isReady(status) {
         return status === 'ready';
+      }
+
+      _isSelected(data) {
+        return !(data === undefined || !data.data)
       }
     }
 
