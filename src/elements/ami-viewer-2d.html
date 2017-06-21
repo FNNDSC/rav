@@ -89,7 +89,7 @@
       <div id="topLeft" class="top left information">
         <div>Image Size: [[sizeX]] x [[sizeY]]</div>
         <div>WW: [[stackWindowWidth]] WL: [[stackWindowCenter]]</div>
-        <div>I: [[mouseI]] J: [[mouseJ]] K: [[mouseK]] Value: [[mouseValue]]</div>
+        <div>I: [[mouseI]] J: [[mouseJ]] K: [[mouseK]] Val: [[mouseValue]]</div>
       </div>
       <div id="topRight" class="top right information">
         <div>[[patientID]] (age: [[patientAge]], dob: [[patientBirthdate]])</div>
@@ -338,8 +338,6 @@
         if (this.stackHelper) {
           const width = this._container.clientWidth;
           const height = this._container.clientHeight;
-          console.log(this._container);
-          console.log(width, height);
           const canvas = {
             width,
             height,
@@ -411,8 +409,12 @@
 
       _onMouseMove(event) {
         const mouse = {
-          x: ((event.clientX - this._container.parentNode.host.offsetLeft) / this._container.clientWidth) * 2 - 1,
-          y: - ((event.clientY - this._container.parentNode.host.offsetTop) / this._container.clientHeight) * 2 + 1,
+          x: ((event.clientX
+              - this._container.offsetParent.offsetLeft
+              - this._container.offsetParent.offsetParent.offsetLeft) / this._container.clientWidth) * 2 - 1,
+          y: - ((event.clientY
+              - this._container.offsetParent.offsetTop
+              - this._container.offsetParent.offsetParent.offsetTop) / this._container.clientHeight) * 2 + 1,
         };
 
         const raycaster = new THREE.Raycaster();

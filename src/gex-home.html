@@ -50,18 +50,21 @@
         flex: 1;
         display:flex;
         flex-direction: row;
-        /*height: 100%;
-        width: 100%;*/
       }
 
       .viewers {
         flex: 1;
-        /*display:flex;*/
-        width: 0;
+        height: 0;
+        width: 100%;
       }
 
-      .viewers > div {
-        flex:1;
+      .viewerui {
+        display: flex;
+        height: 100%;
+        position: relative;
+        flex-direction: column;
+        width: 0;
+        flex: 1;
       }
 
       .series{
@@ -80,6 +83,21 @@
 
       .ge {
         max-height: 192px;
+      }
+
+      .loader {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: #212121;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        flex-direction: column;
       }
 
       [hidden] {
@@ -141,27 +159,50 @@
 
     <div class="content">
       <div class="viewersC">
-        <ami-viewer-2d
-          id="render"
-          class="viewers"
-          stack-scene="[[stackSceneBch]]"
-          stack-index="{{stackIndex}}"
-          stack-max-index="[[stackMaxIndex]]"
-          orientation="{{orientation}}"
-          stack-orientation="{{stackOrientationIndex}}"
-          stack-window-width="[[stackWindowWidth]]"
-          stack-window-center="[[stackWindowCenter]]"></ami-viewer-2d>
-        <ami-viewer-2d
-          hidden$="[[!_isSelected(dataGSelected)]]"
-          id="render2"
-          class="viewers"
-          stack-scene="[[stackSceneGe]]"
-          stack-index="{{stackIndexGE}}"
-          stack-max-index="[[stackMaxIndexGE]]"
-          orientation="{{orientationGE}}"
-          stack-orientation="{{stackOrientationIndexGE}}"
-          stack-window-width="[[stackWindowWidthGE]]"
-          stack-window-center="[[stackWindowCenterGE]]"></ami-viewer-2d>
+        <div class="viewerui">
+          <div hidden$="[[!_isLoading('bch', dataSelected, dataGSelected, urlsTotal)]]">
+            <div class="loader">
+              <div>
+                  <!--<paper-spinner active>...</paper-spinner>-->
+              </div>
+              <div>
+                  Loading the data: [[urlsLoaded]] / [[urlsTotal]]
+              </div>
+            </div>
+          </div>
+          <ami-viewer-2d
+            id="render"
+            class="viewers"
+            stack-scene="[[stackSceneBch]]"
+            stack-index="{{stackIndex}}"
+            stack-max-index="[[stackMaxIndex]]"
+            orientation="{{orientation}}"
+            stack-orientation="{{stackOrientationIndex}}"
+            stack-window-width="[[stackWindowWidth]]"
+            stack-window-center="[[stackWindowCenter]]"></ami-viewer-2d>
+        </div>
+        <div class="viewerui" hidden$="[[!_isSelected(dataGSelected)]]">
+          <div hidden$="[[!_isLoading('ge', dataSelected, dataGSelected, urlsTotal)]]">
+            <div class="loader">
+              <div>
+                  <!--<paper-spinner active>...</paper-spinner>-->
+              </div>
+              <div>
+                  Loading the data: [[urlsLoaded]] / [[urlsTotal]]
+              </div>
+            </div>
+          </div>
+          <ami-viewer-2d
+            id="render2"
+            class="viewers"
+            stack-scene="[[stackSceneGe]]"
+            stack-index="{{stackIndexGE}}"
+            stack-max-index="[[stackMaxIndexGE]]"
+            orientation="{{orientationGE}}"
+            stack-orientation="{{stackOrientationIndexGE}}"
+            stack-window-width="[[stackWindowWidthGE]]"
+            stack-window-center="[[stackWindowCenterGE]]"></ami-viewer-2d>
+        </div>
       </div>
 
     </div>
@@ -387,6 +428,9 @@
         // select current
         this.set(selection, targetSeries);
         this.set([data, ...targetSeries.path, 'selected'], true);
+        //
+        this.$.render.resize();
+        this.$.render2.resize();
       }
 
       _dataSelectedChanged(dataSelected) {
@@ -397,6 +441,11 @@
         const urls = dataSelected.data.map(function(obj) {
           return `${obj.links.file_resource}`;
         });
+
+        // cleanup GE data
+        this.set('dataG', []);
+        this.set('dataGSelected', {});
+        this.set('dataGStatus', 'empty');
 
         this._urlsSelectedChanged(urls, 'Bch');
       }
@@ -439,9 +488,14 @@
 
         return this._fetchUrl(url)
           .then((arrayBuffer) => {
+            this.urlsLoaded += 1;
             return loader.parse({
               url: url,
               buffer: arrayBuffer,
+              })
+              .then((response) => {
+                this.urlsParsed +=1;
+                return response;
               });
           })
           .catch(function(error) {
@@ -451,6 +505,11 @@
       }
 
       _loadUrls(urls) {
+        // number of files to be loaded
+        this.urlsTotal = urls.length;
+        this.urlsLoaded = 0;
+        this.urlsParsed = 0;
+
         const loadSequences = [];
         urls.forEach((url) => {
           loadSequences.push(
@@ -466,13 +525,6 @@
           return;
         }
 
-        // cleanup GE data
-        if (target === 'Bch') {
-          this.set('dataG', []);
-          this.set('dataGSelected', {});
-          this.set('dataGStatus', 'empty');
-        }
-
         let stackHelper = this[`stackHelper${target}`];
         let stackScene = this[`stackScene${target}`];
 
@@ -484,7 +536,19 @@
             return firstSeries;
           })
           .then((series) => {
+            // make sure first frame we have is matching the requested url
+            // it could be different if a user clicked on different series while another was loading
+            const firstFrameUrl = series.stack[0].frame[0].url;
+            if (urls.indexOf(firstFrameUrl) < 0) {
+              urls = null;
+              series = null;
+              return;
+            }
+
             // cleanup
+            this.urlsTotal = 0;
+            this.urlsLoaded = 0;
+            this.urlsParsed = 0;
             if (stackHelper !== null &&
               stackHelper._stack) {
               // reset renderers
@@ -572,6 +636,19 @@
 
       _isSelected(data) {
         return !(data === undefined || !data.data)
+      }
+
+      _isLoading(target, dataSelected, dataGESelected, urlsTotal) {
+        // number of files reset to 0 when urls are loaded
+        if (target === 'bch' && dataSelected && dataSelected.data &&
+          (dataGESelected === undefined || dataGESelected.data ==undefined) &&
+          urlsTotal > 0) {
+          return true;
+        } else if (target === 'ge' && dataGESelected && dataGESelected.data && urlsTotal > 0) {
+          return true;
+        }
+
+        return false;
       }
     }
 
