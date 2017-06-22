@@ -525,9 +525,6 @@
           return;
         }
 
-        let stackHelper = this[`stackHelper${target}`];
-        let stackScene = this[`stackScene${target}`];
-
         return this._loadUrls(urls)
           .then((series) => {
             // merge series
@@ -539,7 +536,15 @@
             // make sure first frame we have is matching the requested url
             // it could be different if a user clicked on different series while another was loading
             const firstFrameUrl = series.stack[0].frame[0].url;
-            if (urls.indexOf(firstFrameUrl) < 0) {
+            let dataSelected = this.dataSelected;
+            if (target === 'Ge') {
+              dataSelected = this.dataGSelected;
+            }
+            const test = dataSelected.data.map(function(obj) {
+              return `${obj.links.file_resource}`;
+            });
+
+            if (test.indexOf(firstFrameUrl) < 0) {
               urls = null;
               series = null;
               return;
@@ -549,6 +554,9 @@
             this.urlsTotal = 0;
             this.urlsLoaded = 0;
             this.urlsParsed = 0;
+
+            let stackHelper = this[`stackHelper${target}`];
+            let stackScene = this[`stackScene${target}`];
             if (stackHelper !== null &&
               stackHelper._stack) {
               // reset renderers
