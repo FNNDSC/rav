@@ -6,7 +6,7 @@
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
 
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
-<link rel="import" href="../../bower_components/paper-slider/paper-slider.html">
+<link rel="import" href="../bower_components/paper-slider/paper-slider.html">
 
 <link rel="import" href="../bower_components/chips-api/chips-api.html">
 
@@ -16,8 +16,8 @@
 
 <link rel="import" href="import-ami.html">
 
-<link rel="import" href="../../bower_components/chips-api/chips-api.html">
-<link rel="import" href="../../bower_components/chips-api/behaviors/chips-plugin-behavior.html">
+<link rel="import" href="../bower_components/chips-api/chips-api.html">
+<link rel="import" href="../bower_components/chips-api/behaviors/chips-plugin-behavior.html">
 
 <link rel="import" href="shared-styles.html">
 <link rel="import" href="my-icons.html">
@@ -113,7 +113,6 @@
       .viewHead {
         width: 100%;
         background-color: var(--light-primary-color);
-        padding: 16px;
       }
 
       [hidden] {
@@ -133,35 +132,35 @@
       <div class="series">
 
         <!-- Empty-->
-        <template is="dom-if" if="[[_isEmpty(dataStatus)]]">
+        <template is="dom-if" if="[[_isEmpty(dataStatusBch)]]">
           No data loaded.
         </template>
 
         <!-- Running plugin -->
-        <template is="dom-if" if="[[_isRunning(dataStatus)]]">
+        <template is="dom-if" if="[[_isRunning(dataStatusBch)]]">
           Running plugin.
         </template>
 
         <!-- Fetching data -->
-        <template is="dom-if" if="[[_isFetching(dataStatus)]]">
+        <template is="dom-if" if="[[_isFetching(dataStatusBch)]]">
           Fetching files.
         </template>
 
         <!-- Fetching ready -->
-        <template is="dom-if" if="[[_isReady(dataStatus)]]">
-          <template is="dom-repeat" items="[[data]]">
+        <template is="dom-if" if="[[_isReady(dataStatusBch)]]">
+          <template is="dom-repeat" items="[[dataBch]]">
             <series-preview series="[[item]]" on-tap="_handleSeriesSelected"><series-preview>
           </template>
         </template>
 
       </div>
-      <div class="ge" hidden$="[[!_isSelected(dataSelected)]]">
+      <div class="ge" hidden$="[[!_isSelected(dataSelectedBch)]]">
         <app-toolbar>
-          <div main-title>GE Reference [[dataGStatus]]</div>
+          <div main-title>GE Reference [[dataStatusGe]]</div>
         </app-toolbar>
         <div class="series">
-          <template is="dom-repeat" items="[[dataG]]">
-            <series-preview series="[[item]]" on-tap="_handleGESeriesSelected"><series-preview>
+          <template is="dom-repeat" items="[[dataGe]]">
+            <series-preview series="[[item]]" on-tap="_handleSeriesSelectedGe"><series-preview>
           </template>
         </div>
       </div>
@@ -176,7 +175,7 @@
     <div class="content">
       <div class="viewersC">
         <div class="viewerui">
-          <div hidden$="[[!_isLoading('bch', dataSelected, dataGSelected, urlsTotal)]]">
+          <div hidden$="[[!_isLoading('bch', dataSelectedBch, dataSelectedGe, urlsTotal)]]">
             <div class="loader">
               <div>
                   <!--<paper-spinner active>...</paper-spinner>-->
@@ -186,7 +185,13 @@
               </div>
             </div>
           </div>
-          <div class="viewHead"></div>
+          <div class="viewHead">
+            <app-toolbar>
+              <div main-title></div>
+              <!--<paper-icon-button icon="my-icons:fullscreen" on-tap="hideGE"></paper-icon-button>-->
+              <paper-icon-button icon="my-icons:close" on-tap="closeBch"></paper-icon-button>
+            </app-toolbar>
+          </div>
           <ami-viewer-2d
             id="render"
             class="viewers"
@@ -205,8 +210,8 @@
             editable></paper-slider>
             
         </div>
-        <div class="viewerui" hidden$="[[!_isSelected(dataGSelected)]]">
-          <div hidden$="[[!_isLoading('ge', dataSelected, dataGSelected, urlsTotal)]]">
+        <div class="viewerui" hidden$="[[!_isSelected(dataSelectedGe)]]">
+          <div hidden$="[[!_isLoading('ge', dataSelected, dataSelectedGe, urlsTotal)]]">
             <div class="loader">
               <div>
                   <!--<paper-spinner active>...</paper-spinner>-->
@@ -216,7 +221,13 @@
               </div>
             </div>
           </div>
-          <div class="viewHead"></div>
+          <div class="viewHead">
+            <app-toolbar>
+              <div main-title></div>
+              <!--<paper-icon-button icon="my-icons::fullscreen" on-tap="hideGE"></paper-icon-button>-->
+              <paper-icon-button icon="my-icons:close" on-tap="closeGe"></paper-icon-button>
+            </app-toolbar>
+          </div>
           <ami-viewer-2d
             id="render2"
             class="viewers"
@@ -239,7 +250,7 @@
 
     <div hidden$="[[!visibleGE]]" class="panel">
       <app-toolbar>
-        <div main-title>Control PACS</div>
+        <div main-title>Controls</div>
         <paper-icon-button icon="my-icons:close" on-tap="hideGE"></paper-icon-button>
       </app-toolbar>
       <control-panel
@@ -252,7 +263,7 @@
         stack-window-center="{{stackWindowCenter}}"
       ></control-panel>
     </div>
-    <div hidden$="[[!_isSelected(dataGSelected)]]" class="panel">
+    <!--<div hidden$="[[!_isSelected(dataGSelected)]]" class="panel">
       <app-toolbar>
         <div main-title>Control GE</div>
         <paper-icon-button icon="my-icons:close" on-tap="hideGE"></paper-icon-button>
@@ -266,7 +277,7 @@
         stack-window-width="{{stackWindowWidthGE}}"
         stack-window-center="{{stackWindowCenterGE}}"
       ></control-panel>
-    </div>
+    </div>-->
     <div hidden$="[[visibleGE]]" class="ge">
       <paper-icon-button icon="my-icons:chevron-left" on-tap="showGE"></paper-icon-button>
     </div>
@@ -278,32 +289,32 @@
 
       static get properties() {
         return {
-          data: {
+          dataBch: {
             type: Array,
             value: [],
           },
-          dataStatus: {
+          dataStatusBch: {
             type: String,
             value: '',
-            observer: '_dataStatusChanged',
+            observer: '_dataStatusBchChanged',
           },
-          dataSelected: {
+          dataSelectedBch: {
             type: Object,
             value: {},
-            observer: '_dataSelectedChanged',
+            observer: '_dataSelectedBchChanged',
           },
-          dataG: {
+          dataGe: {
             type: Array,
             value: [],
           },
-          dataGStatus: {
+          dataStatusGe: {
             type: String,
             value: '',
           },
-          dataGSelected: {
+          dataSelectedGe: {
             type: Object,
             value: {},
-            observer: '_dataGSelectedChanged',
+            observer: '_dataSelectedGeChanged',
           },
           running: {
             type: Boolean,
@@ -312,12 +323,12 @@
           visibleGE: {
             type: Boolean,
             value: true,
-            observer: '_visibleGEChanged',
+            observer: '_visibleGeChanged',
           },
           visibleBCH: {
             type: Boolean,
             value: true,
-            observer: '_visibleBCHChanged',
+            observer: '_visibleBcgChanged',
           },
           stackHelperBch: {
             type: Object,
@@ -443,49 +454,53 @@
 
       _handleSeriesSelected(event) {
         const targetSeries = event.model.__data.item;
-        this._handleSelected(targetSeries, 'dataSelected', 'data');
+        this._handleSelected(targetSeries, 'Bch');
       }
 
-      _handleGESeriesSelected(event) {
+      _handleSeriesSelectedGe(event) {
         const targetSeries = event.model.__data.item;
-        this._handleSelected(targetSeries, 'dataGSelected', 'dataG');
+        this._handleSelected(targetSeries, 'Ge');
       }
 
-      _handleSelected(targetSeries, selection, data) {
-        if (this[selection].selected !== undefined) {
-          this.set([data, ...this[selection].path, 'selected'], false);
+      _handleSelected(targetSeries, target) {
+        const selection = this[`dataSelected${target}`];
+        const data = this[`data${target}`];
+  
+        if (selection.selected !== undefined) {
+          this.set([`data${target}`, ...selection.path, 'selected'], false);
         }
         // select current
-        this.set(selection, targetSeries);
-        this.set([data, ...targetSeries.path, 'selected'], true);
+        this.set(`dataSelected${target}`, targetSeries);
+        this.set([`data${target}`, ...targetSeries.path, 'selected'], true);
         //
         this.$.render.resize();
         this.$.render2.resize();
       }
 
-      _dataSelectedChanged(dataSelected) {
-        if (dataSelected === undefined || !dataSelected.data) {
+      _dataSelectedBchChanged(dataSelectedBch) {
+        if (dataSelectedBch === undefined || !dataSelectedBch.data) {
           return;
         }
+        
+        this._cleanupStackHelper('Bch');
+        this._cleanupStackHelper('Ge');
+        this._cleanupData('Ge');
 
-        const urls = dataSelected.data.map(function(obj) {
+        const urls = dataSelectedBch.data.map(function(obj) {
           return `${obj.links.file_resource}`;
         });
-
-        // cleanup GE data
-        this.set('dataG', []);
-        this.set('dataGSelected', {});
-        this.set('dataGStatus', 'empty');
 
         this._urlsSelectedChanged(urls, 'Bch');
       }
 
-      _dataGSelectedChanged(dataGSelected) {
-        if (dataGSelected === undefined || !dataGSelected.data) {
+      _dataSelectedGeChanged(dataSelectedGe) {
+        if (dataSelectedGe === undefined || !dataSelectedGe.data) {
           return;
         }
 
-        const urls = dataGSelected.data.map(function(obj) {
+        this._cleanupStackHelper('Ge');
+
+        const urls = dataSelectedGe.data.map(function(obj) {
           return `${obj.links.file_resource}`;
         });
 
@@ -566,10 +581,7 @@
             // make sure first frame we have is matching the requested url
             // it could be different if a user clicked on different series while another was loading
             const firstFrameUrl = series.stack[0].frame[0].url;
-            let dataSelected = this.dataSelected;
-            if (target === 'Ge') {
-              dataSelected = this.dataGSelected;
-            }
+            const dataSelected = this[`dataSelected${target}`];
             const test = dataSelected.data.map(function(obj) {
               return `${obj.links.file_resource}`;
             });
@@ -584,17 +596,6 @@
             this.urlsTotal = 0;
             this.urlsLoaded = 0;
             this.urlsParsed = 0;
-
-            let stackHelper = this[`stackHelper${target}`];
-            let stackScene = this[`stackScene${target}`];
-            if (stackHelper !== null &&
-              stackHelper._stack) {
-              // reset renderers
-              stackScene.remove(stackHelper);
-              this.set(`stackScene${target}`, null);
-              stackHelper.dispose();
-              this.set(`stackHelper${target}`, null);
-            }
 
             // new stack Helper
             const localHelper = new AMI.default.Helpers.Stack(series.stack[0]);
@@ -628,12 +629,12 @@
           });
       }
 
-      _dataStatusChanged(status) {
+      _dataStatusBchChanged(status) {
         if (status !== 'ready') {
-          this.set('data', []);
-          this.set('dataSelected', {});
-          this.set('dataG', []);
-          this.set('dataGSelected', {});
+          this.set('dataBch', []);
+          this.set('dataSelectedBch', {});
+          this.set('dataGe', []);
+          this.set('dataSelectedGe', {});
 
           // stop rendering loops
           this.$.render.stopRenderingLoop();
@@ -641,12 +642,12 @@
         } 
       }
 
-      _visibleGEChanged(visible) {
+      _visibleGeChanged(visible) {
         this.$.render.resize();
         this.$.render2.resize();
       }
 
-      _visibleBCHChanged(visible) {
+      _visibleBcgChanged(visible) {
         this.$.render.resize();
         this.$.render2.resize();
       }
@@ -676,17 +677,50 @@
         return !(data === undefined || !data.data)
       }
 
-      _isLoading(target, dataSelected, dataGESelected, urlsTotal) {
+      _isLoading(target, dataSelectedBch, dataSelectedGe, urlsTotal) {
         // number of files reset to 0 when urls are loaded
-        if (target === 'bch' && dataSelected && dataSelected.data &&
-          (dataGESelected === undefined || dataGESelected.data ==undefined) &&
+        if (target === 'bch' && dataSelectedBch && dataSelectedBch.data &&
+          (dataSelectedGe === undefined || dataSelectedGe.data ==undefined) &&
           urlsTotal > 0) {
           return true;
-        } else if (target === 'ge' && dataGESelected && dataGESelected.data && urlsTotal > 0) {
+        } else if (target === 'ge' && dataSelectedGe && dataSelectedGe.data && urlsTotal > 0) {
           return true;
         }
 
         return false;
+      }
+
+      closeBch() {
+        const path = this.dataSelectedBch.path;
+        this.set(['dataBch', ...path, 'selected'], false);
+        this.set('dataSelectedBch', {});
+      }
+
+      closeGe() {
+        const path = this.dataSelectedGe.path;
+        this.set(['dataGe', ...path, 'selected'], false);
+        this.set('dataSelectedGe', {});
+      }
+
+      _cleanupStackHelper(target) {
+        // stack
+        if (this[`stackHelper${target}`] !== null &&
+          this[`stackHelper${target}`]._stack) {
+          // reset renderers
+          this[`stackScene${target}`].remove(this[`stackHelper${target}`]);
+          this.set(`stackScene${target}`, null);
+          this[`stackHelper${target}`].dispose();
+          this.set(`stackHelper${target}`, null);
+        }
+
+        
+      }
+
+      _cleanupData(target) {
+        // data
+        this.set(`data${target}`, []);
+        this.set(`dataSelected${target}`, {});
+        this.set(`dataStatus${target}`, 'empty');
       }
     }
 
