@@ -35,7 +35,6 @@
 
       #overlay > div {
         z-index: 1;
-        color: #fff;
         position: absolute;
         margin: 4px;
         padding: 2px 10px;
@@ -44,12 +43,14 @@
       .direction {
         font-size: 16px;
         text-transform: uppercase;
+        color: var(--primary-text-color)
       }
 
       .information {
         font-size: 14px;
         box-sizing: border-box;
         max-width: 50%;
+        color: var(--secondary-text-color);
       }
 
       .information > div {
@@ -255,7 +256,7 @@
         this._renderer.autoClear = false;
         this._renderer.localClippingEnabled = true;
         this._renderer.setSize(
-        this._container.clientWidth, this._container.clientHeight);
+          this._container.clientWidth, this._container.clientHeight);
         this._container.appendChild( this._renderer.domElement );
       }
 
