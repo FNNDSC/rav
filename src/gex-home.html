@@ -149,7 +149,7 @@
         <!-- Fetching ready -->
         <template is="dom-if" if="[[_isReady(dataStatusBch)]]">
           <template is="dom-repeat" items="[[dataBch]]">
-            <series-preview series="[[item]]" on-tap="_handleSeriesSelected"><series-preview>
+            <series-preview series="[[item]]" on-tap="_handleSeriesSelectedBch"><series-preview>
           </template>
         </template>
 
@@ -189,7 +189,7 @@
             <app-toolbar>
               <div main-title></div>
               <!--<paper-icon-button icon="my-icons:fullscreen" on-tap="hideGE"></paper-icon-button>-->
-              <paper-icon-button icon="my-icons:close" on-tap="closeBch"></paper-icon-button>
+              <paper-icon-button icon="my-icons:close" on-tap="deselectBch"></paper-icon-button>
             </app-toolbar>
           </div>
           <ami-viewer-2d
@@ -225,7 +225,7 @@
             <app-toolbar>
               <div main-title></div>
               <!--<paper-icon-button icon="my-icons::fullscreen" on-tap="hideGE"></paper-icon-button>-->
-              <paper-icon-button icon="my-icons:close" on-tap="closeGe"></paper-icon-button>
+              <paper-icon-button icon="my-icons:close" on-tap="deselectGe"></paper-icon-button>
             </app-toolbar>
           </div>
           <ami-viewer-2d
@@ -292,6 +292,7 @@
           dataBch: {
             type: Array,
             value: [],
+            observer: '_dataBchChanged',
           },
           dataStatusBch: {
             type: String,
@@ -306,6 +307,7 @@
           dataGe: {
             type: Array,
             value: [],
+            observer: '_dataGeChanged',
           },
           dataStatusGe: {
             type: String,
@@ -452,39 +454,52 @@
         this.visibleGE = true;
       }
 
-      _handleSeriesSelected(event) {
+      /**
+       * Bch series preview was selected by the user.
+       */
+      _handleSeriesSelectedBch(event) {
         const targetSeries = event.model.__data.item;
-        this._handleSelected(targetSeries, 'Bch');
+        this._handleSeriesSelected(targetSeries, 'Bch');
       }
 
+      /**
+       * Ge series preview was selected by the user.
+       */
       _handleSeriesSelectedGe(event) {
         const targetSeries = event.model.__data.item;
-        this._handleSelected(targetSeries, 'Ge');
+        this._handleSeriesSelected(targetSeries, 'Ge');
       }
 
-      _handleSelected(targetSeries, target) {
+      /**
+       * Series preview was selected by the user.
+       */
+      _handleSeriesSelected(targetSeries, target) {
         const selection = this[`dataSelected${target}`];
         const data = this[`data${target}`];
   
+        // if something was selected before, deselect it.
         if (selection.selected !== undefined) {
           this.set([`data${target}`, ...selection.path, 'selected'], false);
         }
+
         // select current
         this.set(`dataSelected${target}`, targetSeries);
         this.set([`data${target}`, ...targetSeries.path, 'selected'], true);
-        //
-        this.$.render.resize();
-        this.$.render2.resize();
       }
 
+      /**
+       * Bch selected data changed
+       */
       _dataSelectedBchChanged(dataSelectedBch) {
         if (dataSelectedBch === undefined || !dataSelectedBch.data) {
           return;
         }
         
-        this._cleanupStackHelper('Bch');
-        this._cleanupStackHelper('Ge');
-        this._cleanupData('Ge');
+        // clean up all stack helpers
+        this._resetStackHelper('Bch');
+        this._resetStackHelper('Ge');
+        // clean up Ge data
+        this._resetData('Ge');
 
         const urls = dataSelectedBch.data.map(function(obj) {
           return `${obj.links.file_resource}`;
@@ -493,28 +508,22 @@
         this._urlsSelectedChanged(urls, 'Bch');
       }
 
+      /**
+       * Ge selected data changed
+       */
       _dataSelectedGeChanged(dataSelectedGe) {
         if (dataSelectedGe === undefined || !dataSelectedGe.data) {
           return;
         }
 
-        this._cleanupStackHelper('Ge');
+        // clean up Ge stack helper
+        this._resetStackHelper('Ge');
 
         const urls = dataSelectedGe.data.map(function(obj) {
           return `${obj.links.file_resource}`;
         });
 
         this._urlsSelectedChanged(urls, 'Ge');
-      }
-
-      _handleSelectedChanged(selection, targetLabel) {
-        if (selection === undefined || !selection.data) {
-          return;
-        }
-        const urlsSelected = selection.data.map(function(obj) {
-          return `${obj.links.file_resource}`;
-        });
-        this.set(targetLabel, urlsSelected);
       }
 
       _fetchUrl(url) {
@@ -582,11 +591,11 @@
             // it could be different if a user clicked on different series while another was loading
             const firstFrameUrl = series.stack[0].frame[0].url;
             const dataSelected = this[`dataSelected${target}`];
-            const test = dataSelected.data.map(function(obj) {
+            const currentSelectionUrls = dataSelected.data.map(function(obj) {
               return `${obj.links.file_resource}`;
             });
 
-            if (test.indexOf(firstFrameUrl) < 0) {
+            if (currentSelectionUrls.indexOf(firstFrameUrl) < 0) {
               urls = null;
               series = null;
               return;
@@ -604,9 +613,6 @@
             const localScene = new THREE.Scene();
             localScene.add(localHelper);
             this.set(`stackScene${target}`, localScene);
-
-            this.$.render.resize();
-            this.$.render2.resize();
 
             // update extra info
             this.$.render.patientID = series.patientID;
@@ -690,19 +696,55 @@
         return false;
       }
 
-      closeBch() {
+      deselectBch() {
+        const selection = this.dataSelectedBch;
+        if(selection === undefined || !selection.path) {
+          return;
+        }
+
         const path = this.dataSelectedBch.path;
         this.set(['dataBch', ...path, 'selected'], false);
         this.set('dataSelectedBch', {});
+
+        // clean up all stack helpers
+        this._resetStackHelper('Bch');
+        this._resetStackHelper('Ge');
+
+        // clean up Ge data
+        this._resetData('Ge');
       }
 
-      closeGe() {
+      deselectGe() {
+        const selection = this.dataSelectedGe;
+        if(selection === undefined || !selection.path) {
+          return;
+        }
+
         const path = this.dataSelectedGe.path;
         this.set(['dataGe', ...path, 'selected'], false);
         this.set('dataSelectedGe', {});
+
+        //
+        this._resetStackHelper('Ge');
       }
 
-      _cleanupStackHelper(target) {
+      _dataBchChanged(dataBch) {
+        if (dataBch === undefined) {
+          return;
+        }
+
+        this.deselectBch();
+      }
+
+      _dataGeChanged(dataGe) {
+        if(dataGe === undefined) {
+          return;
+        }
+
+        this.deselectGe();
+      }
+
+      _resetStackHelper(target) {
         // stack
         if (this[`stackHelper${target}`] !== null &&
           this[`stackHelper${target}`]._stack) {
@@ -712,12 +754,11 @@
           this[`stackHelper${target}`].dispose();
           this.set(`stackHelper${target}`, null);
         }
-
-        
       }
 
-      _cleanupData(target) {
+      _resetData(target) {
         // data
+        const path = this[`dataSelected${target}`].path;
         this.set(`data${target}`, []);
         this.set(`dataSelected${target}`, {});
         this.set(`dataStatus${target}`, 'empty');
