@@ -6,11 +6,13 @@
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
 
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
-<link rel="import" href="../bower_components/paper-slider/paper-slider.html">
+<link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
+<link rel="import" href="../bower_components/paper-tabs/paper-tab.html">
 
 <link rel="import" href="../bower_components/chips-api/chips-api.html">
 
 <link rel="import" href="elements/ami-viewer-2d.html">
+<link rel="import" href="elements/css-loader.html">
 <link rel="import" href="elements/control-panel.html">
 <link rel="import" href="elements/series-preview.html">
 
@@ -39,6 +41,22 @@
         flex-direction: column;
         background-color: var(--dark-primary-color);
         overflow: hidden;
+        position: relative;
+      }
+
+      .overlay {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: var(--light-primary-color);
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        font-size: 24px;
       }
 
       .panel {
@@ -66,6 +84,13 @@
         flex-direction: column;
         width: 0;
         flex: 1;
+        box-sizing: border-box;
+        border: 1px solid #212121;
+        border-bottom: 4px solid #212121;
+      }
+
+      .viewerui.active {
+        border-bottom-color: #ccff00;
       }
 
       .series{
@@ -84,6 +109,7 @@
 
       .ge {
         max-height: 192px;
+        overflow: hidden;
       }
 
       .loader {
@@ -115,6 +141,33 @@
         background-color: var(--light-primary-color);
       }
 
+      .illustration {
+        width: 128px;
+        height: 128px;
+        margin: auto;
+        margin-bottom: 24px;
+      }
+
+      .search-image {
+        background-image: url("/images/search.svg");
+        background-position: center;
+        background-size: contain;
+        background-repeat: no-repeat;
+      }
+
+      .left-image {
+        background-image: url("/images/people.svg");
+        background-position: center;
+        background-size: contain;
+        background-repeat: no-repeat;
+      }
+
+      .overlay paper-button {
+        display: block;
+      }
+
+
+
       [hidden] {
         display: none;
       }
@@ -123,58 +176,92 @@
     <chips-api
       id="API"></chips-api>
 
-    <div hidden$="[[!visibleBCH]]" class="panel bch">
-      <app-toolbar>
-        <div main-title>PACS</div>
-        <paper-icon-button icon="my-icons:search" on-tap="handleBCH"></paper-icon-button>
-        <paper-icon-button icon="my-icons:close" on-tap="hideBCH"></paper-icon-button>
-      </app-toolbar>
-      <div class="series">
+    <template is="dom-if" if="[[_isReady(dataStatusBch)]]">
+      <div hidden$="[[!visibleBCH]]" class="panel bch">
+        <app-toolbar>
+          <div main-title>PACS</div>
+          <paper-icon-button icon="my-icons:search" on-tap="handleBCH"></paper-icon-button>
+          <paper-icon-button icon="my-icons:close" on-tap="hideBCH"></paper-icon-button>
+        </app-toolbar>
+        <div class="series">
+          <!-- Fetching ready -->
+          <template is="dom-if" if="[[_isReady(dataStatusBch)]]">
+            <template is="dom-repeat" items="[[dataBch]]">
+              <series-preview series="[[item]]" on-tap="_handleSeriesSelectedBch"><series-preview>
+            </template>
+          </template>
 
-        <!-- Empty-->
+        </div>
+        <div class="ge" hidden$="[[!_isSelected(dataSelectedBch)]]">
+          <app-toolbar>
+            <div main-title>Reference</div>
+          </app-toolbar>
+          <div class="series">
+            <template is="dom-repeat" items="[[dataGe]]">
+              <series-preview series="[[item]]" on-tap="_handleSeriesSelectedGe"><series-preview>
+            </template>
+          </div>
+        </div>
+        <div class="label">
+          Copyright (c) 2016 The FNNDSC Project Authors. All rights reserved.</iron-icon>
+        </div>
+      </div>
+      <div hidden$="[[visibleBCH]]" class="bch">
+        <paper-icon-button icon="my-icons:chevron-right" on-tap="showBCH"></paper-icon-button>
+      </div>
+
+    </template>
+
+    <div class="content">
+      <div class="overlay" hidden$="[[_isReady(dataStatusBch)]]">
+      <!-- Empty-->
         <template is="dom-if" if="[[_isEmpty(dataStatusBch)]]">
-          No data loaded.
+          <paper-button on-tap="handleBCH">
+            <div class="search-image illustration">
+            </div>
+            Find data on the PACS!</paper-button>
         </template>
 
         <!-- Running plugin -->
         <template is="dom-if" if="[[_isRunning(dataStatusBch)]]">
-          Running plugin.
+          <css-loader></css-loader>
+          <div>Retrieveing data from the PACS...</div>
         </template>
-
-        <!-- Fetching data -->
-        <template is="dom-if" if="[[_isFetching(dataStatusBch)]]">
-          Fetching files.
-        </template>
-
-        <!-- Fetching ready -->
-        <template is="dom-if" if="[[_isReady(dataStatusBch)]]">
-          <template is="dom-repeat" items="[[dataBch]]">
-            <series-preview series="[[item]]" on-tap="_handleSeriesSelectedBch"><series-preview>
-          </template>
-        </template>
-
       </div>
-      <div class="ge" hidden$="[[!_isSelected(dataSelectedBch)]]">
-        <app-toolbar>
-          <div main-title>GE Reference [[dataStatusGe]]</div>
-        </app-toolbar>
-        <div class="series">
-          <template is="dom-repeat" items="[[dataGe]]">
-            <series-preview series="[[item]]" on-tap="_handleSeriesSelectedGe"><series-preview>
-          </template>
+      <div class="overlay" hidden$="[[!_isReadyAndNotSelected(dataStatusBch, dataSelectedBch)]]">
+        <div>
+          <div class="left-image illustration">
+          </div>
+          <div>Select DICOM on the left panel.</div>
         </div>
       </div>
-      <div class="label">
-        Copyright (c) 2016 The FNNDSC Project Authors. All rights reserved.</iron-icon>
-      </div>
-    </div>
-    <div hidden$="[[visibleBCH]]" class="bch">
-      <paper-icon-button icon="my-icons:chevron-right" on-tap="showBCH"></paper-icon-button>
-    </div>
+      <div class="viewHead">
+        <control-panel
+          hidden$="[[activeGe]]"
+          collapse="{{collapse}}"
+          stack-helper="{{stackHelperBch}}"
+          stack-index="{{stackIndex}}"
+          stack-max-index="{{stackMaxIndex}}"
+          orientation="{{orientation}}"
+          stack-orientation="{{stackOrientationIndex}}"
+          stack-window-width="{{stackWindowWidth}}"
+          stack-window-center="{{stackWindowCenter}}"></control-panel>
 
-    <div class="content">
+
+        <control-panel
+          hidden$="[[activeBch]]"
+          collapse="{{collapse}}"
+          stack-helper="{{stackHelperGe}}"
+          stack-index="{{stackIndexGE}}"
+          stack-max-index="{{stackMaxIndexGE}}"
+          orientation="{{orientationGE}}"
+          stack-orientation="{{stackOrientationIndexGE}}"
+          stack-window-width="{{stackWindowWidthGE}}"
+          stack-window-center="{{stackWindowCenterGE}}"></control-panel>
+      </div>
+
       <div class="viewersC">
-        <div class="viewerui">
+        <div class$="[[classIt(activeBch)]]">
           <div hidden$="[[!_isLoading('bch', dataSelectedBch, dataSelectedGe, urlsTotal)]]">
             <div class="loader">
               <div>
@@ -185,16 +272,16 @@
               </div>
             </div>
           </div>
-          <div class="viewHead">
-            <app-toolbar>
-              <div main-title></div>
-              <!--<paper-icon-button icon="my-icons:fullscreen" on-tap="hideGE"></paper-icon-button>-->
-              <paper-icon-button icon="my-icons:close" on-tap="deselectBch"></paper-icon-button>
-            </app-toolbar>
-          </div>
+          <paper-slider
+            value="{{stackIndex}}"
+            immediate-value="{{stackIndex}}"
+            min="0"
+            max="[[stackMaxIndex]]"
+            editable></paper-slider>
           <ami-viewer-2d
             id="render"
             class="viewers"
+            active="{{activeBch}}"
             stack-scene="[[stackSceneBch]]"
             stack-index="{{stackIndex}}"
             stack-max-index="[[stackMaxIndex]]"
@@ -202,35 +289,29 @@
             stack-orientation="{{stackOrientationIndex}}"
             stack-window-width="[[stackWindowWidth]]"
             stack-window-center="[[stackWindowCenter]]"></ami-viewer-2d>
-          <paper-slider
-            value="{{stackIndex}}"
-            immediate-value="{{stackIndex}}"
-            min="0"
-            max="[[stackMaxIndex]]"
-            editable></paper-slider>
-            
         </div>
-        <div class="viewerui" hidden$="[[!_isSelected(dataSelectedGe)]]">
+        <div
+          class$="[[classIt(activeGe)]]"
+          hidden$="[[!_isSelected(dataSelectedGe)]]">
           <div hidden$="[[!_isLoading('ge', dataSelected, dataSelectedGe, urlsTotal)]]">
             <div class="loader">
               <div>
-                  <!--<paper-spinner active>...</paper-spinner>-->
               </div>
               <div>
                   Loading the data: [[urlsLoaded]] / [[urlsTotal]]
               </div>
             </div>
           </div>
-          <div class="viewHead">
-            <app-toolbar>
-              <div main-title></div>
-              <!--<paper-icon-button icon="my-icons::fullscreen" on-tap="hideGE"></paper-icon-button>-->
-              <paper-icon-button icon="my-icons:close" on-tap="deselectGe"></paper-icon-button>
-            </app-toolbar>
-          </div>
+          <paper-slider
+            value="{{stackIndexGE}}"
+            immediate-value="{{stackIndexGE}}"
+            min="0"
+            max="[[stackMaxIndexGE]]"
+            editable></paper-slider>
           <ami-viewer-2d
             id="render2"
             class="viewers"
+            active="{{activeGe}}"
             stack-scene="[[stackSceneGe]]"
             stack-index="{{stackIndexGE}}"
             stack-max-index="[[stackMaxIndexGE]]"
@@ -238,48 +319,8 @@
             stack-orientation="{{stackOrientationIndexGE}}"
             stack-window-width="[[stackWindowWidthGE]]"
             stack-window-center="[[stackWindowCenterGE]]"></ami-viewer-2d>
-          <paper-slider
-            value="{{stackIndexGE}}"
-            immediate-value="{{stackIndexGE}}"
-            min="0"
-            max="[[stackMaxIndexGE]]"
-            editable></paper-slider>
         </div>
       </div>
-    </div>
-
-    <div hidden$="[[!visibleGE]]" class="panel">
-      <app-toolbar>
-        <div main-title>Controls</div>
-        <paper-icon-button icon="my-icons:close" on-tap="hideGE"></paper-icon-button>
-      </app-toolbar>
-      <control-panel
-        stack-helper="{{stackHelperBch}}"
-        stack-index="{{stackIndex}}"
-        stack-max-index="{{stackMaxIndex}}"
-        orientation="{{orientation}}"
-        stack-orientation="{{stackOrientationIndex}}"
-        stack-window-width="{{stackWindowWidth}}"
-        stack-window-center="{{stackWindowCenter}}"
-      ></control-panel>
-    </div>
-    <!--<div hidden$="[[!_isSelected(dataGSelected)]]" class="panel">
-      <app-toolbar>
-        <div main-title>Control GE</div>
-        <paper-icon-button icon="my-icons:close" on-tap="hideGE"></paper-icon-button>
-      </app-toolbar>
-      <control-panel
-        stack-helper="{{stackHelperGe}}"
-        stack-index="{{stackIndexGE}}"
-        stack-max-index="{{stackMaxIndexGE}}"
-        orientation="{{orientationGE}}"
-        stack-orientation="{{stackOrientationIndexGE}}"
-        stack-window-width="{{stackWindowWidthGE}}"
-        stack-window-center="{{stackWindowCenterGE}}"
-      ></control-panel>
-    </div>-->
-    <div hidden$="[[visibleGE]]" class="ge">
-      <paper-icon-button icon="my-icons:chevron-left" on-tap="showGE"></paper-icon-button>
     </div>
   </template>
 
@@ -289,6 +330,11 @@
 
       static get properties() {
         return {
+          collapse: {
+            type: Boolean,
+            value: true,
+            observer: '_collapseChanged',
+          },
           dataBch: {
             type: Array,
             value: [],
@@ -304,6 +350,11 @@
             value: {},
             observer: '_dataSelectedBchChanged',
           },
+          activeBch: {
+            type: Boolean,
+            value: true,
+            observer: '_activeBchChanged'
+          },
           dataGe: {
             type: Array,
             value: [],
@@ -317,6 +368,11 @@
             type: Object,
             value: {},
             observer: '_dataSelectedGeChanged',
+          },
+          activeGe: {
+            type: Boolean,
+            value: false,
+            observer: '_activeGeChanged'
           },
           running: {
             type: Boolean,
@@ -500,6 +556,8 @@
         this._resetStackHelper('Ge');
         // clean up Ge data
         this._resetData('Ge');
+        // reset viewers
+        this._resizeListener();
 
         const urls = dataSelectedBch.data.map(function(obj) {
           return `${obj.links.file_resource}`;
@@ -518,6 +576,8 @@
 
         // clean up Ge stack helper
         this._resetStackHelper('Ge');
+        // reset viewers
+        this._resizeListener();
 
         const urls = dataSelectedGe.data.map(function(obj) {
           return `${obj.links.file_resource}`;
@@ -621,9 +681,15 @@
             this.$.render.studyDescription = series.studyDescription;
             this.$.render.seriesDescription = series.seriesDescription;
 
+            // activate the view
+            this.set(`active${target}`, true);
+
             // start rendering loop
             this.$.render.startRenderingLoop();
             this.$.render2.startRenderingLoop();
+
+            // resize the viewers
+            this._resizeListener();
 
             // auto fetch GE data
             if (target === 'Bch') {
@@ -681,6 +747,24 @@
 
       _isSelected(data) {
         return !(data === undefined || !data.data)
+      }
+
+      _isReadyAndNotSelected(status, data) {
+        const ready = this._isReady(status);
+        const selected = this._isSelected(data);
+        return ready && !selected;
+      }
+
+      _activeBchChanged(active) {
+        if (active) {
+          this.activeGe = false;
+        }
+      }
+
+      _activeGeChanged(active) {
+        if (active) {
+          this.activeBch = false;
+        }
       }
 
       _isLoading(target, dataSelectedBch, dataSelectedGe, urlsTotal) {
@@ -744,6 +828,10 @@
         this.deselectGe();
       }
 
+      _collapseChanged() {
+        this._resizeListener();
+      }
+
       _resetStackHelper(target) {
         // stack
         if (this[`stackHelper${target}`] !== null &&
@@ -762,6 +850,13 @@
         this.set(`data${target}`, []);
         this.set(`dataSelected${target}`, {});
         this.set(`dataStatus${target}`, 'empty');
+      }
+
+      classIt(active) {
+        const baseClass = 'viewerui';
+        const activeClass = active ? 'active' : '';
+
+        return `${baseClass} ${activeClass}`;
       }
     }
 

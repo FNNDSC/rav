@@ -41,9 +41,28 @@
         color: white;
       }
 
-      vaadin-grid-cell-content {
+      /*vaadin-grid-cell-content {
         background: var(--default-primary-color);
+      }*/
+
+      vaadin-grid {
+        background-color: var(--dark-primary-color);
+        --vaadin-grid-header-cell: {
+          background-color: var(--default-primary-color);
+        };
+        --vaadin-grid-body-cell: {
+          background-color: var(--dark-primary-color);
+        };
+        --vaadin-grid-body-row-hover-cell: {
+          background-color: var(--light-primary-color);
+          font-weight: bold;
+          cursor: pointer;
+        };
+        --vaadin-grid-body-row-selected-cell: {
+          background-color: var(--light-primary-color);
+        };
       }
+
     </style>
 
   <chips-api

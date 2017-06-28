@@ -30,7 +30,8 @@
     "paper-dropdown-menu": "PolymerElements/paper-dropdown-menu#^2.0.0",
     "paper-listbox": "PolymerElements/paper-listbox#^2.0.0",
     "paper-item": "PolymerElements/paper-item#^2.0.0",
-    "web-animations-js": "web-animations/web-animations-js#2.2.5"
+    "web-animations-js": "web-animations/web-animations-js#2.2.5",
+    "paper-tabs": "PolymerElements/paper-tabs#^2.0.0"
   },
   "resolutions": {
     "polymer": "^2.0.0-rc.3",
@@ -43,7 +44,8 @@
     "paper-behaviors": "1 - 2",
     "iron-scroll-target-behavior": "^v2.0.0",
     "iron-iconset-svg": "1 - 2",
-    "iron-icon": "1 - 2"
+    "iron-icon": "1 - 2",
+    "paper-icon-button": "1 - 2"
   },
   "devDependencies": {
     "web-component-tester": "Polymer/web-component-tester#^6.0.0-prerelease.7"

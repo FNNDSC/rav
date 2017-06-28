@@ -143,15 +143,22 @@
           stackIndex: {
             type: Number,
             notify: true,
+            observer: '_somethingChanged',
+          },
+          active: {
+            type: Boolean,
+            notify: true,
           },
           stackMaxIndex: {
             type: Number,
           },
           stackWindowWidth: {
             type: Number,
+            observer: '_somethingChanged',
           },
           stackWindowCenter: {
             type: Number,
+            observer: '_somethingChanged',
           },
           patientID: {
             type: String,
@@ -214,6 +221,7 @@
         this._slice = null;
         this._scene = null;
         this._clipPlane = null;
+        this._changed = true;
         this.stackHelper = null;
         this.orientation = 'default';
 
@@ -247,6 +255,14 @@
         this._controls.noRotate = true;
         this._controls.target.set(0, 0, 0);
         this._camera.controls = this._controls;
+
+        // add event listeners for selection
+        this._controls.addEventListener('start', () => {
+          this.active = true;
+        });
+        this._controls.addEventListener('change', () => {
+          this._changed = true;
+        });
       }
 
       _initRenderer() {
@@ -261,10 +277,14 @@
       }
 
       _animate() {
-        this.animationFrameID = requestAnimationFrame(() => {this._animate()} );
         this._controls.update();
-        this._renderer.clear();
-        this._renderer.render( this._scene, this._camera );
+        this.animationFrameID = requestAnimationFrame(() => {this._animate()} );
+
+        if (this._changed) {
+          this._renderer.clear();
+          this._renderer.render( this._scene, this._camera );
+          this._changed = false;
+        }
       }
 
       startRenderingLoop() {
@@ -336,7 +356,10 @@
       }
 
       resize() {
-        if (this.stackHelper) {
+        if (
+          this.stackHelper &&
+          this._container &&
+          this._container.clientWidth > 0) {
           const width = this._container.clientWidth;
           const height = this._container.clientHeight;
           const canvas = {
@@ -352,6 +375,8 @@
           // update info to draw borders properly
           this.stackHelper.slice.canvasWidth = width;
           this.stackHelper.slice.canvasHeight = height;
+
+          this._changed = true;
         }
       }
 
@@ -372,6 +397,8 @@
           //
           this.updateInformation();
           this.updateLabels(this._camera.directionsLabel, this.stackHelper.stack.modality);
+
+          this._changed = true;
         }
       }
 
@@ -406,6 +433,7 @@
           this.stackHelper.index -= 1;
         }
         this.stackIndex = this.stackHelper.index;
+        this._changed = true;
       }
 
       _onMouseMove(event) {
@@ -430,6 +458,10 @@
           this.mouseK = ijk.z;
           this.mouseValue = AMI.default.Models.Stack.value(this.stackHelper.stack, ijk);
         }
+      }
+
+      _somethingChanged () {
+        this._changed = true;
       }
     }
     window.customElements.define(AMIViewer2D.is, AMIViewer2D);

@@ -105,7 +105,9 @@
       }
 
       _pluginGeDataChanged(pluginGeData) {
-        console.log(pluginGeData);
+        if (pluginGeData.length > 1) {
+          this.set('pluginGeData', [this.pluginGeData[0]])
+        }
       }
 
       _filesChanged(target) {

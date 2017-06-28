@@ -20,13 +20,23 @@
       }
       .container {
         flex: 1;
+        flex-direction: row;
+        display:flex;
+        justify-content: flex-end;
       }
     
-      .container > div {
+      .expand {
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: space-between;
         padding: 4px;
+        flex: 1;
+      }
+
+      .parameter {
+        width: 100%;
+        display: flex;
       }
 
       .label {
@@ -37,8 +47,27 @@
         color: var(--secondary-text-color);
       }
 
-      paper-button, paper-dropdown-menu {
+      .static {
+        flex: none;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .static > .parameter {
+        justify-content: space-between;
+      }
+
+      .stretch {
+        display: flex;
+      }
+
+      [hidden] {
+        display: none;
+      }
+
+      paper-button, paper-dropdown-menu, paper-slider {
         flex: 1;
+        width: auto;
       }
 
       paper-slider {
@@ -55,45 +84,56 @@
     </style>
 
     <div class="container">
-        <div class="orientation">
-            <paper-dropdown-menu label="Orientation" selected-item-label="{{orientation}}">
-            <paper-listbox slot="dropdown-content" class="dropdown-content" selected="0">
-                <paper-item>default</paper-item>
-                <paper-item>axial</paper-item>
-                <paper-item>coronal</paper-item>
-                <paper-item>sagittal</paper-item>
-            </paper-listbox>
-            </paper-dropdown-menu>
-        </div>
 
-        <div class="index">
-            <div class="label">Slice Index</div>
+      <div hidden$="[[collapse]]" class="expand">
+        <div class="parameter orientation">
+          <paper-dropdown-menu label="Orientation" selected-item-label="{{orientation}}">
+          <paper-listbox slot="dropdown-content" class="dropdown-content" selected="0">
+              <paper-item>default</paper-item>
+              <paper-item>axial</paper-item>
+              <paper-item>coronal</paper-item>
+              <paper-item>sagittal</paper-item>
+          </paper-listbox>
+          </paper-dropdown-menu>
+        </div>
+        <div class="parameter index">
+            <div class="label">Image Index</div>
             <paper-slider value="{{stackIndex}}" immediate-value="{{stackIndex}}" min="0" max="[[stackMaxIndex]]" editable></paper-slider>
         </div>
+      </div>
 
-        <div class="windowWidth">
+      <div hidden$="[[collapse]]" class="expand">
+        <div class="parameter windowWidth">
             <div class="label">Window Width</div>
             <paper-slider value="{{stackWindowWidth}}" immediate-value="{{stackWindowWidth}}" min="1" max="[[stackIntensityRange]]" editable></paper-slider>
         </div>
 
-        <div class="windowCenter">
+        <div class="parameter windowCenter">
             <div class="label">Window Level</div>
             <paper-slider value="{{stackWindowCenter}}" immediate-value="{{stackWindowCenter}}" min="[[stackIntensityMin]]" max="[[stackIntensityMax]]" editable></paper-slider>
         </div>
+      </div>
 
-        <div class="interpolation">
+      <!--<div hidden$="[[collapse]]" class="static">
+        <div class="parameter stretch">
             <div class="label">Voxel Interpolation</div>
             <paper-toggle-button checked="{{stackInterpolation}}"></paper-toggle-button>
         </div>
 
-        <div class="intensityAuto">
+        <div class="parameter stretch">
             <div class="label">Auto Intensity</div>
             <paper-toggle-button checked="{{stackIntensityAuto}}"></paper-toggle-button>
         </div>
+      </div>-->
 
-        <div class="reset">
-            <paper-button on-tap="_resetStackHelper">reset settings</paper-button>
+      <div class="static">
+        <div class="stretch">
+            <paper-button on-tap="_collapse">show/hide</paper-button>
         </div>
+        <div hidden$="[[collapse]]" class="stretch">
+            <paper-button on-tap="_resetStackHelper">reset</paper-button>
+        </div>
+      </div>
     </div>
 
   </template>
@@ -105,6 +145,11 @@
       }
       static get properties() {
         return {
+          collapse: {
+            type: Boolean,
+            value: true,
+            notify: true,
+          },
           stackHelper: {
             type: Object,
             value: {},
@@ -244,6 +289,10 @@
           this.stackMaxIndex = this.stackHelper.orientationMaxIndex;
           this.stackIndex = Math.floor(this.stackMaxIndex/2);
         }
+      }
+
+      _collapse() {
+        this.set('collapse', !this.collapse);
       }
     }
     window.customElements.define(ControlPanel.is, ControlPanel);
