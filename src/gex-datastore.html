@@ -20,103 +20,45 @@
             type: Object,
             value: {},
           },
-          pluginBch: {
+          plugin: {
             type: Object,
             value: {},
-            observer: '_pluginBchChanged',
+            observer: '_pluginChanged',
           },
-          pluginBchData: {
+          pluginData: {
             type: Array,
             value: [],
             notify: true,
-            observer: '_pluginBchDataChanged',
+            observer: '_pluginDataChanged',
           },
-          pluginBchDataMap: {
+          pluginDataMap: {
             type: Array,
             value:  new Map(),
-            //   notify: true,
           },
-          pluginBchFiles: {
+          pluginFiles: {
             type: Array,
             value: [],
             notify: true,
-            observer: '_pluginBchFilesChanged',
+            observer: '_pluginFilesChanged',
           },
-          pluginBchStatus: {
-            type: String,
-            value: '',
-            notify: true,
-          },
-          pluginGe: {
-            type: Object,
-            value: {},
-            observer: '_pluginGeChanged',
-          },
-          pluginGeData: {
-            type: Array,
-            value: [],
-            notify: true,
-            observer: '_pluginGeDataChanged',
-          },
-          pluginGeDataMap: {
-            type: Array,
-            value:  new Map(),
-            //   notify: true,
-          },
-          pluginGeFiles: {
-            type: Array,
-            value: [],
-            notify: true,
-            observer: '_pluginGeFilesChanged',
-          },
-          pluginGeStatus: {
+          pluginStatus: {
             type: String,
             value: '',
             notify: true,
           },
         };
       }
-      _pluginBchChanged(pluginBch) {
-        if(!pluginBch || !pluginBch.data) {
-          return;
-        }
-
-        this._pluginChanged('Bch')
+      _pluginFilesChanged(pluginFiles) {
+        this._filesChanged();
       }
 
-      _pluginBchDataChanged(pluginBchData) {
-        console.log(pluginBchData);
-      }
-
-      _pluginBchFilesChanged(pluginBchFiles) {
-        this._filesChanged('Bch');
-      }
-
-      _pluginGeChanged(pluginGe) {
-        if(!pluginGe || !pluginGe.data) {
-          return;
-        }
-
-        this._pluginChanged('Ge')
-      }
-
-      _pluginGeFilesChanged(pluginGeFiles) {
-        this._filesChanged('Ge');
-      }
-
-      _pluginGeDataChanged(pluginGeData) {
-        if (pluginGeData.length > 1) {
-          this.set('pluginGeData', [this.pluginGeData[0]])
-        }
-      }
-
-      _filesChanged(target) {
+      _filesChanged() {
         // clear the map
-        const map = this[`plugin${target}DataMap`];
+        const map = this.pluginDataMap;
         map.clear();
 
         // build data structure
-        const files = this[`plugin${target}Files`];
+        const files = this.pluginFiles;
         for (const file of files) {
           // handle DCM files
           if (file.data.fname.endsWith('.dcm')) {
@@ -127,15 +69,15 @@
         }
 
         // convert data map to array for polymer dom-repeat to kick in
-        this._updateDataArray(target);
+        this._updateDataArray();
 
         // fetch previews
         // we need to do it after _updateDataArray
         // so "path" is set in the series
-        const data = this[`plugin${target}Data`];
+        const data = this.pluginData;
         for(const series of data) {
           if (series.preview !== null) {
-            this._fetchPreview(series, target);
+            this._fetchPreview(series);
           }
         }
 
@@ -143,10 +85,10 @@
         if (files.length === 0) {
           status = 'empty';
         }
-        this.set(`plugin${target}Status`, status);
+        this.set('pluginStatus', status);
       }
 
-      _fetchPreview(series, target) {
+      _fetchPreview(series) {
         //
         const apiData = {};
         apiData.auth = {
@@ -158,7 +100,7 @@
         this.$.API.handleAs = 'blob';
         return this.$.API.request('GET', series.preview.links.file_resource, apiData)
         .then((response) => {
-          this.set([`plugin${target}Data`, ...series.path, 'preview.blob'], response);
+          this.set(['pluginData', ...series.path, 'preview.blob'], response);
         })
         .catch((error) => {
           console.log(error);
@@ -205,14 +147,14 @@
         }
       }
 
-      _updateDataArray(target) {
+      _updateDataArray() {
         // Map to array
         const dataArray = [];
-        const map = this[`plugin${target}DataMap`];
+        const map = this.pluginDataMap;
         map.forEach(this._dataMapToArray.bind(this, dataArray));
 
         // update data
-        this.set(`plugin${target}Data`, dataArray);
+        this.set('pluginData', dataArray);
       }
 
       _dataMapToArray(referenceArray, value, key) {
@@ -250,24 +192,28 @@
         referenceArray.push(value);
       }
 
-      _pluginChanged(target) {
-        const pluginStatus = this[`plugin${target}`].data.status;
+      _pluginChanged(plugin) {
+        if(!plugin || !plugin.data) {
+          return;
+        }
+
+        const pluginStatus = this.plugin.data.status;
         if (pluginStatus === 'started') {
           // wait until finished
-          this[`plugin${target}Status`] = 'running';
-          this._waitForPluginFinished(target);
+          this.pluginStatus = 'running';
+          this._waitForPluginFinished();
         } else if (pluginStatus ===  'finishedSuccessfully') {
           // fetch files
-          this[`plugin${target}Status`] = 'fetching';
-          this._fetchFiles(target);
+          this.pluginStatus = 'fetching';
+          this._fetchFiles();
         } else {
-          this[`plugin${target}Status`] = 'error';
+          this.pluginStatus = 'error';
           console.log(`Un-handled plugin instance status: ${pluginStatus}`)
         }
       }
 
-      _waitForPluginFinished(target) {
-        const plugin = this[`plugin${target}`];
+      _waitForPluginFinished() {
+        const plugin = this.plugin;
         const data = {};
         data.auth = {
           type: 'token',
@@ -287,13 +233,13 @@
             return;
           }
 
-          this.set(`plugin${target}`, result);
+          this.set('plugin', result);
           
         });
       }
 
-      _fetchFiles(target) {
-        const plugin = this[`plugin${target}`];
+      _fetchFiles() {
+        const plugin = this.plugin;
         const data = {};
         data.auth = {
           type: 'token',
@@ -305,17 +251,17 @@
         this.$.API.handleAs = 'json';
         //
         this.__getFilesPlugin(this.$.API, data, plugin)
-        .then(this._handleFilesResponse.bind(this, target))
+        .then(this._handleFilesResponse.bind(this))
         .catch(this._handleFilesError.bind(this));
       }
 
-      _handleFilesResponse(target, response) {
+      _handleFilesResponse(response) {
         if (response.length <= 0) {
-          this.set(`files${target}`, []);
+          this.set('files', []);
           return;
         }
 
-        const plugin = this[`plugin${target}`];
+        const plugin = this.plugin;
         const responseTargetID = response[0].data.plugin_inst_id;
         const currentTargetID = plugin.data.id;
 
@@ -327,7 +273,7 @@
           return;
         }
 
-        this[`status${target}`] = 'processing';
+        this.status = 'processing';
 
         const files = [];
         for (const file of response) {
@@ -335,7 +281,7 @@
           files.push(file);
         }
 
-        this.set(`plugin${target}Files`, files);
+        this.set('pluginFiles', files);
       }
 
       _handleFilesError(error) {

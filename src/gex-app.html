@@ -96,14 +96,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       id="API"></chips-api>
 
     <gex-datastore
-      id="datastore"
       feed="[[feed]]"
-      plugin-bch="[[pluginBch]]"
-      plugin-bch-data="{{data}}"
-      plugin-bch-status="{{dataStatus}}"
-      plugin-ge="[[pluginGe]]"
-      plugin-ge-data="{{dataGE}}"
-      plugin-ge-status="{{dataGEStatus}}"></gex-datastore>
+      plugin="[[pluginBch]]"
+      plugin-data="{{data}}"
+      plugin-status="{{dataStatus}}"></gex-datastore>
+
+    <gex-datastore
+      feed="[[feed]]"
+      plugin="[[pluginGe]]"
+      plugin-data="{{dataGE}}"
+      plugin-status="{{dataGEStatus}}"></gex-datastore>
 
     <!-- PACS pull dialog -->
     <gex-pacs-pull

@@ -437,13 +437,13 @@
       }
 
       _onMouseMove(event) {
+        const rect = this._container.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / rect.width;
+        const y = (event.clientY - rect.top) / rect.height;
+
         const mouse = {
-          x: ((event.clientX
-              - this._container.offsetParent.offsetLeft
-              - this._container.offsetParent.offsetParent.offsetLeft) / this._container.clientWidth) * 2 - 1,
-          y: - ((event.clientY
-              - this._container.offsetParent.offsetTop
-              - this._container.offsetParent.offsetParent.offsetTop) / this._container.clientHeight) * 2 + 1,
+          x: (x * 2) - 1,
+          y: - (y * 2) + 1,
         };
 
         const raycaster = new THREE.Raycaster();
