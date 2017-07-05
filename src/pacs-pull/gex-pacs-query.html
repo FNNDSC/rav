@@ -181,7 +181,7 @@
             type: String,
             value: '',
             notify: true,
-          }
+          },
         };
       }
 
@@ -206,7 +206,7 @@
       }
 
       _toggleSettings() {
-        const section = this.shadowRoot.querySelector('#sectionSettings')
+        const section = this.shadowRoot.querySelector('#sectionSettings');
         section.toggle();
         const icon = this.shadowRoot.querySelector('#iconSettings');
         icon.icon = section.opened ?
@@ -272,8 +272,8 @@
       }
 
       _getFileContent(files) {
-        var file = files[0].links.file_resource;
-        var data = {};
+        const file = files[0].links.file_resource;
+        const data = {};
         data.auth = {
           type: 'token',
           token: sessionStorage.getItem('token'),

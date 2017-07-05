@@ -192,7 +192,7 @@
 
       _newQuery() {
         this.reset();
-        var pageEvent = new CustomEvent(
+        const pageEvent = new CustomEvent(
           'page', {detail: {
               page: 'query',
             },
@@ -221,7 +221,7 @@
         data.body.data['previous_id'] = this.previousInstance;
 
         const uids = [];
-        for (var j=0; j<this.selection.length; j++) {
+        for (let j=0; j<this.selection.length; j++) {
           uids.push(this.selection[j]['uid'].value);
         }
         if (uids.length > 0) {

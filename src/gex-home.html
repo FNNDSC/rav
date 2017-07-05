@@ -378,8 +378,11 @@
   </template>
 
   <script>
-    class GEXHome extends CHIPSPluginBehavior(Polymer.GestureEventListeners(Polymer.Element)) {
-      static get is() { return 'gex-home'; }
+    class GEXHome extends CHIPSPluginBehavior(
+      Polymer.GestureEventListeners(Polymer.Element)) {
+      static get is() {
+        return 'gex-home';
+      }
 
       static get properties() {
         return {
@@ -406,7 +409,7 @@
           activeBch: {
             type: Boolean,
             value: true,
-            observer: '_activeBchChanged'
+            observer: '_activeBchChanged',
           },
           dataGe: {
             type: Array,
@@ -425,7 +428,7 @@
           activeGe: {
             type: Boolean,
             value: false,
-            observer: '_activeGeChanged'
+            observer: '_activeGeChanged',
           },
           running: {
             type: Boolean,
@@ -565,6 +568,8 @@
 
       /**
        * Bch series preview was selected by the user.
+       *
+       * @param {*} event
        */
       _handleSeriesSelectedBch(event) {
         const targetSeries = event.model.__data.item;
@@ -573,6 +578,8 @@
 
       /**
        * Ge series preview was selected by the user.
+       *
+       * @param {*} event
        */
       _handleSeriesSelectedGe(event) {
         const targetSeries = event.model.__data.item;
@@ -581,11 +588,13 @@
 
       /**
        * Series preview was selected by the user.
+       *
+       * @param {*} targetSeries
+       * @param {*} target
        */
       _handleSeriesSelected(targetSeries, target) {
         const selection = this[`dataSelected${target}`];
-        const data = this[`data${target}`];
-  
+
         // if something was selected before, deselect it.
         if (selection.selected !== undefined) {
           this.set([`data${target}`, ...selection.path, 'selected'], false);
@@ -598,12 +607,14 @@
 
       /**
        * Bch selected data changed
+       *
+       * @param {*} dataSelectedBch
        */
       _dataSelectedBchChanged(dataSelectedBch) {
         if (dataSelectedBch === undefined || !dataSelectedBch.data) {
           return;
         }
-        
+
         // clean up all stack helpers
         this._resetStackHelper('Bch');
         this._resetStackHelper('Ge');
@@ -621,6 +632,8 @@
 
       /**
        * Ge selected data changed
+       *
+       * @param {*} dataSelectedGe
        */
       _dataSelectedGeChanged(dataSelectedGe) {
         if (dataSelectedGe === undefined || !dataSelectedGe.data) {
@@ -643,7 +656,7 @@
         const dataAPI = {};
         dataAPI.auth = {
           type: 'token',
-          token: sessionStorage.getItem('token')
+          token: sessionStorage.getItem('token'),
         };
         this.$.API.handleAs = 'arraybuffer';
         return this.$.API.request( 'GET', url, dataAPI );
@@ -701,7 +714,8 @@
           })
           .then((series) => {
             // make sure first frame we have is matching the requested url
-            // it could be different if a user clicked on different series while another was loading
+            // it could be different if a user clicked on
+            // different series while another was loading
             const firstFrameUrl = series.stack[0].frame[0].url;
             const dataSelected = this[`dataSelected${target}`];
             const currentSelectionUrls = dataSelected.data.map(function(obj) {
@@ -764,7 +778,7 @@
           // stop rendering loops
           this.$.render.stopRenderingLoop();
           this.$.render2.stopRenderingLoop();
-        } 
+        }
       }
 
       _visibleGeChanged(visible) {
@@ -799,7 +813,7 @@
       }
 
       _isSelected(data) {
-        return !(data === undefined || !data.data)
+        return !(data === undefined || !data.data);
       }
 
       _isReadyAndNotSelected(status, data) {
@@ -826,7 +840,11 @@
           (dataSelectedGe === undefined || dataSelectedGe.data ==undefined) &&
           urlsTotal > 0) {
           return true;
-        } else if (target === 'ge' && dataSelectedGe && dataSelectedGe.data && urlsTotal > 0) {
+        } else if (
+          target === 'ge' &&
+          dataSelectedGe &&
+          dataSelectedGe.data &&
+          urlsTotal > 0) {
           return true;
         }
 
@@ -899,7 +917,6 @@
 
       _resetData(target) {
         // data
-        const path = this[`dataSelected${target}`].path;
         this.set(`data${target}`, []);
         this.set(`dataSelected${target}`, {});
         this.set(`dataStatus${target}`, 'empty');

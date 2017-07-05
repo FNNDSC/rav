@@ -12,7 +12,9 @@
   <script>
     class GEXDataStore extends CHIPSPluginBehavior(Polymer.Element) {
 
-      static get is() { return 'gex-datastore'; }
+      static get is() {
+        return 'gex-datastore';
+      }
 
       static get properties() {
         return {
@@ -33,7 +35,7 @@
           },
           pluginDataMap: {
             type: Array,
-            value:  new Map(),
+            value: new Map(),
           },
           pluginFiles: {
             type: Array,
@@ -98,7 +100,8 @@
         apiData.params = {};
         // fetch ressource then update it all...
         this.$.API.handleAs = 'blob';
-        return this.$.API.request('GET', series.preview.links.file_resource, apiData)
+        return this.$.API.request(
+          'GET', series.preview.links.file_resource, apiData)
         .then((response) => {
           this.set(['pluginData', ...series.path, 'preview.blob'], response);
         })
@@ -122,7 +125,7 @@
         const relativeFname = file.data.relative_fname;
         const relativeDirectory =
           relativeFname.slice(0, relativeFname.lastIndexOf('/'));
-        
+
         // find series in the map
         let series = map.get(relativeDirectory);
         if (series === null || series === undefined) {
@@ -144,7 +147,7 @@
               files: 0,
             },
           },
-        }
+        };
       }
 
       _updateDataArray() {
@@ -202,13 +205,13 @@
           // wait until finished
           this.pluginStatus = 'running';
           this._waitForPluginFinished();
-        } else if (pluginStatus ===  'finishedSuccessfully') {
+        } else if (pluginStatus === 'finishedSuccessfully') {
           // fetch files
           this.pluginStatus = 'fetching';
           this._fetchFiles();
         } else {
           this.pluginStatus = 'error';
-          console.log(`Un-handled plugin instance status: ${pluginStatus}`)
+          console.log(`Un-handled plugin instance status: ${pluginStatus}`);
         }
       }
 
@@ -234,7 +237,6 @@
           }
 
           this.set('plugin', result);
-          
         });
       }
 

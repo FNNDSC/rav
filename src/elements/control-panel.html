@@ -264,21 +264,22 @@
         stackHelper.orientation = 0;
         this.stackMaxIndex = stackHelper.orientationMaxIndex;
         this.stackIndex = Math.floor(this.stackMaxIndex/2);
-        
+
         // intensity
         this.stackIntensityMin = stack.minMax[0];
         this.stackIntensityMax = stack.minMax[1];
         this.stackIntensityRange = stack.minMax[1] - stack.minMax[0];
         this.stackWindowWidth = this.stackIntensityRange;
         this.stackWindowCenter = stack.minMax[0] + this.stackIntensityRange / 2;
-        
+
         // extra
         this.stackInterpolation = true;
-        this.set('stackHelper.slice.interpolation', this.stackInterpolation ? 1 : 0);
+        this.set(
+          'stackHelper.slice.interpolation', this.stackInterpolation ? 1 : 0);
         this.stackIntensityAuto = false;
         this.set('stackHelper.slice.intensityAuto', this.stackIntensityAuto );
       }
-      
+
       _resetStackHelper() {
         this._stackHelperChanged(this.stackHelper);
       }

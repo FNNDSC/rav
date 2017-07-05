@@ -152,9 +152,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   </template>
 
   <script>
-    class GEXApp extends CHIPSPluginBehavior(Polymer.GestureEventListeners(Polymer.Element)) {
+    class GEXApp extends CHIPSPluginBehavior(
+      Polymer.GestureEventListeners(Polymer.Element)) {
 
-      static get is() { return 'gex-app'; }
+      static get is() {
+        return 'gex-app';
+      }
 
       static get properties() {
         return {
@@ -241,7 +244,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       _pageChanged(page) {
         // Load page import on demand. Show 404 page if fails
-        var resolvedPageUrl = this.resolveUrl('gex-' + page + '.html');
+        const resolvedPageUrl = this.resolveUrl('gex-' + page + '.html');
         Polymer.importHref(
             resolvedPageUrl,
             null,
@@ -287,8 +290,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       _handleStartMove(event) {
         const detail = event.detail;
         this.set('feed', {
-          href: detail.feedLink
-          },
+            href: detail.feedLink,
+          }
         );
         this.set('pluginBch', detail.pluginInstance);
       }
@@ -300,7 +303,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       fetchPlugins() {
         // through the API
-        var data = {};
+        const data = {};
         data.auth = {
           type: 'token',
           token: sessionStorage.getItem('token'),
@@ -316,7 +319,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       _handlePluginsResponse(response) {
         this.plugins = response.data;
       }
-  
+
       _handlePluginsError(error) {
         window.console.log(error);
       }
@@ -336,7 +339,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           }
           if (this.plugins[i].data.name === 'simpledsapp') {
             this.geLink = plugins[i].links.instances;
-          }         
+          }
         }
       }
     }

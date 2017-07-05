@@ -1,12 +1,12 @@
 /* global require */
-var exec = require('child_process').exec;
+const exec = require('child_process').exec;
 
-var targetImage =
+const targetImage =
     '../images/gex.png';
-var destination =
+const destination =
     '../images/manifest/';
 
-var icons = [
+const icons = [
   {
     name: 'icon-48x48.png',
     size: '48x48',
@@ -48,7 +48,7 @@ function puts(error, stdout, stderr) {
   return error + stdout + stderr;
 }
 
-for (var i=0; i<icons.length; i++) {
+for (let i=0; i<icons.length; i++) {
   exec('convert ' + targetImage +
          ' -verbose' +
          ' -background none' +

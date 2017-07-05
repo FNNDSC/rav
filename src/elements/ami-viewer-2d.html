@@ -205,7 +205,7 @@
           },
           mouseValue: {
             type: Number,
-          }
+          },
         };
       }
 
@@ -288,7 +288,9 @@
 
       _animate() {
         this._controls.update();
-        this.animationFrameID = requestAnimationFrame(() => {this._animate()} );
+        this.animationFrameID = requestAnimationFrame(() => {
+          return this._animate();
+        } );
 
         if (this._changed) {
           this._renderer.clear();
@@ -358,10 +360,12 @@
 
           this.stackHelper.orientation = this._camera.stackOrientation;
           this.stackOrientation = this._camera.stackOrientation;
-          this.stackHelper.index = Math.floor(this.stackHelper.orientationMaxIndex/2);
+          this.stackHelper.index =
+            Math.floor(this.stackHelper.orientationMaxIndex/2);
 
           this.updateInformation();
-          this.updateLabels(this._camera.directionsLabel, this.stackHelper.stack.modality);
+          this.updateLabels(
+            this._camera.directionsLabel, this.stackHelper.stack.modality);
         }
       }
 
@@ -406,7 +410,8 @@
 
           //
           this.updateInformation();
-          this.updateLabels(this._camera.directionsLabel, this.stackHelper.stack.modality);
+          this.updateLabels(
+            this._camera.directionsLabel, this.stackHelper.stack.modality);
 
           this._changed = true;
         }
@@ -462,15 +467,17 @@
         const intersects = raycaster.intersectObject(this._scene, true);
         if (intersects.length > 0) {
           let ijk =
-            AMI.default.Models.Stack.worldToData(this.stackHelper.stack, intersects[0].point);
+            AMI.default.Models.Stack.worldToData(
+              this.stackHelper.stack, intersects[0].point);
           this.mouseI = ijk.x;
           this.mouseJ = ijk.y;
           this.mouseK = ijk.z;
-          this.mouseValue = AMI.default.Models.Stack.value(this.stackHelper.stack, ijk);
+          this.mouseValue =
+            AMI.default.Models.Stack.value(this.stackHelper.stack, ijk);
         }
       }
 
-      _somethingChanged () {
+      _somethingChanged() {
         this._changed = true;
       }
     }

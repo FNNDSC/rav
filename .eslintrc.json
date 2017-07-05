@@ -4,18 +4,21 @@
     "ecmaVersion": 6
   },
   "env": {
-    "browser": true
+    "browser": true,
+    "es6": true
   },
   "plugins": [
     "html"
   ],
   "rules": {
-    "brace-style": "off",
-    "new-cap": ["error", { "capIsNewExceptions": ["Polymer"] }],
-    "no-var": "off",
-    "require-jsdoc": "off"
+    "new-cap": ["error", { "capIsNewExceptions": ["Polymer", "GestureEventListeners", "CHIPSPluginBehavior"] }],
+    "require-jsdoc": "off",
+    "no-console": 1
   },
   "globals": {
-    "Polymer": true
+    "Polymer": true,
+    "THREE": true,
+    "AMI": true,
+    "CHIPSPluginBehavior": true
   }
 }

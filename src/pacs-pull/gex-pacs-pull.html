@@ -124,7 +124,7 @@
             value: 'query',
             observer: '_pageChanged',
           },
-          selection:{
+          selection: {
             type: Array,
             value: [],
           },
@@ -177,8 +177,8 @@
 
       static get observers() {
         return [
-            '_selectionChanged(selection.*)'
-          ]
+            '_selectionChanged(selection.*)',
+          ];
       }
 
       ready() {
@@ -196,7 +196,6 @@
             this.error = data;
             this.page = 'error';
           } else if (data.status === 'close') {
-
             // let app know we need to fetch the latest feed
             const fetchData = new CustomEvent(
               'start-move',

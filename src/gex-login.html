@@ -135,7 +135,9 @@
 
   <script>
     class GEXLogin extends Polymer.GestureEventListeners(Polymer.Element) {
-      static get is() { return 'gex-login'; }
+      static get is() {
+        return 'gex-login';
+      }
 
 
       static get properties() {
@@ -169,7 +171,7 @@
           this.$.loginLabel.style.display = 'none';
           this.$.loginSpinner.style.display = 'block';
           // prepare data
-          var data = {};
+          const data = {};
           data.auth = {
             type: 'none',
           };
@@ -178,7 +180,7 @@
             'password': this._password,
           };
           // need to pass username and password
-          var request = this.$.API.request('POST', 'login', data);
+          const request = this.$.API.request('POST', 'login', data);
           request
             .then(this.handleResponse.bind(this))
             .catch(this.handleError.bind(this));
