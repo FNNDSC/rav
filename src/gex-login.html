@@ -13,6 +13,8 @@
   <template>
     <style include="shared-styles">
       :host {
+        display: -webkit-box;
+        display: -ms-flexbox;
         display: flex;
         position: absolute;
         top: 0;
@@ -28,10 +30,19 @@
         margin-top: 60px;
         margin-bottom: 60px;
         position: relative;
+        display:-webkit-box;
+        display:-ms-flexbox;
         display:flex;
-        flex-direction:column;
-        align-items: center;
-        justify-content: center;
+        -webkit-box-orient:vertical;
+        -webkit-box-direction:normal;
+            -ms-flex-direction:column;
+                flex-direction:column;
+        -webkit-box-align: center;
+            -ms-flex-align: center;
+                align-items: center;
+        -webkit-box-pack: center;
+            -ms-flex-pack: center;
+                justify-content: center;
       }
       .title {
         text-align: center;
@@ -47,8 +58,13 @@
         margin-top: 32px;
         background: var(--accent-color);
         color: var(--secondary-text-color);
+        display: -webkit-box;
+        display: -ms-flexbox;
         display: flex;
-        flex-direction: row;
+        -webkit-box-orient: horizontal;
+        -webkit-box-direction: normal;
+            -ms-flex-direction: row;
+                flex-direction: row;
       }
       paper-spinner {
         margin:6px;

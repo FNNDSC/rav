@@ -11,36 +11,61 @@
 
 <dom-module id="control-panel">
   <template>
-
     <style>
       :host {
-        flex: 1;
+        -webkit-box-flex: 1;
+            -ms-flex: 1;
+                flex: 1;
         overflow-y: auto;
         overflow-x: hidden;
       }
       .container {
-        flex: 1;
-        flex-direction: row;
+        -webkit-box-flex: 1;
+            -ms-flex: 1;
+                flex: 1;
+        -webkit-box-orient: horizontal;
+        -webkit-box-direction: normal;
+            -ms-flex-direction: row;
+                flex-direction: row;
+        display:-webkit-box;
+        display:-ms-flexbox;
         display:flex;
-        justify-content: flex-end;
+        -webkit-box-pack: end;
+            -ms-flex-pack: end;
+                justify-content: flex-end;
       }
     
       .expand {
+        display: -webkit-box;
+        display: -ms-flexbox;
         display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: space-between;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+            -ms-flex-direction: column;
+                flex-direction: column;
+        -webkit-box-align: center;
+            -ms-flex-align: center;
+                align-items: center;
+        -webkit-box-pack: justify;
+            -ms-flex-pack: justify;
+                justify-content: space-between;
         padding: 4px;
-        flex: 1;
+        -webkit-box-flex: 1;
+            -ms-flex: 1;
+                flex: 1;
       }
 
       .parameter {
         width: 100%;
+        display: -webkit-box;
+        display: -ms-flexbox;
         display: flex;
       }
 
       .label {
-        flex: 0;
+        -webkit-box-flex: 0;
+            -ms-flex: 0;
+                flex: 0;
         padding: 2px;
         /*min-width: 0;*/
         font-size: 12px;
@@ -48,16 +73,27 @@
       }
 
       .static {
-        flex: none;
+        -webkit-box-flex: 0;
+            -ms-flex: none;
+                flex: none;
+        display: -webkit-box;
+        display: -ms-flexbox;
         display: flex;
-        flex-direction: column;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+            -ms-flex-direction: column;
+                flex-direction: column;
       }
 
       .static > .parameter {
-        justify-content: space-between;
+        -webkit-box-pack: justify;
+            -ms-flex-pack: justify;
+                justify-content: space-between;
       }
 
       .stretch {
+        display: -webkit-box;
+        display: -ms-flexbox;
         display: flex;
       }
 
@@ -66,7 +102,9 @@
       }
 
       paper-button, paper-dropdown-menu, paper-slider {
-        flex: 1;
+        -webkit-box-flex: 1;
+            -ms-flex: 1;
+                flex: 1;
         width: auto;
       }
 

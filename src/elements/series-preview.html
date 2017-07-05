@@ -10,6 +10,8 @@
       }
 
       .seriesPreview {
+        display: -webkit-box;
+        display: -ms-flexbox;
         display: flex;
         margin: 4px;
         padding: 4px;
@@ -37,7 +39,9 @@
         left:0;
         right: 0;*/
         padding: 2px;
-        flex: 1;
+        -webkit-box-flex: 1;
+            -ms-flex: 1;
+                flex: 1;
         min-width: 0;
         font-size: 12px;
         color: var(--secondary-text-color);
@@ -46,7 +50,8 @@
       .about > div {
         white-space: nowrap;
         overflow: hidden;
-        text-overflow: ellipsis;
+        -o-text-overflow: ellipsis;
+           text-overflow: ellipsis;
       }
 
     </style>

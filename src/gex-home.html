@@ -28,17 +28,28 @@
   <template>
     <style include="shared-styles">
       :host {
+        display: -webkit-box;
+        display: -ms-flexbox;
         display: flex;
-        flex: 1;
+        -webkit-box-flex: 1;
+            -ms-flex: 1;
+                flex: 1;
         background-color: var(--default-primary-color);
         color: var(--text-primary-color);
         font-weight: lighter;
       }
 
       .content {
-        flex: 1;
+        -webkit-box-flex: 1;
+            -ms-flex: 1;
+                flex: 1;
+        display: -webkit-box;
+        display: -ms-flexbox;
         display: flex;
-        flex-direction: column;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+            -ms-flex-direction: column;
+                flex-direction: column;
         background-color: var(--dark-primary-color);
         overflow: hidden;
         position: relative;
@@ -52,39 +63,70 @@
         right: 0;
         background-color: var(--light-primary-color);
         z-index: 2;
+        display: -webkit-box;
+        display: -ms-flexbox;
         display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+            -ms-flex-direction: column;
+                flex-direction: column;
+        -webkit-box-pack: center;
+            -ms-flex-pack: center;
+                justify-content: center;
+        -webkit-box-align: center;
+            -ms-flex-align: center;
+                align-items: center;
         font-size: 24px;
       }
 
       .panel {
         width: 192px;
+        display: -webkit-box;
+        display: -ms-flexbox;
         display: flex;
-        flex-direction: column;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+            -ms-flex-direction: column;
+                flex-direction: column;
       }
 
       .viewersC {
-        flex: 1;
+        -webkit-box-flex: 1;
+            -ms-flex: 1;
+                flex: 1;
+        display:-webkit-box;
+        display:-ms-flexbox;
         display:flex;
-        flex-direction: row;
+        -webkit-box-orient: horizontal;
+        -webkit-box-direction: normal;
+            -ms-flex-direction: row;
+                flex-direction: row;
       }
 
       .viewers {
-        flex: 1;
+        -webkit-box-flex: 1;
+            -ms-flex: 1;
+                flex: 1;
         height: 0;
         width: 100%;
       }
 
       .viewerui {
+        display: -webkit-box;
+        display: -ms-flexbox;
         display: flex;
         height: 100%;
         position: relative;
-        flex-direction: column;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+            -ms-flex-direction: column;
+                flex-direction: column;
         width: 0;
-        flex: 1;
-        box-sizing: border-box;
+        -webkit-box-flex: 1;
+            -ms-flex: 1;
+                flex: 1;
+        -webkit-box-sizing: border-box;
+                box-sizing: border-box;
         border: 1px solid #212121;
         border-bottom: 4px solid #212121;
       }
@@ -94,13 +136,17 @@
       }
 
       .series{
-        flex: 1;
+        -webkit-box-flex: 1;
+            -ms-flex: 1;
+                flex: 1;
         overflow-y: auto;
         overflow-x: hidden;
       }
 
       .label {
-        flex: 0;
+        -webkit-box-flex: 0;
+            -ms-flex: 0;
+                flex: 0;
         padding: 2px;
         /*min-width: 0;*/
         font-size: 12px;
@@ -120,11 +166,20 @@
         right: 0;
         background-color: var(--light-primary-color);
         z-index: 2;
+        display: -webkit-box;
+        display: -ms-flexbox;
         display: flex;
-        align-items: center;
-        justify-content: center;
+        -webkit-box-align: center;
+            -ms-flex-align: center;
+                align-items: center;
+        -webkit-box-pack: center;
+            -ms-flex-pack: center;
+                justify-content: center;
         color: #ffffff;
-        flex-direction: column;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+            -ms-flex-direction: column;
+                flex-direction: column;
       }
 
       paper-slider {
@@ -165,8 +220,6 @@
       .overlay paper-button {
         display: block;
       }
-
-
 
       [hidden] {
         display: none;
