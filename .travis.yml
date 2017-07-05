@@ -13,8 +13,8 @@ node_js:
   - "6"
 install:
   - npm install
+  - npm install -g polymer-cli bower
   - bower install
-  - npm install -g polymer-cli
   - polymer install
 before_script:
   - npm run lint
