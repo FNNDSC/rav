@@ -153,7 +153,7 @@
           stackIndex: {
             type: Number,
             notify: true,
-            observer: '_somethingChanged',
+            observer: '_sceneChanged',
           },
           active: {
             type: Boolean,
@@ -164,11 +164,19 @@
           },
           stackWindowWidth: {
             type: Number,
-            observer: '_somethingChanged',
+            observer: '_windowWidthChanged',
           },
           stackWindowCenter: {
             type: Number,
-            observer: '_somethingChanged',
+            observer: '_windowCenterChanged',
+          },
+          intensityAuto: {
+            type: Boolean,
+            observer: '_sceneChanged',
+          },
+          interpolation: {
+            type: Boolean,
+            observer: '_sceneChanged',
           },
           patientID: {
             type: String,
@@ -293,6 +301,7 @@
         } );
 
         if (this._changed) {
+          console.log(this._scene);
           this._renderer.clear();
           this._renderer.render( this._scene, this._camera );
           this._changed = false;
@@ -477,8 +486,18 @@
         }
       }
 
-      _somethingChanged() {
+      _sceneChanged() {
         this._changed = true;
+      }
+
+      _windowCenterChanged(value) {
+        console.log('wc changed: ' + value);
+        this._sceneChanged();
+      }
+
+      _windowWidthChanged(value) {
+        console.log('ww changed: ' + value);
+        this._sceneChanged();
       }
     }
     window.customElements.define(AMIViewer2D.is, AMIViewer2D);

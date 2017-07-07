@@ -136,33 +136,33 @@
         </div>
         <div class="parameter index">
             <div class="label">Image Index</div>
-            <paper-slider value="{{stackIndex}}" immediate-value="{{stackIndex}}" min="0" max="[[stackMaxIndex]]" editable></paper-slider>
+            <paper-slider value="{{index}}" immediate-value="{{index}}" min="0" max="[[maxIndex]]" editable></paper-slider>
         </div>
       </div>
 
       <div hidden$="[[collapse]]" class="expand">
         <div class="parameter windowWidth">
             <div class="label">Window Width</div>
-            <paper-slider value="{{stackWindowWidth}}" immediate-value="{{stackWindowWidth}}" min="1" max="[[stackIntensityRange]]" editable></paper-slider>
+            <paper-slider value="{{windowWidth}}" immediate-value="{{windowWidth}}" min="1" max="[[intensityRange]]" editable></paper-slider>
         </div>
 
         <div class="parameter windowCenter">
             <div class="label">Window Level</div>
-            <paper-slider value="{{stackWindowCenter}}" immediate-value="{{stackWindowCenter}}" min="[[stackIntensityMin]]" max="[[stackIntensityMax]]" editable></paper-slider>
+            <paper-slider value="{{windowCenter}}" immediate-value="{{windowCenter}}" min="[[intensityMin]]" max="[[intensityMax]]" editable></paper-slider>
         </div>
       </div>
 
-      <!--<div hidden$="[[collapse]]" class="static">
+      <div hidden$="[[collapse]]" class="static">
         <div class="parameter stretch">
             <div class="label">Voxel Interpolation</div>
-            <paper-toggle-button checked="{{stackInterpolation}}"></paper-toggle-button>
+            <paper-toggle-button checked="{{interpolation}}"></paper-toggle-button>
         </div>
 
         <div class="parameter stretch">
             <div class="label">Auto Intensity</div>
-            <paper-toggle-button checked="{{stackIntensityAuto}}"></paper-toggle-button>
+            <paper-toggle-button checked="{{intensityAuto}}"></paper-toggle-button>
         </div>
-      </div>-->
+      </div>
 
       <div class="static">
         <div class="stretch">
@@ -188,146 +188,51 @@
             value: true,
             notify: true,
           },
-          stackHelper: {
-            type: Object,
-            value: {},
-            observer: '_stackHelperChanged',
-          },
-          stackIndex: {
-            type: Number,
-            value: 0,
-            observer: '_stackIndexChanged',
-            notify: true,
-          },
-          stackIntensityMin: {
-            type: Number,
-            value: 0,
-          },
-          stackIntensityRange: {
-            type: Number,
-            value: 0,
-          },
-          stackInterpolation: {
-            type: Boolean,
-            value: false,
-            observer: '_stackInterpolationChanged',
-          },
-          stackIntensityAuto: {
-            type: Boolean,
-            value: false,
-            observer: '_stackIntensityAutoChanged',
-          },
-          stackMaxIndex: {
+          index: {
             type: Number,
             value: 0,
             notify: true,
+          },
+          intensityMin: {
+            type: Number,
+            value: 0,
+          },
+          intensityMax: {
+            type: Number,
+            value: 0,
+          },
+          intensityRange: {
+            type: Number,
+            value: 0,
+          },
+          interpolation: {
+            type: Boolean,
+            notify: true,
+          },
+          intensityAuto: {
+            type: Boolean,
+            notify: true,
+          },
+          maxIndex: {
+            type: Number,
+            value: 0,
           },
           orientation: {
             type: String,
             value: 'default',
             notify: true,
           },
-          stackOrientation: {
+          windowWidth: {
             type: Number,
             value: 0,
-            observer: '_stackOrientationChanged',
-          },
-          stackWindowWidth: {
-            type: Number,
-            value: 0,
-            observer: '_stackWindowWidthChanged',
             notify: true,
           },
-          stackWindowCenter: {
+          windowCenter: {
             type: Number,
             value: 0,
-            observer: '_stackWindowCenterChanged',
             notify: true,
           },
         };
-      }
-
-      _stackHelperChanged(stackHelper) {
-        if (stackHelper === undefined ||
-          stackHelper === null ||
-          !stackHelper._stack) {
-          return;
-        }
-
-        // acquisition direction by default
-        const stack = stackHelper.stack;
-
-        // orientation
-        this.orientation = 'default';
-
-        // index
-        stackHelper.orientation = 0;
-        this.stackMaxIndex = stackHelper.orientationMaxIndex;
-        this.stackIndex = Math.floor(this.stackMaxIndex/2);
-
-        // intensity
-        this.stackIntensityMin = stack.minMax[0];
-        this.stackIntensityMax = stack.minMax[1];
-        this.stackIntensityRange = stack.minMax[1] - stack.minMax[0];
-        this.stackWindowWidth = this.stackIntensityRange;
-        this.stackWindowCenter = stack.minMax[0] + this.stackIntensityRange / 2;
-
-        // extra
-        this.stackInterpolation = true;
-        this.set(
-          'stackHelper.slice.interpolation', this.stackInterpolation ? 1 : 0);
-        this.stackIntensityAuto = false;
-        this.set('stackHelper.slice.intensityAuto', this.stackIntensityAuto );
-      }
-
-      _resetStackHelper() {
-        this._stackHelperChanged(this.stackHelper);
-      }
-
-
-      _stackIndexChanged(index) {
-        this.set('stackHelper.index', index);
-
-        if (this.stackIntensityAuto) {
-          this.stackWindowWidth = this.stackHelper.slice.windowWidth;
-          this.stackWindowCenter = this.stackHelper.slice.windowCenter;
-        }
-      }
-
-      _stackWindowWidthChanged(width) {
-        this.set('stackHelper.slice.windowWidth', width);
-      }
-
-      _stackWindowCenterChanged(center) {
-        this.set('stackHelper.slice.windowCenter', center);
-      }
-
-      _stackInterpolationChanged(interpolation) {
-        this.set('stackHelper.slice.interpolation', interpolation ? 1 : 0);
-      }
-
-      _stackIntensityAutoChanged(auto) {
-        this.set('stackHelper.slice.intensityAuto', auto);
-
-        if (auto) {
-          this.stackWindowWidth = this.stackHelper.slice.windowWidth;
-          this.stackWindowCenter = this.stackHelper.slice.windowCenter;
-        }
-      }
-
-      _stackOrientationChanged(stackOrientation) {
-        if (stackOrientation === undefined ||
-        stackOrientation === '') {
-          return;
-        }
-
-      if (this.stackHelper &&
-          this.stackHelper.stack) {
-          this.stackHelper.orientation = stackOrientation;
-
-          this.stackMaxIndex = this.stackHelper.orientationMaxIndex;
-          this.stackIndex = Math.floor(this.stackMaxIndex/2);
-        }
       }
 
       _collapse() {

@@ -292,13 +292,16 @@
         <control-panel
           hidden$="[[activeGe]]"
           collapse="{{collapse}}"
-          stack-helper="{{stackHelperBch}}"
-          stack-index="{{stackIndex}}"
-          stack-max-index="{{stackMaxIndex}}"
-          orientation="{{orientation}}"
-          stack-orientation="{{stackOrientationIndex}}"
-          stack-window-width="{{stackWindowWidth}}"
-          stack-window-center="{{stackWindowCenter}}"></control-panel>
+          index="{{stackIndexBch}}"
+          interpolation="{{stackInterpolationBch}}"
+          intensity-auto="{{stackIntensityAutoBch}}"
+          intensity-min="[[stackIntensityMinBch]]"
+          intensity-max="[[stackIntensityMaxBch]]"
+          intensity-range="[[stackIntensityRangeBch]]"
+          max-index="[[stackMaxIndexBch]]"
+          orientation="{{orientationBch}}"
+          window-width="{{stackWindowWidthBch}}"
+          window-center="{{stackWindowCenterBch}}"></control-panel>
 
 
         <control-panel
@@ -326,22 +329,24 @@
             </div>
           </div>
           <paper-slider
-            value="{{stackIndex}}"
-            immediate-value="{{stackIndex}}"
+            value="{{stackIndexBch}}"
+            immediate-value="{{stackIndexBch}}"
             min="0"
-            max="[[stackMaxIndex]]"
+            max="[[stackMaxIndexBch]]"
             editable></paper-slider>
           <ami-viewer-2d
             id="render"
             class="viewers"
             active="{{activeBch}}"
             stack-scene="[[stackSceneBch]]"
-            stack-index="{{stackIndex}}"
-            stack-max-index="[[stackMaxIndex]]"
-            orientation="{{orientation}}"
+            stack-index="{{stackIndexBch}}"
+            stack-max-index="[[stackMaxIndexBch]]"
+            orientation="{{orientationBch}}"
             stack-orientation="{{stackOrientationIndex}}"
-            stack-window-width="[[stackWindowWidth]]"
-            stack-window-center="[[stackWindowCenter]]"></ami-viewer-2d>
+            stack-window-width="[[stackWindowWidthBch]]"
+            stack-window-center="[[stackWindowCenterBch]]"
+            intensity-auto="[[stackIntensityAutoBch]]"
+            interpolation="[[stackInterpolationBch]]"></ami-viewer-2d>
         </div>
         <div
           class$="[[classIt(activeGe)]]"
@@ -447,6 +452,7 @@
           stackHelperBch: {
             type: Object,
             value: {},
+            observer: '_stackHelperBchChanged',
           },
           stackSceneBch: {
             type: Object,
@@ -455,6 +461,7 @@
           stackHelperGe: {
             type: Object,
             value: {},
+            observer: '_stackHelperGeChanged',
           },
           stackSceneGe: {
             type: Object,
@@ -467,6 +474,56 @@
           previousInstance: {
             type: Object,
             value: {},
+          },
+          orientationBch: {
+            type: String,
+            value: 'default',
+            observer: '_orientationBchChanged',
+          },
+          stackIndexBch: {
+            type: Number,
+            value: 0,
+            observer: '_stackIndexBchChanged',
+          },
+          stackMinIndexBch: {
+            type: Number,
+            value: 0,
+          },
+          stackMaxIndexBch: {
+            type: Number,
+            value: 0,
+          },
+          stackIntensityMinBch: {
+            type: Number,
+            value: 0,
+          },
+          stackIntensityMaxBch: {
+            type: Number,
+            value: 0,
+          },
+          stackIntensityRangeBch: {
+            type: Number,
+            value: 0,
+          },
+          stackWindowWidthBch: {
+            type: Number,
+            value: 0,
+            observer: '_stackWindowWidthBchChanged',
+          },
+          stackWindowCenterBch: {
+            type: Number,
+            value: 0,
+            observer: '_stackWindowCenterBchChanged',
+          },
+          stackIntensityAutoBch: {
+            type: Boolean,
+            value: false,
+            observer: '_stackIntensityAutoBchChanged',
+          },
+          stackInterpolationBch: {
+            type: Boolean,
+            value: true,
+            observer: '_stackInterpolationBchChanged',
           },
         };
       }
@@ -927,6 +984,145 @@
         const activeClass = active ? 'active' : '';
 
         return `${baseClass} ${activeClass}`;
+      }
+
+      _stackHelperBchChanged(stackHelper) {
+        this._stackHelperChanged(stackHelper, 'Bch');
+      }
+
+      _stackHelperGeChanged(stackHelper) {
+        this._stackHelperChanged(stackHelper, 'Ge');
+      }
+
+      _stackHelperChanged(stackHelper, target) {
+        if (stackHelper === undefined ||
+            stackHelper === null ||
+            stackHelper.stack === undefined) {
+          return;
+        }
+
+        // orientation
+        this.set(`orientation${target}`, 'default');
+        this.set([`stackHelper${target}`, 'orientation'], 0);
+
+        // index
+        const maxIndex = this[`stackHelper${target}`].orientationMaxIndex;
+        this.set(`stackMaxIndex${target}`, maxIndex);
+        this.set(`stackIndex${target}`, Math.floor(maxIndex/2));
+
+        // more
+        this.set(`stackIntensityAuto${target}`, false);
+        this.set(`stackInterpolation${target}`, true);
+
+        // intensity
+        // must be last to be set because some flags such as
+        // "intensity" can modify it
+        const stack = this[`stackHelper${target}`].stack;
+        this.set(`stackIntensityMin${target}`, stack.minMax[0]);
+        this.set(`stackIntensityMax${target}`, stack.minMax[1]);
+        const defaultWW = stack.minMax[1] - stack.minMax[0];
+        this.set(`stackIntensityRange${target}`, defaultWW);
+        this.set(`stackWindowWidth${target}`, defaultWW);
+        this.set(`stackWindowCenter${target}`, stack.minMax[0] + defaultWW / 2);
+      }
+
+      /**
+       * Stack index Bch changed
+       *
+       * @param {*} index
+       */
+      _stackIndexBchChanged(index) {
+        this._stackIndexChanged('Bch', index);
+      }
+
+      _stackIndexChanged(target, index) {
+        this.set([`stackHelper${target}`, 'index'], index);
+
+        const auto = this[`stackIntensityAuto${target}`];
+        if (auto) {
+          const ww = this[`stackHelper${target}`].slice.windowWidth;
+          this.set(`stackWindowWidth${target}`, ww);
+
+          const wc = this[`stackHelper${target}`].slice.windowCenter;
+          this.set(`stackWindowCenter${target}`, wc);
+        }
+      }
+
+      /**
+       * Stack window width Bch changed
+       *
+       * @param {*} windowWidth
+       */
+      _stackWindowWidthBchChanged(windowWidth) {
+        this._stackWindowWidthChanged('Bch', windowWidth);
+      }
+
+      _stackWindowWidthChanged(target, windowWidth) {
+        if (windowWidth === undefined) {
+          return;
+        }
+        console.log('set window width');
+        console.log(target, windowWidth);
+        this.set([`stackHelper${target}`, 'slice', 'windowWidth'], windowWidth);
+      }
+
+      /**
+       * Stack window center Bch changed
+       *
+       * @param {*} windowCenter
+       */
+      _stackWindowCenterBchChanged(windowCenter) {
+        this._stackWindowCenterChanged('Bch', windowCenter);
+      }
+
+      _stackWindowCenterChanged(target, windowCenter) {
+        if (windowCenter === undefined) {
+          return;
+        }
+        console.log('set window center');
+        console.log(target, windowCenter);
+        this.set([`stackHelper${target}`, 'slice', 'windowCenter'], windowCenter);
+      }
+
+      /**
+       * Stack intensity auto Bch changed
+       *
+       * @param {*} auto
+       */
+      _stackIntensityAutoBchChanged(auto) {
+        this._stackIntensityAutoChanged('Bch', auto);
+      }
+
+      _stackIntensityAutoChanged(target, auto) {
+        if (auto === undefined) {
+          return;
+        }
+
+        console.log('intensity auto' + auto);
+
+        this.set([`stackHelper${target}`, 'slice', 'intensityAuto'], auto);
+
+        if (auto) {
+          const ww = this[`stackHelper${target}`].slice.windowWidth;
+          this.set(`stackWindowWidth${target}`, ww);
+
+          const wc = this[`stackHelper${target}`].slice.windowCenter;
+          this.set(`stackWindowCenter${target}`, wc);
+        }
+      }
+
+      /**
+       * Stack interpolation Bch changed
+       *
+       * @param {*} interpolation
+       */
+      _stackInterpolationBchChanged(interpolation) {
+        this._stackInterpolationChanged('Bch', interpolation);
+      }
+
+      _stackInterpolationChanged(target, interpolation) {
+        this.set([`stackHelper${target}`, 'slice', 'interpolation'],
+          interpolation ? 1 : 0);
       }
     }
 
