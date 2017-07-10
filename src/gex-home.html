@@ -13,13 +13,13 @@
 
 <link rel="import" href="elements/ami-viewer-2d.html">
 <link rel="import" href="elements/css-loader.html">
-<link rel="import" href="elements/control-panel.html">
 <link rel="import" href="elements/series-preview.html">
 
 <link rel="import" href="import-ami.html">
 
 <link rel="import" href="../bower_components/chips-api/chips-api.html">
 <link rel="import" href="../bower_components/chips-api/behaviors/chips-plugin-behavior.html">
+<link rel="import" href="../bower_components/control-panel-2d/control-panel-2d.html">
 
 <link rel="import" href="shared-styles.html">
 <link rel="import" href="my-icons.html">
@@ -289,7 +289,7 @@
         </div>
       </div>
       <div class="viewHead">
-        <control-panel
+        <control-panel-2d
           hidden$="[[activeGe]]"
           collapse="{{collapse}}"
           index="{{stackIndexBch}}"
@@ -301,10 +301,10 @@
           max-index="[[stackMaxIndexBch]]"
           orientation="{{orientationBch}}"
           window-width="{{stackWindowWidthBch}}"
-          window-center="{{stackWindowCenterBch}}"></control-panel>
+          window-center="{{stackWindowCenterBch}}"></control-panel-2d>
 
 
-        <control-panel
+        <control-panel-2d
           hidden$="[[activeBch]]"
           collapse="{{collapse}}"
           stack-helper="{{stackHelperGe}}"
@@ -313,7 +313,7 @@
           orientation="{{orientationGE}}"
           stack-orientation="{{stackOrientationIndexGE}}"
           stack-window-width="{{stackWindowWidthGE}}"
-          stack-window-center="{{stackWindowCenterGE}}"></control-panel>
+          stack-window-center="{{stackWindowCenterGE}}"></control-panel-2d>
       </div>
 
       <div class="viewersC">
