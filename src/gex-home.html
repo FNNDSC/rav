@@ -13,13 +13,13 @@
 
 <link rel="import" href="elements/ami-viewer-2d.html">
 <link rel="import" href="elements/css-loader.html">
-<link rel="import" href="elements/control-panel.html">
 <link rel="import" href="elements/series-preview.html">
 
 <link rel="import" href="import-ami.html">
 
 <link rel="import" href="../bower_components/chips-api/chips-api.html">
 <link rel="import" href="../bower_components/chips-api/behaviors/chips-plugin-behavior.html">
+<link rel="import" href="../bower_components/control-panel-2d/control-panel-2d.html">
 
 <link rel="import" href="shared-styles.html">
 <link rel="import" href="my-icons.html">
@@ -289,28 +289,34 @@
         </div>
       </div>
       <div class="viewHead">
-        <control-panel
+        <control-panel-2d
           hidden$="[[activeGe]]"
           collapse="{{collapse}}"
-          stack-helper="{{stackHelperBch}}"
-          stack-index="{{stackIndex}}"
-          stack-max-index="{{stackMaxIndex}}"
-          orientation="{{orientation}}"
-          stack-orientation="{{stackOrientationIndex}}"
-          stack-window-width="{{stackWindowWidth}}"
-          stack-window-center="{{stackWindowCenter}}"></control-panel>
+          index="{{stackIndexBch}}"
+          interpolation="{{stackInterpolationBch}}"
+          intensity-auto="{{stackIntensityAutoBch}}"
+          intensity-min="[[stackIntensityMinBch]]"
+          intensity-max="[[stackIntensityMaxBch]]"
+          intensity-range="[[stackIntensityRangeBch]]"
+          max-index="[[stackMaxIndexBch]]"
+          orientation="{{orientationBch}}"
+          window-width="{{stackWindowWidthBch}}"
+          window-center="{{stackWindowCenterBch}}"></control-panel-2d>
 
 
-        <control-panel
+        <control-panel-2d
           hidden$="[[activeBch]]"
           collapse="{{collapse}}"
-          stack-helper="{{stackHelperGe}}"
-          stack-index="{{stackIndexGE}}"
-          stack-max-index="{{stackMaxIndexGE}}"
-          orientation="{{orientationGE}}"
-          stack-orientation="{{stackOrientationIndexGE}}"
-          stack-window-width="{{stackWindowWidthGE}}"
-          stack-window-center="{{stackWindowCenterGE}}"></control-panel>
+          index="{{stackIndexGe}}"
+          interpolation="{{stackInterpolationGe}}"
+          intensity-auto="{{stackIntensityAutoGe}}"
+          intensity-min="[[stackIntensityMinGe]]"
+          intensity-max="[[stackIntensityMaxGe]]"
+          intensity-range="[[stackIntensityRangeGe]]"
+          max-index="[[stackMaxIndexGe]]"
+          orientation="{{orientationGe}}"
+          window-width="{{stackWindowWidthGe}}"
+          window-center="{{stackWindowCenterGe}}"></control-panel-2d>
       </div>
 
       <div class="viewersC">
@@ -326,22 +332,24 @@
             </div>
           </div>
           <paper-slider
-            value="{{stackIndex}}"
-            immediate-value="{{stackIndex}}"
+            value="{{stackIndexBch}}"
+            immediate-value="{{stackIndexBch}}"
             min="0"
-            max="[[stackMaxIndex]]"
+            max="[[stackMaxIndexBch]]"
             editable></paper-slider>
           <ami-viewer-2d
             id="render"
             class="viewers"
             active="{{activeBch}}"
             stack-scene="[[stackSceneBch]]"
-            stack-index="{{stackIndex}}"
-            stack-max-index="[[stackMaxIndex]]"
-            orientation="{{orientation}}"
-            stack-orientation="{{stackOrientationIndex}}"
-            stack-window-width="[[stackWindowWidth]]"
-            stack-window-center="[[stackWindowCenter]]"></ami-viewer-2d>
+            stack-index="{{stackIndexBch}}"
+            stack-max-index="{{stackMaxIndexBch}}"
+            orientation="{{orientationBch}}"
+            stack-orientation="{{stackOrientationIndexBch}}"
+            stack-window-width="{{stackWindowWidthBch}}"
+            stack-window-center="{{stackWindowCenterBch}}"
+            intensity-auto="[[stackIntensityAutoBch]]"
+            interpolation="[[stackInterpolationBch]]"></ami-viewer-2d>
         </div>
         <div
           class$="[[classIt(activeGe)]]"
@@ -356,22 +364,24 @@
             </div>
           </div>
           <paper-slider
-            value="{{stackIndexGE}}"
-            immediate-value="{{stackIndexGE}}"
+            value="{{stackIndexGe}}"
+            immediate-value="{{stackIndexGe}}"
             min="0"
-            max="[[stackMaxIndexGE]]"
+            max="[[stackMaxIndexGe]]"
             editable></paper-slider>
           <ami-viewer-2d
             id="render2"
             class="viewers"
             active="{{activeGe}}"
             stack-scene="[[stackSceneGe]]"
-            stack-index="{{stackIndexGE}}"
-            stack-max-index="[[stackMaxIndexGE]]"
-            orientation="{{orientationGE}}"
-            stack-orientation="{{stackOrientationIndexGE}}"
-            stack-window-width="[[stackWindowWidthGE]]"
-            stack-window-center="[[stackWindowCenterGE]]"></ami-viewer-2d>
+            stack-index="{{stackIndexGe}}"
+            stack-max-index="{{stackMaxIndexGe}}"
+            orientation="{{orientationGe}}"
+            stack-orientation="{{stackOrientationIndexGe}}"
+            stack-window-width="{{stackWindowWidthGe}}"
+            stack-window-center="{{stackWindowCenterGe}}"
+            intensity-auto="[[stackIntensityAutoGe]]"
+            interpolation="[[stackInterpolationGe]]"></ami-viewer-2d>
         </div>
       </div>
     </div>
@@ -447,6 +457,7 @@
           stackHelperBch: {
             type: Object,
             value: {},
+            observer: '_stackHelperBchChanged',
           },
           stackSceneBch: {
             type: Object,
@@ -455,6 +466,7 @@
           stackHelperGe: {
             type: Object,
             value: {},
+            observer: '_stackHelperGeChanged',
           },
           stackSceneGe: {
             type: Object,
@@ -467,6 +479,92 @@
           previousInstance: {
             type: Object,
             value: {},
+          },
+          stackIndexBch: {
+            type: Number,
+            value: 0,
+            observer: '_stackIndexBchChanged',
+          },
+          stackMinIndexBch: {
+            type: Number,
+            value: 0,
+          },
+          stackMaxIndexBch: {
+            type: Number,
+            value: 0,
+          },
+          stackIntensityMinBch: {
+            type: Number,
+            value: 0,
+          },
+          stackIntensityMaxBch: {
+            type: Number,
+            value: 0,
+          },
+          stackIntensityRangeBch: {
+            type: Number,
+            value: 0,
+          },
+          stackWindowWidthBch: {
+            type: Number,
+            value: 0,
+            observer: '_stackWindowWidthBchChanged',
+          },
+          stackWindowCenterBch: {
+            type: Number,
+            value: 0,
+            observer: '_stackWindowCenterBchChanged',
+          },
+          stackIntensityAutoBch: {
+            type: Boolean,
+            observer: '_stackIntensityAutoBchChanged',
+          },
+          stackInterpolationBch: {
+            type: Boolean,
+            observer: '_stackInterpolationBchChanged',
+          },
+          stackIndexGe: {
+            type: Number,
+            value: 0,
+            observer: '_stackIndexGeChanged',
+          },
+          stackMinIndexGe: {
+            type: Number,
+            value: 0,
+          },
+          stackMaxIndexGe: {
+            type: Number,
+            value: 0,
+          },
+          stackIntensityMinGe: {
+            type: Number,
+            value: 0,
+          },
+          stackIntensityMaxGe: {
+            type: Number,
+            value: 0,
+          },
+          stackIntensityRangeGe: {
+            type: Number,
+            value: 0,
+          },
+          stackWindowWidthGe: {
+            type: Number,
+            value: 0,
+            observer: '_stackWindowWidthGeChanged',
+          },
+          stackWindowCenterGe: {
+            type: Number,
+            value: 0,
+            observer: '_stackWindowCenterGeChanged',
+          },
+          stackIntensityAutoGe: {
+            type: Boolean,
+            observer: '_stackIntensityAutoGeChanged',
+          },
+          stackInterpolationGe: {
+            type: Boolean,
+            observer: '_stackInterpolationGeChanged',
           },
         };
       }
@@ -735,16 +833,16 @@
 
             // new stack Helper
             const localHelper = new AMI.default.Helpers.Stack(series.stack[0]);
-            this.set(`stackHelper${target}`, localHelper);
-
             const localScene = new THREE.Scene();
             localScene.add(localHelper);
             this.set(`stackScene${target}`, localScene);
+            this.set(`stackHelper${target}`, localHelper);
 
             // update extra info
             this.$.render.patientID = series.patientID;
             this.$.render.patientAge = series.patientAge;
             this.$.render.patientBorthdate = series.patientBorthdate;
+            this.$.render.studyDate = series.studyDate;
             this.$.render.studyDescription = series.studyDescription;
             this.$.render.seriesDescription = series.seriesDescription;
 
@@ -927,6 +1025,192 @@
         const activeClass = active ? 'active' : '';
 
         return `${baseClass} ${activeClass}`;
+      }
+
+      /**
+       * Stack helper Bch changed
+       *
+       * @param {*} stackHelper
+       */
+      _stackHelperBchChanged(stackHelper) {
+        this._stackHelperChanged(stackHelper, 'Bch');
+      }
+
+      _stackHelperGeChanged(stackHelper) {
+        this._stackHelperChanged(stackHelper, 'Ge');
+      }
+
+      _stackHelperChanged(stackHelper, target) {
+        if (stackHelper === undefined ||
+            stackHelper === null ||
+            stackHelper.stack === undefined) {
+          return;
+        }
+
+        // orientation
+        this.set(`orientation${target}`, 'default');
+        this[`stackHelper${target}`].orientation = 0;
+
+        // more
+        this.set(`stackIntensityAuto${target}`, false);
+        this._stackIntensityAutoChanged(target, false);
+
+        this.set(`stackInterpolation${target}`, true);
+        this._stackInterpolationChanged(target, true);
+
+        // intensity
+        // must be last to be set because some flags such as
+        // "intensity" can modify it
+        const stack = this[`stackHelper${target}`].stack;
+        this.set(`stackIntensityMin${target}`, stack.minMax[0]);
+        this.set(`stackIntensityMax${target}`, stack.minMax[1]);
+        const defaultWW = stack.minMax[1] - stack.minMax[0];
+        this.set(`stackIntensityRange${target}`, defaultWW);
+        this.set(`stackWindowWidth${target}`, defaultWW);
+        this.set(`stackWindowCenter${target}`, stack.minMax[0] + defaultWW / 2);
+      }
+
+      /**
+       * Stack index Bch changed
+       *
+       * @param {*} index
+       */
+      _stackIndexBchChanged(index) {
+        this._stackIndexChanged('Bch', index);
+      }
+
+      _stackIndexGeChanged(index) {
+        this._stackIndexChanged('Ge', index);
+      }
+
+      _stackIndexChanged(target, index) {
+        const stackHelper = this[`stackHelper${target}`];
+        if (index === undefined ||
+            stackHelper === undefined ||
+            stackHelper === null ||
+            stackHelper.stack === undefined) {
+          return;
+        }
+
+        stackHelper.index = index;
+
+        const auto = this[`stackIntensityAuto${target}`];
+
+        if (auto) {
+          const ww = stackHelper.slice.windowWidth;
+          this.set(`stackWindowWidth${target}`, ww);
+
+          const wc = stackHelper.slice.windowCenter;
+          this.set(`stackWindowCenter${target}`, wc);
+        }
+      }
+
+      /**
+       * Stack window width Bch changed
+       *
+       * @param {*} windowWidth
+       */
+      _stackWindowWidthBchChanged(windowWidth) {
+        this._stackWindowWidthChanged('Bch', windowWidth);
+      }
+
+      _stackWindowWidthGeChanged(windowWidth) {
+        this._stackWindowWidthChanged('Ge', windowWidth);
+      }
+
+      _stackWindowWidthChanged(target, windowWidth) {
+        const stackHelper = this[`stackHelper${target}`];
+        if (windowWidth === undefined ||
+            stackHelper === undefined ||
+            stackHelper === null ||
+            stackHelper.stack === undefined) {
+          return;
+        }
+
+        stackHelper.slice.windowWidth = windowWidth;
+      }
+
+      /**
+       * Stack window center Bch changed
+       *
+       * @param {*} windowCenter
+       */
+      _stackWindowCenterBchChanged(windowCenter) {
+        this._stackWindowCenterChanged('Bch', windowCenter);
+      }
+
+      _stackWindowCenterGeChanged(windowCenter) {
+        this._stackWindowCenterChanged('Ge', windowCenter);
+      }
+
+      _stackWindowCenterChanged(target, windowCenter) {
+        const stackHelper = this[`stackHelper${target}`];
+        if (windowCenter === undefined ||
+            stackHelper === undefined ||
+            stackHelper === null ||
+            stackHelper.stack === undefined) {
+          return;
+        }
+
+        stackHelper.slice.windowCenter = windowCenter;
+      }
+
+      /**
+       * Stack intensity auto Bch changed
+       *
+       * @param {*} auto
+       */
+      _stackIntensityAutoBchChanged(auto) {
+        this._stackIntensityAutoChanged('Bch', auto);
+      }
+
+      _stackIntensityAutoGeChanged(auto) {
+        this._stackIntensityAutoChanged('Ge', auto);
+      }
+
+      _stackIntensityAutoChanged(target, auto) {
+        const stackHelper = this[`stackHelper${target}`];
+        if (auto === undefined ||
+            stackHelper === undefined ||
+            stackHelper === null ||
+            stackHelper.stack === undefined) {
+          return;
+        }
+
+        stackHelper.slice.intensityAuto = auto;
+
+        if (auto) {
+          const ww = stackHelper.slice.windowWidth;
+          this.set(`stackWindowWidth${target}`, ww);
+
+          const wc = stackHelper.slice.windowCenter;
+          this.set(`stackWindowCenter${target}`, wc);
+        }
+      }
+
+      /**
+       * Stack interpolation Bch changed
+       *
+       * @param {*} interpolation
+       */
+      _stackInterpolationBchChanged(interpolation) {
+        this._stackInterpolationChanged('Bch', interpolation);
+      }
+
+      _stackInterpolationGeChanged(interpolation) {
+        this._stackInterpolationChanged('Ge', interpolation);
+      }
+
+      _stackInterpolationChanged(target, interpolation) {
+        const stackHelper = this[`stackHelper${target}`];
+        if (interpolation === undefined ||
+            stackHelper === undefined ||
+            stackHelper === null ||
+            stackHelper.stack === undefined) {
+          return;
+        }
+
+        stackHelper.slice.interpolation = interpolation ? 1 : 0;
       }
     }
 

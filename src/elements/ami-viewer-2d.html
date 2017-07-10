@@ -1,5 +1,6 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
 
+<link rel="import" href="../../bower_components/moment-element/moment-element.html">
 <link rel="import" href="../import-ami.html">
 
 <dom-module id="ami-viewer-2d">
@@ -111,7 +112,7 @@
         <div>Im: [[stackIndex]]/[[stackMaxIndex]]</div>
       </div>
       <div id="bottomRight" class="bottom right information">
-        <div>Study Date: March 12, 2016</div>
+        <div>Study Date: <moment-element datetime="[[studyDate]]" output-format="MMM DD[,] YYYY"></moment-element></div>
       </div>
     </div>
 
@@ -145,15 +146,10 @@
             value: 'default',
             observer: '_orientationChanged',
           },
-          stackOrientation: {
-            type: Number,
-            value: 0,
-            notify: true,
-          },
           stackIndex: {
             type: Number,
             notify: true,
-            observer: '_somethingChanged',
+            observer: '_sceneChanged',
           },
           active: {
             type: Boolean,
@@ -161,14 +157,23 @@
           },
           stackMaxIndex: {
             type: Number,
+            notify: true,
           },
           stackWindowWidth: {
             type: Number,
-            observer: '_somethingChanged',
+            observer: '_windowWidthChanged',
           },
           stackWindowCenter: {
             type: Number,
-            observer: '_somethingChanged',
+            observer: '_windowCenterChanged',
+          },
+          intensityAuto: {
+            type: Boolean,
+            observer: '_sceneChanged',
+          },
+          interpolation: {
+            type: Boolean,
+            observer: '_sceneChanged',
           },
           patientID: {
             type: String,
@@ -177,6 +182,9 @@
             type: String,
           },
           patientBirthdate: {
+            type: String,
+          },
+          studyDate: {
             type: String,
           },
           studyDescription: {
@@ -318,8 +326,7 @@
         }
 
         this._scene = stackScene;
-        const stackHelper = this._scene.children[0];
-        this.set('stackHelper', stackHelper);
+        this.stackHelper = this._scene.children[0];
         this.update();
       }
 
@@ -359,9 +366,10 @@
           this._camera.fitBox(2, 1);
 
           this.stackHelper.orientation = this._camera.stackOrientation;
-          this.stackOrientation = this._camera.stackOrientation;
           this.stackHelper.index =
             Math.floor(this.stackHelper.orientationMaxIndex/2);
+          this.set('stackMaxIndex', this.stackHelper.orientationMaxIndex);
+          this.set('stackIndex', this.stackHelper.index);
 
           this.updateInformation();
           this.updateLabels(
@@ -372,6 +380,7 @@
       resize() {
         if (
           this.stackHelper &&
+          this.stackHelper.slice &&
           this._container &&
           this._container.clientWidth > 0) {
           const width = this._container.clientWidth;
@@ -406,7 +415,11 @@
           this._camera.update();
           this._camera.fitBox(2, 1);
 
-          this.stackOrientation = this._camera.stackOrientation;
+          this.stackHelper.orientation = this._camera.stackOrientation;
+          this.stackHelper.index =
+            Math.floor(this.stackHelper.orientationMaxIndex/2);
+          this.set('stackMaxIndex', this.stackHelper.orientationMaxIndex);
+          this.set('stackIndex', this.stackHelper.index);
 
           //
           this.updateInformation();
@@ -477,8 +490,16 @@
         }
       }
 
-      _somethingChanged() {
+      _sceneChanged() {
         this._changed = true;
+      }
+
+      _windowCenterChanged(value) {
+        this._sceneChanged();
+      }
+
+      _windowWidthChanged(value) {
+        this._sceneChanged();
       }
     }
     window.customElements.define(AMIViewer2D.is, AMIViewer2D);
