@@ -340,11 +340,11 @@
             active="{{activeBch}}"
             stack-scene="[[stackSceneBch]]"
             stack-index="{{stackIndexBch}}"
-            stack-max-index="[[stackMaxIndexBch]]"
+            stack-max-index="{{stackMaxIndexBch}}"
             orientation="{{orientationBch}}"
-            stack-orientation="{{stackOrientationIndex}}"
-            stack-window-width="[[stackWindowWidthBch]]"
-            stack-window-center="[[stackWindowCenterBch]]"
+            stack-orientation="{{stackOrientationIndexBch}}"
+            stack-window-width="{{stackWindowWidthBch}}"
+            stack-window-center="{{stackWindowCenterBch}}"
             intensity-auto="[[stackIntensityAutoBch]]"
             interpolation="[[stackInterpolationBch]]"></ami-viewer-2d>
         </div>
@@ -475,11 +475,6 @@
             type: Object,
             value: {},
           },
-          orientationBch: {
-            type: String,
-            value: 'default',
-            observer: '_orientationBchChanged',
-          },
           stackIndexBch: {
             type: Number,
             value: 0,
@@ -517,12 +512,10 @@
           },
           stackIntensityAutoBch: {
             type: Boolean,
-            value: false,
             observer: '_stackIntensityAutoBchChanged',
           },
           stackInterpolationBch: {
             type: Boolean,
-            value: true,
             observer: '_stackInterpolationBchChanged',
           },
         };
@@ -792,11 +785,10 @@
 
             // new stack Helper
             const localHelper = new AMI.default.Helpers.Stack(series.stack[0]);
-            this.set(`stackHelper${target}`, localHelper);
-
             const localScene = new THREE.Scene();
             localScene.add(localHelper);
             this.set(`stackScene${target}`, localScene);
+            this.set(`stackHelper${target}`, localHelper);
 
             // update extra info
             this.$.render.patientID = series.patientID;
@@ -1003,16 +995,14 @@
 
         // orientation
         this.set(`orientation${target}`, 'default');
-        this.set([`stackHelper${target}`, 'orientation'], 0);
-
-        // index
-        const maxIndex = this[`stackHelper${target}`].orientationMaxIndex;
-        this.set(`stackMaxIndex${target}`, maxIndex);
-        this.set(`stackIndex${target}`, Math.floor(maxIndex/2));
+        this[`stackHelper${target}`].orientation = 0;
 
         // more
         this.set(`stackIntensityAuto${target}`, false);
+        this._stackIntensityAutoChanged(target, false);
+
         this.set(`stackInterpolation${target}`, true);
+        this._stackInterpolationChanged(target, true);
 
         // intensity
         // must be last to be set because some flags such as
@@ -1036,14 +1026,23 @@
       }
 
       _stackIndexChanged(target, index) {
-        this.set([`stackHelper${target}`, 'index'], index);
+        const stackHelper = this[`stackHelper${target}`];
+        if (index === undefined ||
+            stackHelper === undefined ||
+            stackHelper === null ||
+            stackHelper.stack === undefined) {
+          return;
+        }
+
+        stackHelper.index = index;
 
         const auto = this[`stackIntensityAuto${target}`];
+
         if (auto) {
-          const ww = this[`stackHelper${target}`].slice.windowWidth;
+          const ww = stackHelper.slice.windowWidth;
           this.set(`stackWindowWidth${target}`, ww);
 
-          const wc = this[`stackHelper${target}`].slice.windowCenter;
+          const wc = stackHelper.slice.windowCenter;
           this.set(`stackWindowCenter${target}`, wc);
         }
       }
@@ -1058,12 +1057,15 @@
       }
 
       _stackWindowWidthChanged(target, windowWidth) {
-        if (windowWidth === undefined) {
+        const stackHelper = this[`stackHelper${target}`];
+        if (windowWidth === undefined ||
+            stackHelper === undefined ||
+            stackHelper === null ||
+            stackHelper.stack === undefined) {
           return;
         }
-        console.log('set window width');
-        console.log(target, windowWidth);
-        this.set([`stackHelper${target}`, 'slice', 'windowWidth'], windowWidth);
+
+        stackHelper.slice.windowWidth = windowWidth;
       }
 
       /**
@@ -1076,12 +1078,15 @@
       }
 
       _stackWindowCenterChanged(target, windowCenter) {
-        if (windowCenter === undefined) {
+        const stackHelper = this[`stackHelper${target}`];
+        if (windowCenter === undefined ||
+            stackHelper === undefined ||
+            stackHelper === null ||
+            stackHelper.stack === undefined) {
           return;
         }
-        console.log('set window center');
-        console.log(target, windowCenter);
-        this.set([`stackHelper${target}`, 'slice', 'windowCenter'], windowCenter);
+
+        stackHelper.slice.windowCenter = windowCenter;
       }
 
       /**
@@ -1094,19 +1099,21 @@
       }
 
       _stackIntensityAutoChanged(target, auto) {
-        if (auto === undefined) {
+        const stackHelper = this[`stackHelper${target}`];
+        if (auto === undefined ||
+            stackHelper === undefined ||
+            stackHelper === null ||
+            stackHelper.stack === undefined) {
           return;
         }
 
-        console.log('intensity auto' + auto);
-
-        this.set([`stackHelper${target}`, 'slice', 'intensityAuto'], auto);
+        stackHelper.slice.intensityAuto = auto;
 
         if (auto) {
-          const ww = this[`stackHelper${target}`].slice.windowWidth;
+          const ww = stackHelper.slice.windowWidth;
           this.set(`stackWindowWidth${target}`, ww);
 
-          const wc = this[`stackHelper${target}`].slice.windowCenter;
+          const wc = stackHelper.slice.windowCenter;
           this.set(`stackWindowCenter${target}`, wc);
         }
       }
@@ -1121,8 +1128,15 @@
       }
 
       _stackInterpolationChanged(target, interpolation) {
-        this.set([`stackHelper${target}`, 'slice', 'interpolation'],
-          interpolation ? 1 : 0);
+        const stackHelper = this[`stackHelper${target}`];
+        if (interpolation === undefined ||
+            stackHelper === undefined ||
+            stackHelper === null ||
+            stackHelper.stack === undefined) {
+          return;
+        }
+
+        stackHelper.slice.interpolation = interpolation ? 1 : 0;
       }
     }
 

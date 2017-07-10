@@ -216,6 +216,7 @@
           maxIndex: {
             type: Number,
             value: 0,
+            observer: '_maxIndexChanged',
           },
           orientation: {
             type: String,
@@ -233,6 +234,11 @@
             notify: true,
           },
         };
+      }
+
+      _maxIndexChanged(maxIndex) {
+        // auto center index
+        this.set('index', Math.floor(maxIndex/2));
       }
 
       _collapse() {

@@ -145,11 +145,6 @@
             value: 'default',
             observer: '_orientationChanged',
           },
-          stackOrientation: {
-            type: Number,
-            value: 0,
-            notify: true,
-          },
           stackIndex: {
             type: Number,
             notify: true,
@@ -161,6 +156,7 @@
           },
           stackMaxIndex: {
             type: Number,
+            notify: true,
           },
           stackWindowWidth: {
             type: Number,
@@ -301,7 +297,6 @@
         } );
 
         if (this._changed) {
-          console.log(this._scene);
           this._renderer.clear();
           this._renderer.render( this._scene, this._camera );
           this._changed = false;
@@ -327,8 +322,7 @@
         }
 
         this._scene = stackScene;
-        const stackHelper = this._scene.children[0];
-        this.set('stackHelper', stackHelper);
+        this.stackHelper = this._scene.children[0];
         this.update();
       }
 
@@ -368,9 +362,10 @@
           this._camera.fitBox(2, 1);
 
           this.stackHelper.orientation = this._camera.stackOrientation;
-          this.stackOrientation = this._camera.stackOrientation;
           this.stackHelper.index =
             Math.floor(this.stackHelper.orientationMaxIndex/2);
+          this.set('stackMaxIndex', this.stackHelper.orientationMaxIndex);
+          this.set('stackIndex', this.stackHelper.index);
 
           this.updateInformation();
           this.updateLabels(
@@ -415,7 +410,11 @@
           this._camera.update();
           this._camera.fitBox(2, 1);
 
-          this.stackOrientation = this._camera.stackOrientation;
+          this.stackHelper.orientation = this._camera.stackOrientation;
+          this.stackHelper.index =
+            Math.floor(this.stackHelper.orientationMaxIndex/2);
+          this.set('stackMaxIndex', this.stackHelper.orientationMaxIndex);
+          this.set('stackIndex', this.stackHelper.index);
 
           //
           this.updateInformation();
@@ -491,12 +490,10 @@
       }
 
       _windowCenterChanged(value) {
-        console.log('wc changed: ' + value);
         this._sceneChanged();
       }
 
       _windowWidthChanged(value) {
-        console.log('ww changed: ' + value);
         this._sceneChanged();
       }
     }
