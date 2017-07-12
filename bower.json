@@ -33,7 +33,8 @@
     "web-animations-js": "web-animations/web-animations-js#2.2.5",
     "paper-tabs": "PolymerElements/paper-tabs#^2.0.0",
     "control-panel-2d": "FNNDSC/control-panel-2d",
-    "moment-element": "abdonrd/moment-element#^2.0.0"
+    "moment-element": "abdonrd/moment-element#^2.0.0",
+    "paper-progress": "PolymerElements/paper-progress#^2.0.1"
   },
   "devDependencies": {
     "web-component-tester": "Polymer/web-component-tester#^6.0.0-prerelease.7"

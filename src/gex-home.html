@@ -3,23 +3,25 @@
 <link rel="import" href="../bower_components/polymer/lib/elements/dom-repeat.html">
 <link rel="import" href="../bower_components/polymer/lib/mixins/gesture-event-listeners.html">
 
+<!-- App components  -->
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
 
+<!-- Paper components  -->
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/paper-progress/paper-progress.html">
 <link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
 <link rel="import" href="../bower_components/paper-tabs/paper-tab.html">
 
-<link rel="import" href="../bower_components/chips-api/chips-api.html">
-
-<link rel="import" href="elements/ami-viewer-2d.html">
-<link rel="import" href="elements/css-loader.html">
-<link rel="import" href="elements/series-preview.html">
-
-<link rel="import" href="import-ami.html">
-
+<!--Chips components  -->
 <link rel="import" href="../bower_components/chips-api/chips-api.html">
 <link rel="import" href="../bower_components/chips-api/behaviors/chips-plugin-behavior.html">
 <link rel="import" href="../bower_components/control-panel-2d/control-panel-2d.html">
+
+<!-- Local components  -->
+<link rel="import" href="elements/ami-viewer-2d.html">
+<link rel="import" href="elements/series-preview.html">
+
+<link rel="import" href="import-ami.html">
 
 <link rel="import" href="shared-styles.html">
 <link rel="import" href="my-icons.html">
@@ -281,7 +283,7 @@
 
         <!-- Running plugin -->
         <template is="dom-if" if="[[_isRunning(dataStatusBch)]]">
-          <css-loader></css-loader>
+          <paper-progress indeterminate></paper-progress>
           <div>Retrieveing data from the PACS...</div>
         </template>
       </div>
