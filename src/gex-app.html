@@ -43,16 +43,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <template>
     <style>
       :host {
-        --dark-primary-color:       #212121;
+        --dark-primary-color:       #111111;
         --default-primary-color:    #303030;
         --light-primary-color:      #424242;
         --text-primary-color:       #FFFFFF;
-        --accent-color:             #CCFF00;
-        --primary-background-color: #424242;
+        --accent-color:             #2196f3;
+        --primary-background-color: #616161;
         --primary-text-color:       #FAFAFA; /*212121*/
         --secondary-text-color:     #757575;
         --disabled-text-color:      #BDBDBD;
-        --divider-color:            #BDBDBD;
+        --divider-color:            #424242;
 
         --bch-primary-color: #CCFF00;
         --bch-light-color: #EFA;
@@ -76,6 +76,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       app-header {
         color: #fff;
         background-color: var(--dark-primary-color);
+        font-weight: lighter;
+        border-bottom: 1px solid var(--divider-color);
       }
 
       iron-pages {
