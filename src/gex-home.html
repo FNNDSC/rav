@@ -227,6 +227,10 @@
         display: block;
       }
 
+      .retrieving {
+        padding: 10px;
+      }
+
       [hidden] {
         display: none;
       }
@@ -278,20 +282,22 @@
           <paper-button on-tap="handleBCH">
             <div class="search-image illustration">
             </div>
-            Find data on the PACS!</paper-button>
+            Find data on the PACS
+          </paper-button>
         </template>
 
         <!-- Running plugin -->
         <template is="dom-if" if="[[_isRunning(dataStatusBch)]]">
           <paper-progress indeterminate></paper-progress>
-          <div>Retrieveing data from the PACS...</div>
+          <div class="retrieving">Retrieving selection</div>
+          <paper-progress indeterminate></paper-progress>
         </template>
       </div>
       <div class="overlay" hidden$="[[!_isReadyAndNotSelected(dataStatusBch, dataSelectedBch)]]">
         <div>
           <div class="left-image illustration">
           </div>
-          <div>Select DICOM on the left panel.</div>
+          <div>Select DICOM on the left panel</div>
         </div>
       </div>
       <div class="viewHead">
