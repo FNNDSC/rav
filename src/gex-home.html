@@ -350,7 +350,7 @@
             max="[[stackMaxIndexBch]]"
             editable></paper-slider>
           <ami-viewer-2d
-            id="render"
+            id="renderBch"
             class="viewers"
             active="{{activeBch}}"
             stack-scene="[[stackSceneBch]]"
@@ -382,7 +382,7 @@
             max="[[stackMaxIndexGe]]"
             editable></paper-slider>
           <ami-viewer-2d
-            id="render2"
+            id="renderGe"
             class="viewers"
             active="{{activeGe}}"
             stack-scene="[[stackSceneGe]]"
@@ -862,19 +862,18 @@
             this.set(`stackHelper${target}`, localHelper);
 
             // update extra info
-            this.$.render.patientID = series.patientID;
-            this.$.render.patientAge = series.patientAge;
-            this.$.render.patientBorthdate = series.patientBorthdate;
-            this.$.render.studyDate = series.studyDate;
-            this.$.render.studyDescription = series.studyDescription;
-            this.$.render.seriesDescription = series.seriesDescription;
+            this.$[`render${target}`].patientID = series.patientID;
+            this.$[`render${target}`].patientAge = series.patientAge;
+            this.$[`render${target}`].patientBorthdate = series.patientBorthdate;
+            this.$[`render${target}`].studyDate = series.studyDate;
+            this.$[`render${target}`].studyDescription = series.studyDescription;
+            this.$[`render${target}`].seriesDescription = series.seriesDescription;
 
             // activate the view
             this.set(`active${target}`, true);
 
             // start rendering loop
-            this.$.render.startRenderingLoop();
-            this.$.render2.startRenderingLoop();
+            this.$[`render${target}`].startRenderingLoop();
 
             // resize the viewers
             this._resizeListener();
@@ -897,24 +896,24 @@
           this.set('dataSelectedGe', {});
 
           // stop rendering loops
-          this.$.render.stopRenderingLoop();
-          this.$.render2.stopRenderingLoop();
+          this.$.renderBch.stopRenderingLoop();
+          this.$.renderGe.stopRenderingLoop();
         }
       }
 
       _visibleGeChanged(visible) {
-        this.$.render.resize();
-        this.$.render2.resize();
+        this.$.renderBch.resize();
+        this.$.renderGe.resize();
       }
 
       _visibleBcgChanged(visible) {
-        this.$.render.resize();
-        this.$.render2.resize();
+        this.$.renderBch.resize();
+        this.$.renderGe.resize();
       }
 
       _resizeListener() {
-        this.$.render.resize();
-        this.$.render2.resize();
+        this.$.renderBch.resize();
+        this.$.renderGe.resize();
       }
 
       _isEmpty(status) {
