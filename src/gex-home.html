@@ -265,7 +265,7 @@
           </div>
         </div>
         <div class="label">
-          Copyright (c) 2016 The FNNDSC Project Authors. All rights reserved.</iron-icon>
+          Copyright (c) 2017 FNNDSC, BCH. All rights reserved.</iron-icon>
         </div>
       </div>
       <div hidden$="[[visibleBCH]]" class="bch">
@@ -862,6 +862,7 @@
 
             // update extra info
             this.$[`render${target}`].patientID = series.patientID;
+            this.$[`render${target}`].patientName = series.patientName;
             this.$[`render${target}`].patientAge = series.patientAge;
             this.$[`render${target}`].patientBorthdate = series.patientBorthdate;
             this.$[`render${target}`].studyDate = series.studyDate;
