@@ -5,14 +5,20 @@
 
     <style>
       .previewContainer {
-        height: 96px;
+        height: 128px;
+        width: 128px;
         overflow: hidden;
+        margin: auto;
       }
 
       .seriesPreview {
         display: -webkit-box;
         display: -ms-flexbox;
         display: flex;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+            -ms-flex-direction: column;
+                flex-direction: column;
         margin: 4px;
         padding: 4px;
         border: 1px solid rgba(0, 0, 0, 0);
@@ -28,8 +34,8 @@
       }
 
       img {
-        min-width: 96px;
-        min-height: 96px;
+        min-width: 128px;
+        min-height: 128px;
         background-color: #000;
       }
 
@@ -106,7 +112,7 @@
       }
 
       positionThumbnail(normalizedPosition, target) {
-        const THUMBNAIL_HEIGHT = 96;
+        const THUMBNAIL_HEIGHT = 128;
         const TOTAL_HEIGHT = target.offsetHeight;
         const nbFrames = TOTAL_HEIGHT / THUMBNAIL_HEIGHT;
         const offset = Math.floor(normalizedPosition * nbFrames) * THUMBNAIL_HEIGHT;
