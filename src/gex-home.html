@@ -249,7 +249,11 @@
           <!-- Fetching ready -->
           <template is="dom-if" if="[[_isReady(dataStatusBch)]]">
             <template is="dom-repeat" items="[[dataBch]]">
-              <series-preview series="[[item]]" on-tap="_handleSeriesSelectedBch"><series-preview>
+              <series-preview
+                draggable="true"
+                on-dragstart="_onDragStart"
+                series="[[item]]"
+                on-tap="_handleSeriesSelectedBch"><series-preview>
             </template>
           </template>
 
@@ -260,7 +264,11 @@
           </app-toolbar>
           <div class="series">
             <template is="dom-repeat" items="[[dataGe]]">
-              <series-preview series="[[item]]" on-tap="_handleSeriesSelectedGe"><series-preview>
+              <series-preview
+                draggable="true"
+                on-dragstart="_onDragStart"
+                series="[[item]]"
+                on-tap="_handleSeriesSelectedGe"><series-preview>
             </template>
           </div>
         </div>
@@ -276,7 +284,7 @@
 
     <div class="content">
       <div class="overlay" hidden$="[[_isReady(dataStatusBch)]]">
-      <!-- Empty-->
+        <!-- Empty-->
         <template is="dom-if" if="[[_isEmpty(dataStatusBch)]]">
           <paper-button on-tap="handleBCH">
             <div class="search-image illustration">
@@ -331,7 +339,8 @@
       </div>
 
       <div class="viewersC">
-        <div class$="[[classIt(activeBch)]]">
+
+        <div class$="[[classIt(activeBch)]]" on-drop="_onDragDrop">
           <div hidden$="[[!_isLoading('bch', dataSelectedBch, dataSelectedGe, urlsTotal)]]">
             <div class="loader">
               <div>
@@ -356,12 +365,12 @@
             stack-index="{{stackIndexBch}}"
             stack-max-index="{{stackMaxIndexBch}}"
             orientation="{{orientationBch}}"
-            stack-orientation="{{stackOrientationIndexBch}}"
             stack-window-width="{{stackWindowWidthBch}}"
             stack-window-center="{{stackWindowCenterBch}}"
             intensity-auto="[[stackIntensityAutoBch]]"
             interpolation="[[stackInterpolationBch]]"></ami-viewer-2d>
         </div>
+
         <div
           class$="[[classIt(activeGe)]]"
           hidden$="[[!_isSelected(dataSelectedGe)]]">
@@ -388,7 +397,6 @@
             stack-index="{{stackIndexGe}}"
             stack-max-index="{{stackMaxIndexGe}}"
             orientation="{{orientationGe}}"
-            stack-orientation="{{stackOrientationIndexGe}}"
             stack-window-width="{{stackWindowWidthGe}}"
             stack-window-center="{{stackWindowCenterGe}}"
             intensity-auto="[[stackIntensityAutoGe]]"
@@ -929,6 +937,11 @@
       }
 
       _isReady(status) {
+        if(sessionStorage.getItem('username') === 'demo') {
+          this.dataStatusBch = 'ready';
+          return true;
+        }
+
         return status === 'ready';
       }
 
@@ -937,6 +950,10 @@
       }
 
       _isReadyAndNotSelected(status, data) {
+        if(sessionStorage.getItem('username') === 'demo') {
+          return false;
+        }
+
         const ready = this._isReady(status);
         const selected = this._isSelected(data);
         return ready && !selected;
@@ -1233,6 +1250,24 @@
         }
 
         stackHelper.slice.interpolation = interpolation ? 1 : 0;
+      }
+
+      /**
+       * Start dragging a series preview
+       *
+       * @param {*} event
+       */
+      _onDragStart(event) {
+        console.log(event);
+      }
+
+      /**
+       * Drop a series preview
+       *
+       * @param {*} event
+       */
+      _onDragDrop() {
+        console.log(event);
       }
     }
 

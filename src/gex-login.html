@@ -161,6 +161,22 @@
       }
 
       login() {
+        // special debug mode
+        if(this._username === 'demo') {
+          sessionStorage.setItem('username', this._username);
+          sessionStorage.setItem('token', this._username);
+          const loginEvent = new CustomEvent(
+            'login',
+            {
+              detail: {
+                login: true,
+              },
+              bubbles: true,
+              composed: true,
+            }
+          );
+          this.dispatchEvent(loginEvent);
+        }
         // validate inputs
         this.$.username.validate();
         this.$.password.validate();
