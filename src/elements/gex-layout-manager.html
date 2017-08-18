@@ -1,0 +1,131 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/lib/utils/flattened-nodes-observer.html">
+
+<!-- Vaadin components -->
+<link rel="import" href="../../bower_components/vaadin-split-layout/vaadin-split-layout.html">
+
+<dom-module id="gex-layout-manager">
+  <template>
+
+    <style>
+      :host {
+        flex: 1;
+        display: flex;
+      }
+
+      .container {
+        flex: 1;
+      }
+
+      [hidden] {
+        display: none;
+      }
+
+    </style>
+
+    <slot id="s0" name="s0" on-slotchange="_slot0Changed"></slot>
+    <slot id="s1" name="s1" on-slotchange="_slot1Changed"></slot>
+    <slot id="s2" name="s2" on-slotchange="_slot2Changed"></slot>
+    <slot id="s3" name="s3" on-slotchange="_slot3Changed"></slot>
+
+    <!-- Layout #0 -->
+    <div id="l0" hidden$="[[_hideLayout(0, layout)]]" class="container">
+      <div class="v0"></div>
+    </div>
+
+    <!-- Layout #1 -->
+    <vaadin-split-layout id="l1" hidden$="[[_hideLayout(1, layout)]]" class="container">
+      <div class="v0"></div>
+      <div class="v1"></div>
+    </vaadin-split-layout>
+
+    <!-- Layout #2 -->
+    <vaadin-split-layout id= "l2" hidden$="[[_hideLayout(2, layout)]]" class="container">
+      <div class="v0"></div>
+      <vaadin-split-layout vertical>
+        <div class="v1"></div>
+        <div class="v2"></div>
+      </vaadin-split-layout>
+    </vaadin-split-layout>
+
+    <!-- Layout #4 -->
+    <vaadin-split-layout id= "l3" hidden$="[[_hideLayout(3, layout)]]" class="container">
+      <vaadin-split-layout vertical>
+        <div class="v0"></div>
+        <div class="v1"></div>
+      </vaadin-split-layout>
+      <vaadin-split-layout vertical>
+        <div class="v2"></div>
+        <div class="v3"></div>
+      </vaadin-split-layout>
+    </vaadin-split-layout>
+
+  </template>
+
+  <script>
+    class GexLayoutManager extends Polymer.Element {
+      static get is() {
+        return 'gex-layout-manager';
+      }
+
+      static get properties() {
+        return {
+          layout: {
+            type: Number,
+            value: 0,
+            observer: '_layoutChanged',
+          },
+        };
+      }
+
+      constructor() {
+        super();
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+        this._observer1 =
+          new Polymer.FlattenedNodesObserver(this.$.s0, (info) => {
+          console.log(info);
+          // this._processNewNodes(info.addedNodes);
+          // this._processRemovedNodes(info.removedNodes);
+        });
+      }
+
+      disconnectedCallback() {
+        super.disconnectedCallback();
+        window.removeEventListener('hashchange', this._boundListener);
+      }
+
+      _layoutChanged(layout) {
+        const layoutElement = this.$[`l${layout}`];
+
+        for(let i=0; i<4; i++) {
+          this._setChild(layoutElement, i);
+        }
+      }
+
+
+      _setChild(layoutElement, viewerId) {
+        const viewer = layoutElement.querySelector(`.v${viewerId}`);
+        const slot = this.$[`s${viewerId}`];
+        if(viewer) {
+          // remove child if any
+          while (viewer.firstChild) {
+            viewer.removeChild(viewer.firstChild);
+          }
+
+          // append new child
+          viewer.appendChild(slot);
+        }
+      }
+
+      _hideLayout(currentLayout, activeLayout) {
+        console.log(currentLayout);
+        console.log(activeLayout);
+        return currentLayout !== activeLayout;
+      }
+    }
+    window.customElements.define(GexLayoutManager.is, GexLayoutManager);
+  </script>
+</dom-module>

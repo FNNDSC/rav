@@ -19,6 +19,7 @@
 
 <!-- Local components  -->
 <link rel="import" href="elements/ami-viewer-2d.html">
+<link rel="import" href="elements/gex-layout-manager.html">
 <link rel="import" href="elements/series-preview.html">
 
 <link rel="import" href="import-ami.html">
@@ -308,6 +309,7 @@
         </div>
       </div>
       <div class="viewHead">
+        <paper-button on-tap="changeLayout">Change Layout</paper-button>
         <control-panel-2d
           hidden$="[[activeGe]]"
           collapse="{{collapse}}"
@@ -339,12 +341,20 @@
       </div>
 
       <div class="viewersC">
+        <gex-layout-manager layout="[[layout]]">
+            <div slot="s0">Card 1</div>
+            <div slot="s1">Card 2</div>
+            <div slot="s2">Card 3</div>
+            <div slot="s3">Card 4</div>
+          <!-- dom repeat slot 4 elements-->
+          <!-- shoud map data to elment here -->
+        </gex-layout-manager>
 
-        <div class$="[[classIt(activeBch)]]" on-drop="_onDragDrop">
+        <!-- <div class$="[[classIt(activeBch)]]" on-drop="_onDragDrop">
           <div hidden$="[[!_isLoading('bch', dataSelectedBch, dataSelectedGe, urlsTotal)]]">
             <div class="loader">
               <div>
-                  <!--<paper-spinner active>...</paper-spinner>-->
+                  <paper-spinner active>...</paper-spinner>å
               </div>
               <div>
                   Loading the data: [[urlsLoaded]] / [[urlsTotal]]
@@ -401,7 +411,7 @@
             stack-window-center="{{stackWindowCenterGe}}"
             intensity-auto="[[stackIntensityAutoGe]]"
             interpolation="[[stackInterpolationGe]]"></ami-viewer-2d>
-        </div>
+        </div> -->
       </div>
     </div>
   </template>
@@ -584,6 +594,10 @@
           stackInterpolationGe: {
             type: Boolean,
             observer: '_stackInterpolationGeChanged',
+          },
+          layout: {
+            type: Number,
+            value: 0,
           },
         };
       }
@@ -910,18 +924,21 @@
       }
 
       _visibleGeChanged(visible) {
-        this.$.renderBch.resize();
-        this.$.renderGe.resize();
+        return;
+        // this.$.renderBch.resize();
+        // this.$.renderGe.resize();
       }
 
       _visibleBcgChanged(visible) {
-        this.$.renderBch.resize();
-        this.$.renderGe.resize();
+        return;
+        // this.$.renderBch.resize();
+        // this.$.renderGe.resize();
       }
 
       _resizeListener() {
-        this.$.renderBch.resize();
-        this.$.renderGe.resize();
+        return;
+        // this.$.renderBch.resize();
+        // this.$.renderGe.resize();
       }
 
       _isEmpty(status) {
@@ -1268,6 +1285,10 @@
        */
       _onDragDrop() {
         console.log(event);
+      }
+
+      changeLayout() {
+        this.layout = (this.layout + 1) % 4;
       }
     }
 
