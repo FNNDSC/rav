@@ -1,0 +1,184 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<!-- Paper components  -->
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/paper-slider/paper-slider.html">
+
+<!-- Iron components  -->
+<link href="../../bower_components/iron-icons/iron-icons.html" rel="import">
+
+<dom-module id="ami-viewer">
+  <template>
+
+    <style>
+      :host {
+        display: block;
+      }
+
+      .container {
+        height: 100%;
+        width: 100%;
+        display:flex;
+      }
+
+      .container > div {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: var(--dark-primary-color);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #ffffff;
+      }
+
+      .renderer-container {
+        flex-direction: column;
+        margin: 2px;
+      }
+
+      .toolbar {
+        width: 100%;
+         display: flex;
+      }
+
+      .renderer {
+        flex: 1;
+        width: 100%;
+        background-color: darkgray;
+      }
+
+      .overlay {
+        z-index: 2;
+      }
+
+      .drop {
+        margin: 5px;
+        border: 5px dashed;
+      }
+
+      paper-slider {
+        flex: 1;
+        background-color: var(--dark-primary-color);
+        --paper-slider-container-color: #424242;
+        --paper-slider-active-color: #424242;
+        --paper-slider-knob-color: var(--accent-color);
+        --paper-slider-input: {width: 64px};
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+    </style>
+
+    <div class="container">
+      <div hidden$=[[!empty]] class="overlay"> &lt; empty /&gt; </div>
+      <div hidden$=[[!drag]] class="overlay drop"> Drop data! </div>
+      <div hidden$=[[!loading]] class="overlay"> Loading files (10/263) </div>
+      <div hidden$=[[!loaded]] class="renderer-container"> 
+        <div class="toolbar">
+          <paper-slider
+            value="{{index}}"
+            immediate-value="{{index}}"
+            min="[[indexMin]]"
+            max="[[indexMax]]"
+            editable></paper-slider>
+            <paper-icon-button icon$="{{_fullscreenIcon(fullscreen)}}"></paper-icon-button>
+            <paper-icon-button icon="icons:clear"></paper-icon-button>            
+        </div>
+        <div class="renderer"> Renderer </div>
+      </div>
+    </div>
+
+  </template>
+
+  <script>
+    class AmiViewer extends Polymer.Element {
+      static get is() {
+        return 'ami-viewer';
+      }
+
+      static get properties() {
+        return {
+          empty: {
+            type: Boolean,
+            value: false,
+            observer: '_emptyChanged',
+          },
+          drag: {
+            type: Boolean,
+            value: false,
+            observer: '_dragChanged',
+          },
+          loading: {
+            type: Boolean,
+            value: false,
+            observer: '_loadingChanged',
+          },
+          loaded: {
+            type: Boolean,
+            value: false,
+            observer: '_loadedChanged',
+          },
+          fullscreen: {
+            type: Boolean,
+            value: false,
+            observer: '_fullscreenChanged',
+          },
+          index: {
+            type: Number,
+            value: 0,
+          },
+          indexMin: {
+            type: Number,
+            value: 0,
+          },
+          indexMax: {
+            type: Number,
+            value: 0,
+          },
+        };
+      }
+
+      constructor() {
+        super();
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+      }
+
+      disconnectedCallback() {
+        super.disconnectedCallback();
+      }
+
+      _emptyChanged(empty) {
+
+      }
+
+      _dragChanged(drag) {
+
+      }
+
+      _loadingChanged(loading) {
+
+      }
+
+      _loadedChanged(loaded) {
+
+      }
+
+      _fullscreenChanged(fullscreen) {
+
+      }
+
+      _fullscreenIcon(fullscreen) {
+        return fullscreen ? 'icons:fullscreen-exit' : 'icons:fullscreen';
+      }
+    }
+    window.customElements.define(AmiViewer.is, AmiViewer);
+  </script>
+</dom-module>

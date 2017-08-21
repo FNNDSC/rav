@@ -19,12 +19,14 @@
 
 <!-- Local components  -->
 <link rel="import" href="elements/ami-viewer-2d.html">
+<link rel="import" href="elements/ami-viewer.html">
 <link rel="import" href="elements/gex-layout-manager.html">
 <link rel="import" href="elements/series-preview.html">
 
 <link rel="import" href="import-ami.html">
 
 <link rel="import" href="shared-styles.html">
+<link rel="import" href="layout-icons.html">
 <link rel="import" href="my-icons.html">
 
 <dom-module id="gex-home">
@@ -188,15 +190,6 @@
                 flex-direction: column;
       }
 
-      paper-slider {
-        width: 100%;
-        background-color: #000000;
-        --paper-slider-container-color: #424242;
-        --paper-slider-active-color: #424242;
-        --paper-slider-knob-color: var(--accent-color);
-        --paper-slider-input: {width: 64px}
-      }
-
       .viewHead {
         width: 100%;
         background-color: var(--dark-primary-color);
@@ -229,6 +222,11 @@
 
       .retrieving {
         padding: 10px;
+      }
+
+      #fullViewer:-webkit-full-screen {
+        width: 100%;
+        height: 100%;
       }
 
       [hidden] {
@@ -283,7 +281,7 @@
 
     </template>
 
-    <div class="content">
+    <div id="fullViewer" class="content">
       <div class="overlay" hidden$="[[_isReady(dataStatusBch)]]">
         <!-- Empty-->
         <template is="dom-if" if="[[_isEmpty(dataStatusBch)]]">
@@ -309,7 +307,17 @@
         </div>
       </div>
       <div class="viewHead">
-        <paper-button on-tap="changeLayout">Change Layout</paper-button>
+        <div> change layout (0 to 3)
+          <paper-icon-button class="icon100" icon="layout-icons:layout-[[layout]]" on-tap="changeLayout"></paper-icon-button>
+        </div>
+        <div>
+          Make view 0 FS
+          <paper-icon-button icon="icons:fullscreen" on-tap="changeFullscreen"></paper-icon-button>
+        </div>
+        <div>
+            Make viewew fs
+            <paper-icon-button icon="icons:fullscreen" on-tap="changeFullscreenViewer"></paper-icon-button>
+          </div>
         <control-panel-2d
           hidden$="[[activeGe]]"
           collapse="{{collapse}}"
@@ -341,11 +349,27 @@
       </div>
 
       <div class="viewersC">
-        <gex-layout-manager layout="[[layout]]">
-            <div slot="s0">Card 1</div>
-            <div slot="s1">Card 2</div>
-            <div slot="s2">Card 3</div>
-            <div slot="s3">Card 4</div>
+        <gex-layout-manager
+          layout="[[layout]]"
+          fullscreen="[[fullscreen]]">
+            <ami-viewer
+              slot="s0"
+              empty
+              index-max="100"></ami-viewer>
+            <ami-viewer
+              slot="s1"
+              loading
+              index="5"
+              index-max="10"></ami-viewer>
+            <ami-viewer
+              slot="s2"
+              loaded
+              index="50"
+              index-max="100"></ami-viewer>
+            <ami-viewer
+              slot="s3"
+              drag
+              index-max="10"></ami-viewer>
           <!-- dom repeat slot 4 elements-->
           <!-- shoud map data to elment here -->
         </gex-layout-manager>
@@ -361,12 +385,6 @@
               </div>
             </div>
           </div>
-          <paper-slider
-            value="{{stackIndexBch}}"
-            immediate-value="{{stackIndexBch}}"
-            min="0"
-            max="[[stackMaxIndexBch]]"
-            editable></paper-slider>
           <ami-viewer-2d
             id="renderBch"
             class="viewers"
@@ -393,12 +411,6 @@
               </div>
             </div>
           </div>
-          <paper-slider
-            value="{{stackIndexGe}}"
-            immediate-value="{{stackIndexGe}}"
-            min="0"
-            max="[[stackMaxIndexGe]]"
-            editable></paper-slider>
           <ami-viewer-2d
             id="renderGe"
             class="viewers"
@@ -598,6 +610,14 @@
           layout: {
             type: Number,
             value: 0,
+          },
+          fullscreen: {
+            type: Number,
+            value: -1,
+          },
+          fullscreenViewer: {
+            type: Boolean,
+            value: false,
           },
         };
       }
@@ -1289,6 +1309,20 @@
 
       changeLayout() {
         this.layout = (this.layout + 1) % 4;
+      }
+
+      changeFullscreen() {
+        this.fullscreen = (this.fullscreen < 0) ? 0 : -1;
+      }
+
+      changeFullscreenViewer() {
+        // go fulll screen!
+        if(!this.fullscreenViewer) {
+          // request fullscreen
+          // https://developer.mozilla.org/en-US/docs/Web/API/Fullscreen_API
+          console.log(this.$.fullViewer);
+          this.$.fullViewer.webkitRequestFullScreen();
+        }
       }
     }
 

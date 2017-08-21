@@ -83,6 +83,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         border-bottom: 1px solid var(--divider-color);
       }
 
+      /* hide header if we enter fullscreen mode */
+      app-header-layout:-webkit-full-screen-ancestor:not(iframe) app-header {
+        z-index: -1 !important;
+      }
+
       iron-pages {
         display: flex;
         flex-direction: column;

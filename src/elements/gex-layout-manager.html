@@ -4,6 +4,26 @@
 <!-- Vaadin components -->
 <link rel="import" href="../../bower_components/vaadin-split-layout/vaadin-split-layout.html">
 
+
+<dom-module id="vaadin-split-layout-styles" theme-for="vaadin-split-layout">
+  <template>
+    <style>
+      [part~="splitter"] {
+        min-width: 1px;
+        min-height: 1px;
+        background: var(--dark-theme-divider-color);
+        border: solid 5px transparent;
+        background-clip: content-box;
+        fill: none;
+      }
+
+      [part~="handle"]::after {
+        content: "";
+      }
+    </style>
+  </template>
+</dom-module>
+
 <dom-module id="gex-layout-manager">
   <template>
 
@@ -13,50 +33,85 @@
         display: flex;
       }
 
+      :host ::slotted(*) {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+      }
+
       .container {
         flex: 1;
+        height: 100%;
+      }
+
+      .slotter {
+        position: relative;
+        min-width: 150px;
+        min-height: 150px;
+      }
+
+      /* Hack Layout Fullscreen and 0 as it is not vaadin based yet */
+      #lfs, #l0 {
+        display: flex;
+        height: 100%;
+        width: 100%;
+      }
+
+      #lfs > div, #l0 > div {
+        flex: 1 1 auto;
+        overflow: auto;
       }
 
       [hidden] {
-        display: none;
+        display: none !important;
       }
 
     </style>
 
-    <slot id="s0" name="s0" on-slotchange="_slot0Changed"></slot>
-    <slot id="s1" name="s1" on-slotchange="_slot1Changed"></slot>
-    <slot id="s2" name="s2" on-slotchange="_slot2Changed"></slot>
-    <slot id="s3" name="s3" on-slotchange="_slot3Changed"></slot>
+    <!-- Put all slotted element into an ivisible container to have a clean initial state -->
+    <div hidden>
+      <slot id="s0" name="s0" on-slotchange="_slot0Changed"></slot>
+      <slot id="s1" name="s1" on-slotchange="_slot1Changed"></slot>
+      <slot id="s2" name="s2" on-slotchange="_slot2Changed"></slot>
+      <slot id="s3" name="s3" on-slotchange="_slot3Changed"></slot>
+    </div>
+
+    <!-- Layout fullscreen-->
+    <div id="lfs" hidden$="[[_hideFullscreen(fullscreen)]]" class="container">
+        <div class="vfs slotter"></div>
+    </div>
 
     <!-- Layout #0 -->
-    <div id="l0" hidden$="[[_hideLayout(0, layout)]]" class="container">
-      <div class="v0"></div>
+    <div id="l0" hidden$="[[_hideLayout(0, layout, fullscreen)]]" class="container">
+      <div class="v0 slotter"></div>
     </div>
 
     <!-- Layout #1 -->
-    <vaadin-split-layout id="l1" hidden$="[[_hideLayout(1, layout)]]" class="container">
-      <div class="v0"></div>
-      <div class="v1"></div>
+    <vaadin-split-layout id="l1" hidden$="[[_hideLayout(1, layout, fullscreen)]]" class="container">
+      <div class="v0 slotter"></div>
+      <div class="v1 slotter"></div>
     </vaadin-split-layout>
 
     <!-- Layout #2 -->
-    <vaadin-split-layout id= "l2" hidden$="[[_hideLayout(2, layout)]]" class="container">
-      <div class="v0"></div>
-      <vaadin-split-layout vertical>
-        <div class="v1"></div>
-        <div class="v2"></div>
+    <vaadin-split-layout id= "l2" hidden$="[[_hideLayout(2, layout, fullscreen)]]" class="container">
+      <div class="v0 slotter"></div>
+      <vaadin-split-layout vertical class="slotter">
+        <div class="v1 slotter"></div>
+        <div class="v2 slotter"></div>
       </vaadin-split-layout>
     </vaadin-split-layout>
 
     <!-- Layout #4 -->
-    <vaadin-split-layout id= "l3" hidden$="[[_hideLayout(3, layout)]]" class="container">
-      <vaadin-split-layout vertical>
-        <div class="v0"></div>
-        <div class="v1"></div>
+    <vaadin-split-layout id= "l3" hidden$="[[_hideLayout(3, layout, fullscreen)]]" class="container">
+      <vaadin-split-layout vertical class="slotter">
+        <div class="v0 slotter"></div>
+        <div class="v1 slotter"></div>
       </vaadin-split-layout>
-      <vaadin-split-layout vertical>
-        <div class="v2"></div>
-        <div class="v3"></div>
+      <vaadin-split-layout vertical class="slotter">
+        <div class="v2 slotter"></div>
+        <div class="v3 slotter"></div>
       </vaadin-split-layout>
     </vaadin-split-layout>
 
@@ -74,6 +129,11 @@
             type: Number,
             value: 0,
             observer: '_layoutChanged',
+          },
+          fullscreen: {
+            type: Number,
+            value: -1,
+            observer: '_fullscreenChanged',
           },
         };
       }
@@ -98,17 +158,22 @@
       }
 
       _layoutChanged(layout) {
+        // do not mess up layout if we are full screen
+        if(this.fullscreen >= 0) {
+          return;
+        }
+
         const layoutElement = this.$[`l${layout}`];
 
         for(let i=0; i<4; i++) {
-          this._setChild(layoutElement, i);
+          this._setChild(layoutElement, i, i);
         }
       }
 
 
-      _setChild(layoutElement, viewerId) {
+      _setChild(layoutElement, viewerId, slotId) {
         const viewer = layoutElement.querySelector(`.v${viewerId}`);
-        const slot = this.$[`s${viewerId}`];
+        const slot = this.$[`s${slotId}`];
         if(viewer) {
           // remove child if any
           while (viewer.firstChild) {
@@ -120,10 +185,23 @@
         }
       }
 
-      _hideLayout(currentLayout, activeLayout) {
-        console.log(currentLayout);
-        console.log(activeLayout);
-        return currentLayout !== activeLayout;
+      _hideLayout(currentLayout, activeLayout, fullscreen) {
+        return ( (fullscreen >= 0) || currentLayout !== activeLayout);
+      }
+
+      _hideFullscreen(fullscreen) {
+        return fullscreen === -1;
+      }
+
+      _fullscreenChanged(fullscreen) {
+        if(fullscreen === -1) {
+          // exit fullscreen, reset layout
+          this._layoutChanged(this.layout);
+        } else {
+          // attach target slot to fullscreen
+          const layoutElement = this.$.lfs;
+          this._setChild(layoutElement, 'fs', fullscreen);
+        }
       }
     }
     window.customElements.define(GexLayoutManager.is, GexLayoutManager);
