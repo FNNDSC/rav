@@ -1,4 +1,5 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/lib/mixins/gesture-event-listeners.html">
 
 <!-- Paper components  -->
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
@@ -41,7 +42,10 @@
 
       .toolbar {
         width: 100%;
-         display: flex;
+        display: flex !important;
+        /* position: absolute;
+        top: 0;
+        background: rgba(0, 0, 0, .7); */
       }
 
       .renderer {
@@ -54,9 +58,14 @@
         z-index: 2;
       }
 
-      .drop {
-        margin: 5px;
-        border: 5px dashed;
+      .overlay.drag {
+        background-color: rgba(0, 0, 0, 0.8);
+        z-index: 3;
+      }
+
+      .drag > div {
+        padding: 45px;
+        border: 5px dashed var(--accent-color);
       }
 
       paper-slider {
@@ -76,7 +85,9 @@
 
     <div class="container">
       <div hidden$=[[!empty]] class="overlay"> &lt; empty /&gt; </div>
-      <div hidden$=[[!drag]] class="overlay drop"> Drop data! </div>
+      <div hidden$=[[!drag]] class="overlay drag">
+        <div> Drop data! </div>
+      </div>
       <div hidden$=[[!loading]] class="overlay"> Loading files (10/263) </div>
       <div hidden$=[[!loaded]] class="renderer-container"> 
         <div class="toolbar">
@@ -86,8 +97,8 @@
             min="[[indexMin]]"
             max="[[indexMax]]"
             editable></paper-slider>
-            <paper-icon-button icon$="{{_fullscreenIcon(fullscreen)}}"></paper-icon-button>
-            <paper-icon-button icon="icons:clear"></paper-icon-button>            
+            <paper-icon-button icon$="{{_fullscreenIcon(fullscreen)}}" on-tap="_toggleFullscren"></paper-icon-button>
+            <paper-icon-button icon="icons:clear" on-tap="_clear"></paper-icon-button>            
         </div>
         <div class="renderer"> Renderer </div>
       </div>
@@ -96,7 +107,7 @@
   </template>
 
   <script>
-    class AmiViewer extends Polymer.Element {
+    class AmiViewer extends Polymer.GestureEventListeners(Polymer.Element) {
       static get is() {
         return 'ami-viewer';
       }
@@ -122,6 +133,10 @@
             type: Boolean,
             value: false,
             observer: '_loadedChanged',
+          },
+          active: {
+            type: Boolean,
+            value: false,
           },
           fullscreen: {
             type: Boolean,
@@ -177,6 +192,48 @@
 
       _fullscreenIcon(fullscreen) {
         return fullscreen ? 'icons:fullscreen-exit' : 'icons:fullscreen';
+      }
+
+      _toggleFullscren() {
+        if (!this.fullscreen) {
+          this._enterFullscreen();
+        } else {
+          this._exitFullscreen();
+        }
+
+        this.fullscreen = !this.fullscreen;
+        // ami/threejs?
+        // clear ami-renderer
+      }
+
+      _enterFullscreen() {
+        const enterFullscreen = new CustomEvent(
+          'enter-fullscreen',
+          {
+            detail: {},
+          }
+        );
+
+        this.dispatchEvent(enterFullscreen);
+      }
+
+      _exitFullscreen() {
+        const exitFullscreen = new CustomEvent(
+          'exit-fullscreen',
+          {
+            detail: {},
+          }
+        );
+
+        this.dispatchEvent(exitFullscreen);
+      }
+
+      _clear() {
+        this.loaded = false;
+        this.empty = true;
+
+        // ami/threejs?
+        // clear ami-renderer
       }
     }
     window.customElements.define(AmiViewer.is, AmiViewer);

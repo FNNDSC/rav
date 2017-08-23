@@ -307,14 +307,7 @@
         </div>
       </div>
       <div class="viewHead">
-        <div> change layout (0 to 3)
-          <paper-icon-button class="icon100" icon="layout-icons:layout-[[layout]]" on-tap="changeLayout"></paper-icon-button>
-        </div>
-        <div>
-          Make view 0 FS
-          <paper-icon-button icon="icons:fullscreen" on-tap="changeFullscreen"></paper-icon-button>
-        </div>
-        <div>
+        <div draggable="true">
             Make viewew fs
             <paper-icon-button icon="icons:fullscreen" on-tap="changeFullscreenViewer"></paper-icon-button>
           </div>
@@ -330,7 +323,8 @@
           max-index="[[stackMaxIndexBch]]"
           orientation="{{orientationBch}}"
           window-width="{{stackWindowWidthBch}}"
-          window-center="{{stackWindowCenterBch}}"></control-panel-2d>
+          window-center="{{stackWindowCenterBch}}"
+          layout="{{layout}}"></control-panel-2d>
 
 
         <control-panel-2d
@@ -345,7 +339,8 @@
           max-index="[[stackMaxIndexGe]]"
           orientation="{{orientationGe}}"
           window-width="{{stackWindowWidthGe}}"
-          window-center="{{stackWindowCenterGe}}"></control-panel-2d>
+          window-center="{{stackWindowCenterGe}}"
+          layout="{{layout}}"></control-panel-2d>
       </div>
 
       <div class="viewersC">
@@ -353,23 +348,47 @@
           layout="[[layout]]"
           fullscreen="[[fullscreen]]">
             <ami-viewer
+              data-uid="0"
               slot="s0"
               empty
-              index-max="100"></ami-viewer>
+              index-max="100"
+              on-enter-fullscreen="_onEnterFullscreen"
+              on-exit-fullscreen="_onExitFullscreen"
+              on-drop="_onDrop"
+              on-dragenter="_onDragEnter"
+              on-dragleave="_onDragLeave"></ami-viewer>
             <ami-viewer
+              data-uid="1"
               slot="s1"
               loading
               index="5"
-              index-max="10"></ami-viewer>
+              index-max="10"
+              on-enter-fullscreen="_onEnterFullscreen"
+              on-exit-fullscreen="_onExitFullscreen"
+              on-drop="_onDrop"
+              on-dragenter="_onDragEnter"
+              on-dragleave="_onDragLeave"></ami-viewer>
             <ami-viewer
+              data-uid="2"
               slot="s2"
               loaded
               index="50"
-              index-max="100"></ami-viewer>
+              index-max="100"
+              on-enter-fullscreen="_onEnterFullscreen"
+              on-exit-fullscreen="_onExitFullscreen"
+              on-drop="_onDrop"
+              on-dragenter="_onDragEnter"
+              on-dragleave="_onDragLeave"></ami-viewer>
             <ami-viewer
+              data-uid="3"
               slot="s3"
               drag
-              index-max="10"></ami-viewer>
+              index-max="10"
+              on-enter-fullscreen="_onEnterFullscreen"
+              on-exit-fullscreen="_onExitFullscreen"
+              on-drop="_onDrop"
+              on-dragenter="_onDragEnter"
+              on-dragleave="_onDragLeave"></ami-viewer>
           <!-- dom repeat slot 4 elements-->
           <!-- shoud map data to elment here -->
         </gex-layout-manager>
@@ -1303,16 +1322,27 @@
        *
        * @param {*} event
        */
-      _onDragDrop() {
-        console.log(event);
+      _onDrop(event) {
+        console.log(event.target.dataset.uid);
       }
 
-      changeLayout() {
-        this.layout = (this.layout + 1) % 4;
+      _onDragEnter(event) {
+        console.log(event.target.dataset.uid);
+        event.target.drag = true;
       }
 
-      changeFullscreen() {
-        this.fullscreen = (this.fullscreen < 0) ? 0 : -1;
+      _onDragLeave(event) {
+        event.target.drag = false;
+        console.log(event.target.dataset.uid);
+      }
+
+      _onEnterFullscreen(event) {
+        console.log(event.target.dataset.uid);
+        this.fullscreen = event.target.dataset.uid;
+      }
+
+      _onExitFullscreen() {
+        this.fullscreen = -1;
       }
 
       changeFullscreenViewer() {
