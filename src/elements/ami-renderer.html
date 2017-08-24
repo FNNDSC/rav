@@ -1,0 +1,287 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<link rel="import" href="../../bower_components/moment-element/moment-element.html">
+
+<!-- Local components -->
+<link rel="import" href="../import-ami.html">
+<link rel="import" href="./ami-renderer-annotations.html">
+
+<dom-module id="ami-renderer">
+  <template>
+
+    <style>
+      :host {
+        display: block;
+        position: relative;
+      }
+
+      #container {
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        position: absolute;
+        overflow: hidden;
+      }
+
+      #overlay {
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        overflow:hidden;
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-align: center;
+            -ms-flex-align: center;
+                align-items: center;
+        -webkit-box-pack: center;
+            -ms-flex-pack: center;
+                justify-content: center;
+        pointer-events: none;
+
+      }
+    </style>
+
+    <ami-renderer-annotations
+      id="overlay"
+      annotations=[[annotations]]></ami-renderer-annotations>
+
+    <div id="container">
+    </div>
+
+    </template>
+
+  <script>
+    class AMIRenderer extends Polymer.Element {
+      static get is() {
+        return 'ami-renderer';
+      }
+      static get properties() {
+        return {
+          animationFrameID: {
+            type: Number,
+            value: -1,
+          },
+          stackHelper: {
+            type: Object,
+            value: {},
+          },
+          activate: {
+            type: Boolean,
+            notify: true,
+          },
+          stackMaxIndex: {
+            type: Number,
+            notify: true,
+          },
+          patientID: {
+            type: String,
+          },
+          patientName: {
+            type: String,
+          },
+          patientAge: {
+            type: String,
+          },
+          patientBirthdate: {
+            type: String,
+          },
+          studyDate: {
+            type: String,
+          },
+          studyDescription: {
+            type: String,
+          },
+          seriesDescription: {
+            type: String,
+          },
+          sizeX: {
+            type: Number,
+          },
+          sizeY: {
+            type: Number,
+          },
+          mouseI: {
+            type: Number,
+          },
+          mouseJ: {
+            type: Number,
+          },
+          mouseK: {
+            type: Number,
+          },
+          mouseValue: {
+            type: Number,
+          },
+          annotations: {
+            type: Number,
+          },
+        };
+      }
+
+      constructor() {
+        super();
+        this._onScrollBound = this._onScroll.bind(this);
+        this._onMouseMoveBound = this._onMouseMove.bind(this);
+      }
+
+      disconnectedCallback() {
+        super.disconnectedCallback();
+        this._controls.removeEventListener('OnScroll', this._onScrollBound);
+        this._container.removeEventListener('mousemove', this._onMouseMoveBound);
+      }
+
+      ready() {
+        super.ready();
+        this._initViewer();
+      }
+
+      _initViewer() {
+        this._container = this.$.container;
+        this._slice = null;
+        this._scene = null;
+        this._clipPlane = null;
+        this._changed = true;
+        this.stackHelper = null;
+        this.orientation = 'default';
+
+        this._initScene();
+        this._initCamera();
+        this._initControls();
+        this._initRenderer();
+
+        // attach event listeners
+        this._controls.addEventListener('OnScroll', this._onScrollBound);
+        this._container.addEventListener('mousemove', this._onMouseMoveBound);
+      }
+
+      _initScene() {
+        this._scene = new THREE.Scene();
+      }
+
+      _initCamera() {
+        this._camera = new AMI.default.Cameras.Orthographic(
+          this._container.clientWidth / -2,
+          this._container.clientWidth / 2,
+          this._container.clientHeight / -2,
+          this._container.clientHeight / 2,
+          1, 1000 );
+      }
+
+      _initControls() {
+        this._controls =
+          new AMI.default.Controls.TrackballOrtho(this._camera, this._container);
+        this._controls.staticMoving = true;
+        this._controls.noRotate = true;
+        this._controls.target.set(0, 0, 0);
+        this._camera.controls = this._controls;
+
+        // add event listeners for selection
+        this._controls.addEventListener('start', () => {
+          this.activate = true;
+        });
+        this._controls.addEventListener('change', () => {
+          this._changed = true;
+        });
+      }
+
+      _initRenderer() {
+        this._renderer = new THREE.WebGLRenderer({
+          antialias: true,
+        });
+        this._renderer.autoClear = false;
+        this._renderer.localClippingEnabled = true;
+        this._renderer.setSize(
+          this._container.clientWidth, this._container.clientHeight);
+        this._container.appendChild( this._renderer.domElement );
+      }
+
+      _animate() {
+        this._controls.update();
+        this.animationFrameID = requestAnimationFrame(() => {
+          return this._animate();
+        } );
+
+        if (this._changed) {
+          this._renderer.clear();
+          this._renderer.render( this._scene, this._camera );
+          this._changed = false;
+        }
+      }
+
+      startRenderingLoop() {
+        if (this.animationFrameID === -1) {
+          this._animate();
+        }
+      }
+
+      stopRenderingLoop() {
+        window.cancelAnimationFrame(this.animationFrameID);
+        this.animationFrameID = -1;
+      }
+
+      resize() {
+        const width = this._container.clientWidth;
+        const height = this._container.clientHeight;
+        // const canvas = {
+        //   width,
+        //   height,
+        // };
+
+        // this._camera.canvas = canvas;
+        // this._camera.fitBox(2, 1);
+
+        this._renderer.setSize(width, height);
+        this._changed = true;
+      }
+
+      _onScroll(event) {
+        if (event.delta > 0) {
+          if (this.stackHelper.index >= this.stackHelper.orientationMaxIndex - 1) {
+            return false;
+          }
+          this.stackHelper.index += 1;
+        } else {
+          if (this.stackHelper.index <= 0) {
+            return false;
+          }
+          this.stackHelper.index -= 1;
+        }
+        this.stackIndex = this.stackHelper.index;
+        this._changed = true;
+      }
+
+      _onMouseMove(event) {
+        const rect = this._container.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / rect.width;
+        const y = (event.clientY - rect.top) / rect.height;
+
+        const mouse = {
+          x: (x * 2) - 1,
+          y: - (y * 2) + 1,
+        };
+
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouse, this._camera);
+
+        const intersects = raycaster.intersectObject(this._scene, true);
+        if (intersects.length > 0) {
+          let ijk =
+            AMI.default.Models.Stack.worldToData(
+              this.stackHelper.stack, intersects[0].point);
+          this.mouseI = ijk.x;
+          this.mouseJ = ijk.y;
+          this.mouseK = ijk.z;
+          this.mouseValue =
+            AMI.default.Models.Stack.value(this.stackHelper.stack, ijk);
+        }
+      }
+    }
+    window.customElements.define(AMIRenderer.is, AMIRenderer);
+  </script>
+</dom-module>

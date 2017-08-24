@@ -64,6 +64,14 @@
         overflow: auto;
       }
 
+      .viewer {
+        border: 1px solid rgba(0, 0, 0, 0);
+      }
+
+      .active {
+        border: 1px solid var(--accent-color);
+      }
+
       [hidden] {
         display: none !important;
       }
@@ -80,38 +88,38 @@
 
     <!-- Layout fullscreen-->
     <div id="lfs" hidden$="[[_hideFullscreen(fullscreen)]]" class="container">
-        <div class="vfs slotter"></div>
+        <div class="vfs slotter viewer"></div>
     </div>
 
     <!-- Layout #0 -->
     <div id="l0" hidden$="[[_hideLayout(0, layout, fullscreen)]]" class="container">
-      <div class="v0 slotter"></div>
+      <div class$="v0 slotter viewer [[_active(0, active)]]"></div>
     </div>
 
     <!-- Layout #1 -->
     <vaadin-split-layout id="l1" hidden$="[[_hideLayout(1, layout, fullscreen)]]" class="container">
-      <div class="v0 slotter"></div>
-      <div class="v1 slotter"></div>
+      <div class$="v0 slotter viewer [[_active(0, active)]]"></div>
+      <div class$="v1 slotter viewer [[_active(1, active)]]"></div>
     </vaadin-split-layout>
 
     <!-- Layout #2 -->
     <vaadin-split-layout id= "l2" hidden$="[[_hideLayout(2, layout, fullscreen)]]" class="container">
-      <div class="v0 slotter"></div>
+      <div class$="v0 slotter viewer [[_active(0, active)]]"></div>
       <vaadin-split-layout vertical class="slotter">
-        <div class="v1 slotter"></div>
-        <div class="v2 slotter"></div>
+        <div class$="v1 slotter viewer [[_active(1, active)]]"></div>
+        <div class$="v2 slotter viewer [[_active(2, active)]]"></div>
       </vaadin-split-layout>
     </vaadin-split-layout>
 
     <!-- Layout #4 -->
     <vaadin-split-layout id= "l3" hidden$="[[_hideLayout(3, layout, fullscreen)]]" class="container">
       <vaadin-split-layout vertical class="slotter">
-        <div class="v0 slotter"></div>
-        <div class="v1 slotter"></div>
+        <div class$="v0 slotter viewer [[_active(0, active)]]"></div>
+        <div class$="v1 slotter viewer [[_active(1, active)]]"></div>
       </vaadin-split-layout>
       <vaadin-split-layout vertical class="slotter">
-        <div class="v2 slotter"></div>
-        <div class="v3 slotter"></div>
+        <div class$="v2 slotter viewer [[_active(2, active)]]"></div>
+        <div class$="v3 slotter viewer [[_active(3, active)]]"></div>
       </vaadin-split-layout>
     </vaadin-split-layout>
 
@@ -125,6 +133,11 @@
 
       static get properties() {
         return {
+          active: {
+            type: Number,
+            value: -1,
+            observer: '_activeChanged',
+          },
           layout: {
             type: Number,
             value: 0,
@@ -138,15 +151,11 @@
         };
       }
 
-      constructor() {
-        super();
-      }
-
       connectedCallback() {
         super.connectedCallback();
         this._observer1 =
           new Polymer.FlattenedNodesObserver(this.$.s0, (info) => {
-          console.log(info);
+          // console.log(info);
           // this._processNewNodes(info.addedNodes);
           // this._processRemovedNodes(info.removedNodes);
         });
@@ -169,7 +178,6 @@
           this._setChild(layoutElement, i, i);
         }
       }
-
 
       _setChild(layoutElement, viewerId, slotId) {
         const viewer = layoutElement.querySelector(`.v${viewerId}`);
@@ -202,6 +210,14 @@
           const layoutElement = this.$.lfs;
           this._setChild(layoutElement, 'fs', fullscreen);
         }
+      }
+
+      _active(current, target) {
+        return (Number(current) === Number(target)) ? 'active' : '';
+      }
+
+      _activeChanged() {
+        console.log(this.active);
       }
     }
     window.customElements.define(GexLayoutManager.is, GexLayoutManager);

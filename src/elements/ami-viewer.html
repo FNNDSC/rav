@@ -8,6 +8,13 @@
 <!-- Iron components  -->
 <link href="../../bower_components/iron-icons/iron-icons.html" rel="import">
 
+<!-- CHIPS components -->
+<link rel="import" href="../../bower_components/chips-api/chips-api.html">
+
+<!-- Local components -->
+<link rel="import" href="../import-ami.html">
+<link rel="import" href="./ami-renderer.html">
+
 <dom-module id="ami-viewer">
   <template>
 
@@ -52,6 +59,15 @@
         flex: 1;
         width: 100%;
         background-color: darkgray;
+        position: relative;
+      }
+
+      ami-renderer {
+        position: absolute;
+        top:0;
+        bottom: 0;
+        left: 0;
+        right: 0;
       }
 
       .overlay {
@@ -72,7 +88,7 @@
         flex: 1;
         background-color: var(--dark-primary-color);
         --paper-slider-container-color: #424242;
-        --paper-slider-active-color: #424242;
+        --paper-slider-activate-color: #424242;
         --paper-slider-knob-color: var(--accent-color);
         --paper-slider-input: {width: 64px};
       }
@@ -83,14 +99,16 @@
 
     </style>
 
+    <chips-api id="API"></chips-api>
+
     <div class="container">
       <div hidden$=[[!empty]] class="overlay"> &lt; empty /&gt; </div>
       <div hidden$=[[!drag]] class="overlay drag">
         <div> Drop data! </div>
       </div>
-      <div hidden$=[[!loading]] class="overlay"> Loading files (10/263) </div>
+      <div hidden$=[[!loading]] class="overlay"> Loading images ([[imagesLoaded]]/[[imagesTotal]]) </div>
       <div hidden$=[[!loaded]] class="renderer-container"> 
-        <div class="toolbar">
+        <div class="toolbar" on-tap="_activateViewer">
           <paper-slider
             value="{{index}}"
             immediate-value="{{index}}"
@@ -100,7 +118,12 @@
             <paper-icon-button icon$="{{_fullscreenIcon(fullscreen)}}" on-tap="_toggleFullscren"></paper-icon-button>
             <paper-icon-button icon="icons:clear" on-tap="_clear"></paper-icon-button>            
         </div>
-        <div class="renderer"> Renderer </div>
+        <div class="renderer">
+          <ami-renderer
+            id="renderer"
+            annotations="[[annotations]]"
+            activate="{{activate}}"></ami-renderer>
+        </div>
       </div>
     </div>
 
@@ -134,14 +157,18 @@
             value: false,
             observer: '_loadedChanged',
           },
-          active: {
+          activate: {
             type: Boolean,
             value: false,
+            observer: '_activateChanged',
           },
           fullscreen: {
             type: Boolean,
             value: false,
             observer: '_fullscreenChanged',
+          },
+          annotations: {
+            type: Number,
           },
           index: {
             type: Number,
@@ -154,6 +181,26 @@
           indexMax: {
             type: Number,
             value: 0,
+          },
+          images: {
+            type: Array,
+            value: [],
+            observer: '_imagesChanged',
+          },
+          imagesTotal: {
+            type: Number,
+          },
+          imagesLoaded: {
+            type: Number,
+          },
+          imagesParsed: {
+            type: Number,
+          },
+          stackScene: {
+            type: Object,
+          },
+          stackHelper: {
+            type: Object,
           },
         };
       }
@@ -228,12 +275,122 @@
         this.dispatchEvent(exitFullscreen);
       }
 
-      _clear() {
-        this.loaded = false;
-        this.empty = true;
+      _activateViewer() {
+        this.activate = true;
+      }
 
-        // ami/threejs?
-        // clear ami-renderer
+      _activateChanged(activate) {
+        console.log(activate);
+        if (activate) {
+          const activateRenderer = new CustomEvent(
+            'activate',
+            {
+              detail: {},
+            }
+          );
+
+          this.dispatchEvent(activateRenderer);
+          this.activate = false;
+        }
+      }
+
+      _clear(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        this.images = [];
+
+        const deactivate = new CustomEvent(
+          'deactivate',
+          {
+            detail: {},
+          }
+        );
+
+        this.dispatchEvent(deactivate);
+      }
+
+      _imagesChanged() {
+        if(this.images.length === 0) {
+          this.empty = true;
+          this.drag = false;
+          this.loaded = false;
+          this.loading = false;
+          return;
+        }
+
+        this.loading = true;
+
+        // start loading the data!
+        return this._loadUrls(this.images)
+          .then((series) => {
+            // merge series
+            const mergedSeries = series[0].mergeSeries(series);
+            const firstSeries = mergedSeries[0];
+            return firstSeries;
+          })
+          .then((series) => {
+            this.empty = false;
+            this.loading = false;
+            this.loaded = true;
+
+            const helper = new AMI.default.Helpers.Stack(series.stack[0]);
+            const scene = new THREE.Scene();
+            scene.add(helper);
+            this.stackScene = scene;
+            this.stackHelepr = helper;
+
+            // resize the renderer as it was initialized offscreen
+            this.$.renderer.resize();
+          });
+      }
+
+      _fetchUrl(url) {
+        const dataAPI = {};
+        dataAPI.auth = {
+          type: 'token',
+          token: sessionStorage.getItem('token'),
+        };
+        this.$.API.handleAs = 'arraybuffer';
+        return this.$.API.request( 'GET', url, dataAPI );
+      }
+
+      _loadUrl(url) {
+        const LoadersVolume = AMI.default.Loaders.Volume;
+        const loader = new LoadersVolume();
+
+        return fetch(url)
+          .then((response) => response.arrayBuffer())
+          .then((arrayBuffer) => {
+            this.imagesLoaded += 1;
+            return loader.parse({
+              url: url,
+              buffer: arrayBuffer,
+              })
+              .then((response) => {
+                this.imagesParsed +=1;
+                return response;
+              });
+          })
+          .catch(function(error) {
+            window.console.log('oops... something went wrong...');
+            window.console.log(error);
+          });
+      }
+
+      _loadUrls(urls) {
+        // number of files to be loaded
+        this.imagesTotal = urls.length;
+        this.imagesLoaded = 0;
+        this.imagesParsed = 0;
+
+        const loadSequences = [];
+        urls.forEach((url) => {
+          loadSequences.push(
+            this._loadUrl(url)
+          );
+        });
+        return Promise.all(loadSequences);
       }
     }
     window.customElements.define(AmiViewer.is, AmiViewer);
