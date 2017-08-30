@@ -150,7 +150,7 @@
           stackIndex: {
             type: Number,
             notify: true,
-            observer: '_sceneChanged',
+            observer: '_stackIndexChanged',
           },
           active: {
             type: Boolean,
@@ -167,14 +167,6 @@
           stackWindowCenter: {
             type: Number,
             observer: '_windowCenterChanged',
-          },
-          intensityAuto: {
-            type: Boolean,
-            observer: '_sceneChanged',
-          },
-          interpolation: {
-            type: Boolean,
-            observer: '_sceneChanged',
           },
           patientID: {
             type: String,
@@ -290,6 +282,7 @@
         });
         this._renderer.autoClear = false;
         this._renderer.localClippingEnabled = true;
+        console.log('init renderer');
         this._renderer.setSize(
           this._container.clientWidth, this._container.clientHeight);
         this._container.appendChild( this._renderer.domElement );
@@ -325,14 +318,17 @@
             !stackScene.children) {
           return;
         }
+        console.log('in');
 
         this._scene = stackScene;
         this.stackHelper = this._scene.children[0];
+        console.log(this.stackHelper);
         this.update();
       }
 
       update() {
         if (this.stackHelper) {
+          console.log(this.stackHelper);
           const stack = this.stackHelper.stack;
           this.stackHelper.slice.canvasWidth = this._container.clientWidth;
           this.stackHelper.slice.canvasHeight = this._container.clientHeight;
@@ -410,8 +406,7 @@
           return;
         }
 
-        if (this.stackHelper &&
-        this.stackHelper.stack) {
+        if (this.stackHelper && this.stackHelper.stack) {
           this._camera.orientation = orientation;
           this._camera.update();
           this._camera.fitBox(2, 1);
@@ -482,7 +477,7 @@
         if (intersects.length > 0) {
           let ijk =
             AMI.default.Models.Stack.worldToData(
-              this.stackHelper.stack, intersects[0].point);
+              this.stackHelper.stack.lps2IJK, intersects[0].point);
           this.mouseI = ijk.x;
           this.mouseJ = ijk.y;
           this.mouseK = ijk.z;
@@ -493,6 +488,13 @@
 
       _sceneChanged() {
         this._changed = true;
+      }
+
+      _stackIndexChanged(value) {
+        if (this.stackHelper && this.stackHelper.stack) {
+          this.stackHelper.index = value;
+          this._sceneChanged();
+        }
       }
 
       _windowCenterChanged(value) {

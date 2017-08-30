@@ -49,7 +49,20 @@
 
     <ami-renderer-annotations
       id="overlay"
-      annotations=[[annotations]]></ami-renderer-annotations>
+      annotations=[[annotations]]
+      index="[[stackIndex]]"
+      max-index="[[stackMaxIndex]]"
+      mouse-i="[[mouseI]]"
+      mouse-j="[[mouseJ]]"
+      mouse-k="[[mouseK]]"
+      mouse-value="[[mouseValue]]"
+      patient-id="[[patientId]]"
+      patient-name="[[patientName]]"
+      patient-age="[[patientAge]]"
+      patient-birthdate="[[patientBirthdate]]"
+      study-date="[[studyDate]]"
+      study-description="[[studyDescription]]"
+      series-description="[[seriesDescription]]"></ami-renderer-annotations>
 
     <div id="container">
     </div>
@@ -71,34 +84,23 @@
             type: Object,
             value: {},
           },
+          stackScene: {
+            type: Object,
+            value: {},
+            observer: '_stackSceneChanged',
+          },
           activate: {
             type: Boolean,
             notify: true,
           },
+          stackIndex: {
+            type: Number,
+            notify: true,
+            observer: '_stackIndexChanged',
+          },
           stackMaxIndex: {
             type: Number,
             notify: true,
-          },
-          patientID: {
-            type: String,
-          },
-          patientName: {
-            type: String,
-          },
-          patientAge: {
-            type: String,
-          },
-          patientBirthdate: {
-            type: String,
-          },
-          studyDate: {
-            type: String,
-          },
-          studyDescription: {
-            type: String,
-          },
-          seriesDescription: {
-            type: String,
           },
           sizeX: {
             type: Number,
@@ -120,6 +122,36 @@
           },
           annotations: {
             type: Number,
+          },
+          colorLut: {
+            type: String,
+            value: '',
+            observer: '_colorLutChanged',
+          },
+          orientation: {
+            type: String,
+            observer: '_orientationChanged',
+          },
+          patientId: {
+            type: String,
+          },
+          patientName: {
+            type: String,
+          },
+          patientAge: {
+            type: String,
+          },
+          patientBirthdate: {
+            type: String,
+          },
+          studyDate: {
+            type: String,
+          },
+          studyDescription: {
+            type: String,
+          },
+          seriesDescription: {
+            type: String,
           },
         };
       }
@@ -148,7 +180,6 @@
         this._clipPlane = null;
         this._changed = true;
         this.stackHelper = null;
-        this.orientation = 'default';
 
         this._initScene();
         this._initCamera();
@@ -228,13 +259,19 @@
       resize() {
         const width = this._container.clientWidth;
         const height = this._container.clientHeight;
-        // const canvas = {
-        //   width,
-        //   height,
-        // };
+        const canvas = {
+          width,
+          height,
+        };
 
-        // this._camera.canvas = canvas;
-        // this._camera.fitBox(2, 1);
+        this._camera.canvas = canvas;
+        this._camera.fitBox(2, 1);
+
+        // update info to draw borders properly
+        if (this.stackHelper && this.stackHelper.stack) {
+          this.stackHelper.slice.canvasWidth = width;
+          this.stackHelper.slice.canvasHeight = height;
+        }
 
         this._renderer.setSize(width, height);
         this._changed = true;
@@ -272,15 +309,113 @@
         const intersects = raycaster.intersectObject(this._scene, true);
         if (intersects.length > 0) {
           let ijk =
-            AMI.default.Models.Stack.worldToData(
-              this.stackHelper.stack, intersects[0].point);
+            AMI.default.Core.Utils.worldToData(
+              this.stackHelper.stack.lps2IJK, intersects[0].point);
           this.mouseI = ijk.x;
           this.mouseJ = ijk.y;
           this.mouseK = ijk.z;
           this.mouseValue =
-            AMI.default.Models.Stack.value(this.stackHelper.stack, ijk);
+            AMI.default.Core.Utils.value(this.stackHelper.stack, ijk);
         }
       }
+
+      _stackSceneChanged(stackScene) {
+        if (stackScene === undefined ||
+            stackScene === null ||
+            !stackScene.children) {
+          return;
+        }
+
+        this._scene = stackScene;
+        this.stackHelper = this._scene.children[0];
+        this.update();
+      }
+
+      update() {
+        if (this.stackHelper) {
+          const stack = this.stackHelper.stack;
+          this.stackHelper.slice.canvasWidth = this._container.clientWidth;
+          this.stackHelper.slice.canvasHeight = this._container.clientHeight;
+
+          // set camera
+          const worldbb = stack.worldBoundingBox();
+          const lpsDims = new THREE.Vector3(
+            (worldbb[1] - worldbb[0])/2,
+            (worldbb[3] - worldbb[2])/2,
+            (worldbb[5] - worldbb[4])/2
+          );
+
+          // box: {halfDimensions, center}
+          const box = {
+            center: stack.worldCenter().clone(),
+            halfDimensions:
+              new THREE.Vector3(lpsDims.x + 10, lpsDims.y + 10, lpsDims.z + 10),
+          };
+
+          // init and zoom
+          const canvas = {
+              width: this._container.clientWidth,
+              height: this._container.clientHeight,
+            };
+
+          this._camera.directions =
+            [stack.xCosine, stack.yCosine, stack.zCosine];
+          this._camera.box = box;
+          this._camera.canvas = canvas;
+          this._camera.orientation = this.orientation.toLowerCase();
+          this._camera.update();
+          this._camera.fitBox(2, 1);
+
+          this.stackHelper.orientation = this._camera.stackOrientation;
+          this.stackHelper.index =
+            Math.floor(this.stackHelper.orientationMaxIndex/2);
+
+          //
+          this.set('stackMaxIndex', this.stackHelper.orientationMaxIndex);
+          this.set('stackIndex', this.stackHelper.index);
+        }
+      }
+
+      _stackIndexChanged(value) {
+        if (this.stackHelper && this.stackHelper.stack) {
+          this.stackHelper.index = value;
+          this._sceneChanged();
+        }
+      }
+
+      _orientationChanged(orientation) {
+        if (orientation === undefined ||
+          orientation === '') {
+          return;
+        }
+
+        if (this.stackHelper && this.stackHelper.stack) {
+          this._camera.orientation = orientation.toLowerCase();
+          this._camera.update();
+          this._camera.fitBox(2, 1);
+
+          this.stackHelper.orientation = this._camera.stackOrientation;
+          this.stackHelper.index =
+            Math.floor(this.stackHelper.orientationMaxIndex/2);
+          this.set('stackMaxIndex', this.stackHelper.orientationMaxIndex);
+          this.set('stackIndex', this.stackHelper.index);
+
+          this._changed = true;
+        }
+      }
+
+      _colorLutChanged(colorLut) {
+        // if (colorLut === undefined ||
+        //   colorLut === '') {
+        //   return;
+        // }
+        console.log(colorLut);
+      }
+
+      _sceneChanged() {
+        this._changed = true;
+      }
+
     }
     window.customElements.define(AMIRenderer.is, AMIRenderer);
   </script>

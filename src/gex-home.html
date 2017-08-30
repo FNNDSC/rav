@@ -313,39 +313,35 @@
         </div>
         <control-panel-2d
           hidden$="[[_hideControls(0, active)]]"
-          collapse="{{collapse}}"
-          orientation="{{orientation0}}"
-          window-width="{{stackWindowWidthBch}}"
-          window-center="{{stackWindowCenterBch}}"
-          layout="{{layout}}"
           annotations="{{annotations0}}"
+          collapse="{{collapse}}"
+          color-Lut="{{colorLut0}}"
+          layout="{{layout}}"
+          orientation="{{orientation0}}"
           controls="{{controls}}"></control-panel-2d>
         <control-panel-2d
           hidden$="[[_hideControls(1, active)]]"
-          collapse="{{collapse}}"
-          orientation="{{orientation0}}"
-          window-width="{{stackWindowWidthBch}}"
-          window-center="{{stackWindowCenterBch}}"
-          layout="{{layout}}"
           annotations="{{annotations1}}"
+          collapse="{{collapse}}"
+          color-Lut="{{colorLut1}}"
+          layout="{{layout}}"
+          orientation="{{orientation1}}"
           controls="{{controls}}"></control-panel-2d>
         <control-panel-2d
           hidden$="[[_hideControls(2, active)]]"
-          collapse="{{collapse}}"
-          orientation="{{orientation0}}"
-          window-width="{{stackWindowWidthBch}}"
-          window-center="{{stackWindowCenterBch}}"
-          layout="{{layout}}"
           annotations="{{annotations2}}"
+          collapse="{{collapse}}"
+          color-Lut="{{colorLut2}}"
+          layout="{{layout}}"
+          orientation="{{orientation2}}"
           controls="{{controls}}"></control-panel-2d>
         <control-panel-2d
           hidden$="[[_hideControls(3, active)]]"
-          collapse="{{collapse}}"
-          orientation="{{orientation0}}"
-          window-width="{{stackWindowWidthBch}}"
-          window-center="{{stackWindowCenterBch}}"
-          layout="{{layout}}"
           annotations="{{annotations3}}"
+          collapse="{{collapse}}"
+          color-Lut="{{colorLut3}}"
+          layout="{{layout}}"
+          orientation="{{orientation3}}"
           controls="{{controls}}"></control-panel-2d>
 
       </div>
@@ -354,13 +350,15 @@
         <gex-layout-manager
           active="[[active]]"
           layout="[[layout]]"
-          fullscreen="[[fullscreen]]">
+          fullscreen="[[fullscreen]]"
+          on-iron-resize="_layoutSizeChanged">
             <ami-viewer
+              id="viewer0"
               data-uid="0"
               slot="s0"
-              empty
               annotations="{{annotations0}}"
-              index-max="100"
+              color-Lut="{{colorLut0}}"
+              orientation="{{orientation0}}"
               on-enter-fullscreen="_onEnterFullscreen"
               on-exit-fullscreen="_onExitFullscreen"
               on-activate="_onActivateRenderer"
@@ -370,12 +368,12 @@
               on-dragleave="_onDragLeave"
               on-dragover="_onDragOver"></ami-viewer>
             <ami-viewer
+              id="viewer1"
               data-uid="1"
               slot="s1"
-              loading
               annotations="{{annotations1}}"
-              index="5"
-              index-max="10"
+              color-Lut="{{colorLut1}}"
+              orientation="{{orientation1}}"
               on-enter-fullscreen="_onEnterFullscreen"
               on-exit-fullscreen="_onExitFullscreen"
               on-activate="_onActivateRenderer"
@@ -386,12 +384,12 @@
               on-dragover="_onDragOver"
               ></ami-viewer>
             <ami-viewer
+              id="viewer2"
               data-uid="2"
               slot="s2"
-              loaded
               annotations="{{annotations2}}"
-              index="50"
-              index-max="100"
+              color-Lut="{{colorLut2}}"
+              orientation="{{orientation2}}"
               on-enter-fullscreen="_onEnterFullscreen"
               on-exit-fullscreen="_onExitFullscreen"
               on-activate="_onActivateRenderer"
@@ -402,10 +400,13 @@
               on-dragover="_onDragOver"
               ></ami-viewer>
             <ami-viewer
+              id="viewer3"
               data-uid="3"
               slot="s3"
               drag
               annotations="{{annotations3}}"
+              color-Lut="{{colorLut3}}"
+              orientation="{{orientation3}}"
               index-max="10"
               on-enter-fullscreen="_onEnterFullscreen"
               on-exit-fullscreen="_onExitFullscreen"
@@ -656,6 +657,7 @@
           layout: {
             type: Number,
             value: 0,
+            observer: '_layoutSizeChanged',
           },
           active: {
             type: Number,
@@ -1005,12 +1007,6 @@
       }
 
       _visibleBcgChanged(visible) {
-        return;
-        // this.$.renderBch.resize();
-        // this.$.renderGe.resize();
-      }
-
-      _resizeListener() {
         return;
         // this.$.renderBch.resize();
         // this.$.renderGe.resize();
@@ -1496,10 +1492,12 @@ console.log(targetViewer);
         console.log(event.target.dataset.uid);
         this.fullscreen = event.target.dataset.uid;
         this.active = this.fullscreen;
+        this._layoutSizeChanged();
       }
 
       _onExitFullscreen() {
         this.fullscreen = -1;
+        this._layoutSizeChanged();
       }
 
       _onActivateRenderer(event) {
@@ -1519,6 +1517,7 @@ console.log(targetViewer);
           // https://developer.mozilla.org/en-US/docs/Web/API/Fullscreen_API
           console.log(this.$.fullViewer);
           this.$.fullViewer.webkitRequestFullScreen();
+          this._layoutSizeChanged();
         }
       }
 
@@ -1533,6 +1532,18 @@ console.log(targetViewer);
       _datasetsChanged(previous, next) {
         console.log(previous);
         console.log(next);
+      }
+
+      _resizeListener() {
+        this._layoutSizeChanged();
+      }
+
+      _layoutSizeChanged() {
+        console.log('layout changed');
+        this.$.viewer0.resize();
+        this.$.viewer1.resize();
+        this.$.viewer2.resize();
+        this.$.viewer3.resize();
       }
     }
 

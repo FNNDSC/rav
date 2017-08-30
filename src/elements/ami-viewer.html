@@ -90,7 +90,7 @@
         --paper-slider-container-color: #424242;
         --paper-slider-activate-color: #424242;
         --paper-slider-knob-color: var(--accent-color);
-        --paper-slider-input: {width: 64px};
+        margin: 0;
       }
 
       [hidden] {
@@ -112,17 +112,23 @@
           <paper-slider
             value="{{index}}"
             immediate-value="{{index}}"
+
+            snaps
             min="[[indexMin]]"
-            max="[[indexMax]]"
-            editable></paper-slider>
+            max="[[indexMax]]"></paper-slider>
             <paper-icon-button icon$="{{_fullscreenIcon(fullscreen)}}" on-tap="_toggleFullscren"></paper-icon-button>
             <paper-icon-button icon="icons:clear" on-tap="_clear"></paper-icon-button>            
         </div>
         <div class="renderer">
           <ami-renderer
             id="renderer"
+            activate="{{activate}}"
             annotations="[[annotations]]"
-            activate="{{activate}}"></ami-renderer>
+            orientation="[[orientation]]"
+            color-lut="{{colorLut}}"
+            stack-scene="[[stackScene]]"
+            stack-index="{{index}}"
+            stack-max-index="{{indexMax}}"></ami-renderer>
         </div>
       </div>
     </div>
@@ -169,6 +175,12 @@
           },
           annotations: {
             type: Number,
+          },
+          orientation: {
+            type: String,
+          },
+          colorLut: {
+            type: String,
           },
           index: {
             type: Number,
@@ -280,7 +292,6 @@
       }
 
       _activateChanged(activate) {
-        console.log(activate);
         if (activate) {
           const activateRenderer = new CustomEvent(
             'activate',
@@ -338,10 +349,22 @@
             const scene = new THREE.Scene();
             scene.add(helper);
             this.stackScene = scene;
-            this.stackHelepr = helper;
+            this.stackHelper = helper;
 
             // resize the renderer as it was initialized offscreen
             this.$.renderer.resize();
+
+            // start rendering loop
+            this.$.renderer.startRenderingLoop();
+
+            // update series information
+            this.$.renderer.patientID = series.patientID;
+            this.$.renderer.patientName = series.patientName;
+            this.$.renderer.patientAge = series.patientAge;
+            this.$.renderer.patientBorthdate = series.patientBorthdate;
+            this.$.renderer.studyDate = series.studyDate;
+            this.$.renderer.studyDescription = series.studyDescription;
+            this.$.renderer.seriesDescription = series.seriesDescription;
           });
       }
 
@@ -391,6 +414,10 @@
           );
         });
         return Promise.all(loadSequences);
+      }
+
+      resize() {
+        this.$.renderer.resize();
       }
     }
     window.customElements.define(AmiViewer.is, AmiViewer);
