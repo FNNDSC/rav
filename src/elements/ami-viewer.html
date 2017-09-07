@@ -124,6 +124,7 @@
             id="renderer"
             activate="{{activate}}"
             annotations="[[annotations]]"
+            cursor="{{cursor}}"
             orientation="[[orientation]]"
             color-lut="{{colorLut}}"
             stack-scene="[[stackScene]]"
@@ -213,6 +214,16 @@
           },
           stackHelper: {
             type: Object,
+          },
+          cursor: {
+            type: Object,
+            value: {
+              x: 0,
+              y: 0,
+              z: 0,
+            },
+            notify: true,
+            observer: '_cursorChanged',
           },
         };
       }
@@ -350,6 +361,8 @@
             scene.add(helper);
             this.stackScene = scene;
             this.stackHelper = helper;
+            this.stackHelper.bbox.visible = false;
+            this.stackHelper.border.visible = false;
 
             // resize the renderer as it was initialized offscreen
             this.$.renderer.resize();
@@ -418,6 +431,9 @@
 
       resize() {
         this.$.renderer.resize();
+      }
+
+      _cursorChanged(cursor) {
       }
     }
     window.customElements.define(AmiViewer.is, AmiViewer);

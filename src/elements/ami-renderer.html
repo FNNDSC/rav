@@ -47,6 +47,8 @@
       }
     </style>
 
+    <div id="lut"></div>
+
     <ami-renderer-annotations
       id="overlay"
       annotations=[[annotations]]
@@ -92,6 +94,11 @@
           activate: {
             type: Boolean,
             notify: true,
+          },
+          cursor: {
+            type: Object,
+            notify: true,
+            observer: '_cursorChanged',
           },
           stackIndex: {
             type: Number,
@@ -184,6 +191,7 @@
         this._initScene();
         this._initCamera();
         this._initControls();
+        this._initLutColor();
         this._initRenderer();
 
         // attach event listeners
@@ -219,6 +227,16 @@
         this._controls.addEventListener('change', () => {
           this._changed = true;
         });
+      }
+
+      _initLutColor() {
+        this._lutColor = new AMI.default.Helpers.Lut(
+          this.$.lut,
+          'default',
+          'linear',
+          [[0, 0, 0, 0], [1, 1, 1, 1]],
+          [[0, 1], [1, 1]]);
+        this._lutColor.luts = AMI.default.Helpers.Lut.presetLuts();
       }
 
       _initRenderer() {
@@ -306,16 +324,38 @@
         const raycaster = new THREE.Raycaster();
         raycaster.setFromCamera(mouse, this._camera);
 
-        const intersects = raycaster.intersectObject(this._scene, true);
+        const intersects = raycaster.intersectObject(this.stackHelper.slice, true);
         if (intersects.length > 0) {
+          // update cursor position
+          this.set('cursor', intersects[0].point);
+        }
+      }
+
+      _cursorChanged(cursor) {
+        if(this.stackHelper && this.stackHelper.stack) {
+          const stackHelper = this.stackHelper;
+          const stack = stackHelper.stack;
+
+          // ijk coordinates of the cursor
           let ijk =
-            AMI.default.Core.Utils.worldToData(
-              this.stackHelper.stack.lps2IJK, intersects[0].point);
+            AMI.default.Core.Utils.worldToData(stack.lps2IJK, cursor);
+
+          // update overlay
           this.mouseI = ijk.x;
           this.mouseJ = ijk.y;
           this.mouseK = ijk.z;
           this.mouseValue =
             AMI.default.Core.Utils.value(this.stackHelper.stack, ijk);
+
+          // update stack index
+          // for instance to synchronize viewers if cursor was changed from parent
+          const stackOrientation = stackHelper.orientation;
+          const indexOrientation = (stackOrientation + 2) % 3;
+          if(
+            (this.stackIndex !== ijk.getComponent(indexOrientation)) &&
+            (ijk.getComponent(indexOrientation) >= 0)) {
+            this.stackIndex = ijk.getComponent(indexOrientation);
+          }
         }
       }
 
@@ -405,11 +445,20 @@
       }
 
       _colorLutChanged(colorLut) {
-        // if (colorLut === undefined ||
-        //   colorLut === '') {
-        //   return;
-        // }
-        console.log(colorLut);
+        if(
+          !this._lutColor ||
+          colorLut === '' ||
+          !this.stackHelper ||
+          !this.stackHelper.stack) {
+          return;
+        }
+
+        // format LUT name
+        const normalizedLut = colorLut.toLowerCase().replace(/\s/g, '_');
+        this._lutColor.lut = normalizedLut;
+        this.stackHelper.slice.lut = normalizedLut;
+        this.stackHelper.slice.lutTexture = this._lutColor.texture;
+        this._sceneChanged();
       }
 
       _sceneChanged() {
