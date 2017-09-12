@@ -93,13 +93,14 @@
         return {
           series: {
             type: Object,
-            value: {},
+            observer: '_seriesChanged',
           },
         };
       }
 
       static get observers() {
         return [
+            // path seems incorrect...
             '_previewBlobChanged(series.preview.blob)',
           ];
       }
@@ -134,6 +135,14 @@
         const imageURL = urlCreator.createObjectURL(previewBlob);
         this.$.image.onload = this.centerThumbnail.bind(this);
         this.$.image.src = imageURL;
+      }
+
+      _seriesChanged(series) {
+        if (series.details.series.preview.blob === null) {
+          const url = series.details.series.preview.url;
+          this.$.image.onload = this.centerThumbnail.bind(this);
+          this.$.image.src = url;
+        }
       }
     }
     window.customElements.define(SeriesPreview.is, SeriesPreview);

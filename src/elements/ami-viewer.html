@@ -7,6 +7,7 @@
 
 <!-- Iron components  -->
 <link href="../../bower_components/iron-icons/iron-icons.html" rel="import">
+<link href="../../bower_components/iron-icons/av-icons.html" rel="import">
 
 <!-- CHIPS components -->
 <link rel="import" href="../../bower_components/chips-api/chips-api.html">
@@ -116,6 +117,7 @@
             snaps
             min="[[indexMin]]"
             max="[[indexMax]]"></paper-slider>
+            <paper-icon-button icon$="{{_playIcon(play)}}" on-tap="_togglePlay"></paper-icon-button>
             <paper-icon-button icon$="{{_fullscreenIcon(fullscreen)}}" on-tap="_toggleFullscren"></paper-icon-button>
             <paper-icon-button icon="icons:clear" on-tap="_clear"></paper-icon-button>            
         </div>
@@ -173,6 +175,11 @@
             type: Boolean,
             value: false,
             observer: '_fullscreenChanged',
+          },
+          play: {
+            type: Boolean,
+            value: false,
+            observer: '_playChanged',
           },
           annotations: {
             type: Number,
@@ -296,6 +303,30 @@
         );
 
         this.dispatchEvent(exitFullscreen);
+      }
+
+      _playIcon(play) {
+        return play ? 'av:pause' : 'av:play-arrow';
+      }
+
+      _togglePlay() {
+        if (!this.play) {
+          this._startPlay();
+        } else {
+          this._stopPlay();
+        }
+
+        this.play = !this.play;
+      }
+
+      _startPlay() {
+        this.playInterval = setInterval(() => {
+          this.index = (this.index + 1) % this.indexMax;
+        }, 300);
+      }
+
+      _stopPlay() {
+        clearInterval(this.playInterval);
       }
 
       _activateViewer() {
