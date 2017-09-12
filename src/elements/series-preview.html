@@ -1,0 +1,146 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<dom-module id="series-preview">
+  <template>
+
+    <style>
+      :host {
+        display: block;
+      }
+
+      .previewContainer {
+        height: 128px;
+        width: 128px;
+        overflow: hidden;
+        margin: auto;
+      }
+
+      .seriesPreview {
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+            -ms-flex-direction: column;
+                flex-direction: column;
+        margin: 4px;
+        padding: 4px;
+        border: 1px solid rgba(0, 0, 0, 0);
+      }
+
+      .seriesPreview:hover {
+        cursor: pointer;
+        border-color: #ffffff;
+      }
+
+      .seriesPreview[selected] {
+        border-color: var(--accent-color);
+      }
+
+      img {
+        min-width: 128px;
+        min-height: 128px;
+        background-color: #000;
+      }
+
+      .about {
+        /*position: absolute;
+        bottom: 0;
+        left:0;
+        right: 0;*/
+        padding: 2px;
+        -webkit-box-flex: 1;
+            -ms-flex: 1;
+                flex: 1;
+        min-width: 0;
+        font-size: 12px;
+        color: var(--secondary-text-color);
+      }
+
+      .about > div {
+        white-space: nowrap;
+        overflow: hidden;
+        -o-text-overflow: ellipsis;
+           text-overflow: ellipsis;
+      }
+
+    </style>
+
+    <div class="seriesPreview" selected$="[[series.selected]]">
+      <div class="previewContainer">
+        <img id="image" on-mousemove="onMove" on-mouseout="centerThumbnail">
+      </div>
+      <div class="about">
+        <div class="description">[[series.details.series.description]]</div>
+        <div class="date">[[series.details.series.date]]</div>
+        <div class="files">[[series.details.series.files]]</div>
+      </div>
+    </div>
+
+  </template>
+
+  <script>
+    class SeriesPreview extends Polymer.Element {
+      static get is() {
+        return 'series-preview';
+      }
+
+      static get properties() {
+        return {
+          series: {
+            type: Object,
+            observer: '_seriesChanged',
+          },
+        };
+      }
+
+      static get observers() {
+        return [
+            // path seems incorrect...
+            '_previewBlobChanged(series.preview.blob)',
+          ];
+      }
+
+      onMove(e) {
+        const target = e.currentTarget;
+        const normalizedPosition =
+          (e.clientX - target.offsetLeft) / target.clientWidth;
+        this.positionThumbnail(normalizedPosition, target);
+      }
+
+      centerThumbnail(e) {
+        const target = e.currentTarget;
+        this.positionThumbnail(0.5, target);
+      }
+
+      positionThumbnail(normalizedPosition, target) {
+        const THUMBNAIL_HEIGHT = 128;
+        const TOTAL_HEIGHT = target.offsetHeight;
+        const nbFrames = TOTAL_HEIGHT / THUMBNAIL_HEIGHT;
+        const offset = Math.floor(normalizedPosition * nbFrames) * THUMBNAIL_HEIGHT;
+        target.style.transform =
+          `translateY(-${offset}px)`;
+      }
+
+      _previewBlobChanged(previewBlob) {
+        if (previewBlob === undefined) {
+          return;
+        }
+
+        const urlCreator = window.URL || window.webkitURL;
+        const imageURL = urlCreator.createObjectURL(previewBlob);
+        this.$.image.onload = this.centerThumbnail.bind(this);
+        this.$.image.src = imageURL;
+      }
+
+      _seriesChanged(series) {
+        if (series.details.series.preview.blob === null) {
+          const url = series.details.series.preview.url;
+          this.$.image.onload = this.centerThumbnail.bind(this);
+          this.$.image.src = url;
+        }
+      }
+    }
+    window.customElements.define(SeriesPreview.is, SeriesPreview);
+  </script>
+</dom-module>

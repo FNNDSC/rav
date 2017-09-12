@@ -1,0 +1,43 @@
+<link rel="import" href="../../../bower_components/polymer/polymer-element.html">&gt;
+
+<dom-module id="ami-control-viewer">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    
+    <div> Loading overlay </div>
+    <div> Simple Toolbar </div>
+    <div> ami-viewer </div>
+
+  </template>
+
+  <script>
+    class AmiControlViewer extends Polymer.Element {
+      static get is() {
+        return 'ami-control-viewer';
+      }
+
+      // events
+      //   close
+      //   full screen
+
+      // properties
+      //
+      //   sliceIndex (private)
+      //   all relevant data props (for easy binding)
+      //   data (helper scene)
+      //   localizers
+
+      // make this guy droppable at host level
+      // <parent>
+      //    <ami-controller-viewer on-drop on-dropover etc.>
+      //    <ami-controller-viewer on-drop on-dropover etc.>
+      // </parent>
+    }
+
+    window.customElements.define(AmiControlViewer.is, AmiControlViewer);
+  </script>
+</dom-module>

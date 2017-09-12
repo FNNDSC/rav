@@ -1,0 +1,323 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+--><link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymer/lib/mixins/gesture-event-listeners.html">
+
+<link rel="import" href="../bower_components/app-layout/app-drawer-layout/app-drawer-layout.html">
+<link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
+<link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html">
+<link rel="import" href="../bower_components/app-layout/app-scroll-effects/app-scroll-effects.html">
+<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
+<link rel="import" href="../bower_components/app-route/app-location.html">
+<link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+
+
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+
+<link rel="import" href="my-icons.html">
+<link rel="import" href="pacs-pull/gex-pacs-pull.html">
+
+<link rel="import" href="../bower_components/chips-api/chips-api.html">
+<link rel="import" href="../bower_components/chips-api/behaviors/chips-plugin-behavior.html">
+
+<link rel="import" href="gex-datastore.html">
+
+<link rel="lazy-import" href="gex-login.html">
+<link rel="lazy-import" href="gex-home.html">
+<link rel="lazy-import" href="gex-view404.html">
+
+<dom-module id="gex-app">
+  <template>
+    <style>
+      :host {
+        --dark-primary-color:       #111111;
+        --default-primary-color:    #303030;
+        --light-primary-color:      #424242;
+        --text-primary-color:       #FFFFFF;
+        --accent-color:             #2196f3;
+        --primary-background-color: #616161;
+        --primary-text-color:       #FAFAFA; /*212121*/
+        --secondary-text-color:     #757575;
+        --disabled-text-color:      #BDBDBD;
+        --divider-color:            #424242;
+
+        --bch-primary-color: #CCFF00;
+        --bch-light-color: #EFA;
+
+        --ge-primary-color: #2196f3;
+        --ge-light-color: #e3f2fd;
+
+        /* paper-input */
+        --paper-input-container-focus-color: var(--accent-color);
+        --paper-input-container-invalid-color: red;
+        --paper-input-container-color: var(--primary-text-color);  
+        --paper-input-container-input-color: var(--primary-text-color);  
+
+        --paper-progress-active-color: var(--accent-color);
+        --paper-progress-secondary-color: var(--accent-color);
+
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+      }
+
+      app-header {
+        color: #fff;
+        background-color: var(--dark-primary-color);
+        font-weight: lighter;
+        border-bottom: 1px solid var(--divider-color);
+      }
+
+      /* hide header if we enter fullscreen mode */
+      app-header-layout:-webkit-full-screen-ancestor:not(iframe) app-header {
+        z-index: -1 !important;
+      }
+
+      iron-pages {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+    </style>
+
+    <app-location route="{{route}}"></app-location>
+    <app-route route="{{route}}" pattern="[[rootPattern]]:page" data="{{routeData}}" tail="{{subroute}}"></app-route>
+
+    <chips-api id="API"></chips-api>
+
+    <gex-datastore feed="[[feed]]" plugin="[[pluginBch]]" plugin-data="{{data}}" plugin-status="{{dataStatus}}"></gex-datastore>
+
+    <gex-datastore feed="[[feed]]" plugin="[[pluginGe]]" plugin-data="{{dataGE}}" plugin-status="{{dataGEStatus}}"></gex-datastore>
+
+    <!-- PACS pull dialog -->
+    <gex-pacs-pull id="PACSPull" move-link="[[moveLink]]" query-link="[[queryLink]]" on-start-move="_handleStartMove"></gex-pacs-pull>
+
+    <!-- Main content -->
+    <app-header-layout has-scrolling-region="">
+
+      <app-header slot="header" condenses="" reveals="" effects="waterfall">
+        <app-toolbar>
+          <div main-title="">GEXplorer</div>
+          <div hidden$="[[!login]]">
+            <paper-button on-tap="handleLogout">Logout</paper-button>
+          </div>
+        </app-toolbar>
+      </app-header>
+
+      <iron-pages selected="[[page]]" attr-for-selected="name" fallback-selection="view404" role="main">
+        <gex-login name="login" on-login="handleLogin"></gex-login>
+          <!--           data-bch="[[data]]" -->
+        <gex-home name="home" data-status-bch="[[dataStatus]]" data-ge="[[dataGE]]" data-status-ge="[[dataGEStatus]]" previous-instance="[[pluginBch]]" ge-link="[[geLink]]" on-open-dialog="handleOpenDialog" on-start-ge="_handleStartGE"></gex-home>
+        <gex-view404 name="view404"></gex-view404>
+      </iron-pages>
+    </app-header-layout>
+
+  </template>
+
+  <script>
+    class GEXApp extends CHIPSPluginBehavior(
+      Polymer.GestureEventListeners(Polymer.Element)) {
+
+      static get is() {
+        return 'gex-app';
+      }
+
+      static get properties() {
+        return {
+          page: {
+            type: String,
+            reflectToAttribute: true,
+            observer: '_pageChanged',
+          },
+          rootPattern: String,
+          routeData: Object,
+          subroute: String,
+          login: {
+            type: Boolean,
+            observer: '_loginChanged',
+          },
+          feed: {
+            type: Object,
+            value: {},
+          },
+          plugins: {
+            type: Array,
+            value: [],
+            observer: '_pluginsChanged',
+          },
+          moveLink: {
+            type: String,
+            value: '',
+          },
+          queryLink: {
+            type: String,
+            value: '',
+          },
+          geLink: {
+            type: String,
+            value: '',
+          },
+          pluginBch: {
+            type: Object,
+            value: {},
+          },
+          pluginGe: {
+            type: Object,
+            value: {},
+          },
+        };
+      }
+
+      static get observers() {
+        return [
+          '_routePageChanged(routeData.page)',
+        ];
+      }
+
+      constructor() {
+        super();
+
+        // Get root pattern for app-route, for more info about `rootPath` see:
+        // https://www.polymer-project.org/2.0/docs/upgrade#urls-in-templates
+        this.rootPattern = (new URL(this.rootPath)).pathname;
+      }
+
+      ready() {
+        super.ready();
+
+        if (sessionStorage.getItem('username') &&
+            sessionStorage.getItem('token')) {
+          this.login = true;
+        } else {
+          this.login = false;
+        }
+      }
+
+      _routePageChanged(page) {
+        // Polymer 2.0 will call with `undefined` on initialization.
+        // Ignore until we are properly called with a string.
+        if (page === undefined) {
+          return;
+        }
+
+        // If no page was found in the route data, page will be an empty string.
+        // Deault to 'view1' in that case.
+        this.page = page || 'login';
+      }
+
+      _pageChanged(page) {
+        // Load page import on demand. Show 404 page if fails
+        const resolvedPageUrl = this.resolveUrl('gex-' + page + '.html');
+        Polymer.importHref(
+            resolvedPageUrl,
+            null,
+            this._showPage404.bind(this),
+            true);
+      }
+
+      _showPage404() {
+        this.page = 'view404';
+      }
+
+      handleLogin() {
+        this.login = true;
+        // this.page = 'home';
+      }
+
+      handleLogout() {
+        this.login = false;
+        // this.page = 'login';
+      }
+
+      handleOpenDialog() {
+        this.$.PACSPull.open();
+      }
+
+      _loginChanged(login) {
+        if (login === undefined) {
+          return;
+        }
+
+        if (!login) {
+          sessionStorage.removeItem('username');
+          sessionStorage.removeItem('token');
+          this.set('route.path', '/login/');
+        } else {
+          if (this.page === 'login') {
+            this.set('route.path', '/home/');
+          }
+          this.fetchPlugins();
+        }
+      }
+
+      _handleStartMove(event) {
+        const detail = event.detail;
+        this.set('feed', {
+            href: detail.feedLink,
+          }
+        );
+        this.set('pluginBch', detail.pluginInstance);
+      }
+
+      _handleStartGE(event) {
+        const detail = event.detail;
+        this.set('pluginGe', detail.pluginInstance);
+      }
+
+      fetchPlugins() {
+        // through the API
+        const data = {};
+        data.auth = {
+          type: 'token',
+          token: sessionStorage.getItem('token'),
+        };
+        data.params = {};
+        data.params.limit = 9999;
+        data.params.page_size = 9999;
+        this.$.API.request('GET', 'plugins', data)
+          .then(this._handlePluginsResponse.bind(this))
+          .catch(this._handlePluginsError.bind(this));
+      }
+
+      _handlePluginsResponse(response) {
+        this.plugins = response.data;
+      }
+
+      _handlePluginsError(error) {
+        window.console.log(error);
+      }
+
+      _pluginsChanged(plugins) {
+        // Polymer 2.0 will call with `undefined` on initialization.
+        // Ignore until we are properly called with a string.
+        if (plugins === undefined) {
+          return;
+        }
+        for (let i = 0; i < this.plugins.length; i++) {
+          if (this.plugins[i].data.name === 'pacsquery') {
+            this.queryLink = plugins[i].links.instances;
+          }
+          if (this.plugins[i].data.name === 'pacsretrieve') {
+            this.moveLink = plugins[i].links.instances;
+            this.geLink = plugins[i].links.instances;
+          }
+        }
+      }
+    }
+
+    window.customElements.define(GEXApp.is, GEXApp);
+  </script>
+</dom-module>

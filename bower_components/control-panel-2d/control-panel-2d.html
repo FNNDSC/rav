@@ -1,0 +1,388 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../polymer/lib/mixins/gesture-event-listeners.html">
+
+<!-- Iron elements -->
+<link rel="import" href="../iron-icon/iron-icon.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
+<link rel="import" href="../iron-icons/device-icons.html">
+<link rel="import" href="../iron-icons/editor-icons.html">
+<link rel="import" href="../iron-icons/image-icons.html">
+<link rel="import" href="../iron-icons/communication-icons.html">
+<link rel="import" href="../iron-selector/iron-selector.html">
+
+
+<!-- Paper elements -->
+<link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../paper-item/paper-item.html">
+<link rel="import" href="../paper-listbox/paper-listbox.html">
+<link rel="import" href="../paper-slider/paper-slider.html">
+<link rel="import" href="../paper-toggle-button/paper-toggle-button.html">
+
+<!-- icons sets -->
+<link rel="import" href="./layout-icons.html">
+
+<dom-module id="control-panel-2d">
+  <template>
+    <style>
+      :host {
+        display: block;
+        -webkit-box-flex: 1;
+            -ms-flex: 1;
+                flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+
+      .container {
+        -webkit-box-flex: 1;
+            -ms-flex: 1;
+                flex: 1;
+        -webkit-box-orient: horizontal;
+        -webkit-box-direction: normal;
+            -ms-flex-direction: row;
+                flex-direction: row;
+        display:-webkit-box;
+        display:-ms-flexbox;
+        display:flex;
+        -webkit-box-pack: end;
+            -ms-flex-pack: end;
+                justify-content: flex-end;
+      }
+    
+      .expand {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        padding: 4px;
+        border-right: 1px solid var(--divider-color);
+    /* flex: 1; */
+        /* display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+            -ms-flex-direction: column;
+                flex-direction: column;
+        -webkit-box-align: center;
+            -ms-flex-align: center;
+                align-items: center;
+        -webkit-box-pack: justify;
+            -ms-flex-pack: justify; */
+        /* padding: 4px;
+        -webkit-box-flex: 1;
+            -ms-flex: 1;
+                flex: 1; */
+      }
+
+      .controls {
+        flex: 3;
+      }
+
+      .label {
+        /* -webkit-box-flex: 0;
+            -ms-flex: 0;
+                flex: 0; */
+        padding: 2px;
+        /*min-width: 0;*/
+        font-size: 12px;
+        text-align: end;
+        color: var(--secondary-text-color);
+      }
+
+      .values {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        /* flex: 1; */
+      }
+
+      .vertical {
+        flex-direction: column;
+      }
+
+      .stretch {
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        overflow: hidden;
+        -webkit-box-align: center;
+            -ms-flex-align: center;
+                align-items: center;
+      }
+
+      .topbar {
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+      }
+
+      .spacer {
+        -webkit-box-flex: 1;
+            -ms-flex: 1;
+                flex: 1;
+      }
+
+      #show {
+        overflow: hidden;
+        -webkit-transform: rotate(0deg);
+            -ms-transform: rotate(0deg);
+                transform: rotate(0deg);
+        -webkit-transition: transform 0.6s;
+        -webkit-transition: -webkit-transform 0.6s;
+        transition: -webkit-transform 0.6s;
+        -o-transition: transform 0.6s;
+        transition: transform 0.6s;
+        transition: transform 0.6s, -webkit-transform 0.6s;
+      }
+
+      #show.opened {
+        -webkit-transform: rotate(180deg);
+            -ms-transform: rotate(180deg);
+                transform: rotate(180deg);
+      }
+
+      .collapsedLabel {
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-flex: 1;
+            -ms-flex: 1;
+                flex: 1;
+      }
+
+      #collapser {
+        padding: 2px;
+        overflow: hidden;
+      }
+
+      paper-icon-button.bigger {
+        /* width: 48px;
+        height: 48px; */
+      }
+
+      [hidden] {
+        display: none;
+      }
+
+      paper-button, paper-dropdown-menu, paper-slider {
+        -webkit-box-flex: 1;
+            -ms-flex: 1;
+                flex: 1;
+        width: auto;
+      }
+
+      paper-slider {
+        --paper-slider-knob-color: var(--accent-color);
+        --paper-slider-active-color: var(--accent-color);
+        --paper-slider-input: {width: 64px}
+      }
+
+      paper-toggle-button {
+        --paper-toggle-button-checked-bar-color: var(--accent-color);
+        --paper-toggle-button-checked-button-color: var(--accent-color);
+        --paper-toggle-button-checked-ink-color: var(--accent-color);
+      }
+
+      .close {
+        flex: 0;
+        padding: 0;
+        border: none;
+      }
+
+      .iron-selected {
+        color: var(--accent-color);
+      }
+
+      iron-selector {
+        text-align: center;
+      }
+
+      iron-selector > div {
+        display: inline-block;
+      }
+
+      .controls paper-button {
+        font-size: 14px;
+      }
+      .controls paper-button iron-icon {
+        margin-right: 4px;
+      }
+
+    </style>
+
+    <div class="container">
+
+      <!-- https://www.draw.io/?state=%7B%22ids%22:%5B%220B2-PspfnvPNgS1NHWXFqMjlReWM%22%5D,%22action%22:%22open%22,%22userId%22:%22111840837073019302030%22%7D#G0B2-PspfnvPNgS1NHWXFqMjlReWM -->
+
+      <div hidden$="[[collapse]]" class="expand">
+          <div class="values">
+            <iron-selector selected="{{layout}}">
+              <paper-icon-button icon="layout-icons:layout-0"></paper-icon-button>
+              <paper-icon-button icon="layout-icons:layout-1"></paper-icon-button>
+              <paper-icon-button icon="layout-icons:layout-2"></paper-icon-button>
+              <paper-icon-button icon="layout-icons:layout-3"></paper-icon-button>
+            </iron-selector>
+          </div>
+          <div class="spacer"></div>
+          <div class="label">Layout</div>
+      </div>
+
+      <div hidden$="[[collapse]]" class="expand">
+          <div class="values">
+            <iron-selector selected="{{annotations}}">
+              <paper-icon-button class="bigger" icon="editor:border-clear"></paper-icon-button>
+              <paper-icon-button class="bigger" icon="editor:border-inner"></paper-icon-button>
+              <paper-icon-button class="bigger" icon="editor:border-outer"></paper-icon-button>
+            </iron-selector>
+          </div>
+          <div class="spacer"></div>
+          <div class="label">Annotations</div>
+      </div>
+
+      <!-- <div hidden$="[[collapse]]" class="expand">
+          <div class="values">
+              <paper-button>None</paper-button>
+              <paper-button>Basix</paper-button>
+              <paper-button>Full</paper-button>
+          </div>
+          <div class="label">Annotations</div>
+      </div> -->
+
+      <div hidden$="[[collapse]]" class="expand controls">
+          <div class="values">
+            <iron-selector attr-for-selected="name" selected="{{controls}}">
+              <paper-button name="default"><iron-icon icon="communication:call-made"></iron-icon>default</paper-button>
+              <paper-button name="wl"><iron-icon icon="image:brightness-6"></iron-icon>wl</paper-button>
+              <paper-button name="pan"><iron-icon icon="icons:pan-tool"></iron-icon>pan</paper-button>
+              <paper-button name="scroll"><iron-icon icon="image:dehaze"></iron-icon>scroll</paper-button>
+              <paper-button name="zoom"><iron-icon icon="icons:search"></iron-icon>zoom</paper-button>
+              <paper-button name="nav"><iron-icon icon="device:location-searching"></iron-icon>navigation</paper-button>
+            </iron-selector>
+            <!-- <paper-button>WIDGET</paper-button> -->
+          </div>
+          <div class="spacer"></div>
+          <div class="label">Controls</div>
+      </div>
+
+      <div hidden$="[[collapse]]" class="expand">
+          <div class="values vertical">
+            <paper-dropdown-menu label="Window Level">
+              <paper-listbox slot="dropdown-content" selected="0">
+                <paper-item>Default</paper-item>
+                <paper-item>Manual</paper-item>
+                <paper-item>Brain</paper-item>
+                <paper-item>Heart</paper-item>
+              </paper-listbox>
+            </paper-dropdown-menu>
+            <paper-dropdown-menu label="Color LUT" selected-item-label="{{colorLut}}">
+              <paper-listbox slot="dropdown-content" selected="0">
+                <paper-item label="Default">Default</paper-item>
+                <paper-item label="Spectrum">Spectrum</paper-item>
+                <paper-item label="Hot and Cold">Hot and Cold</paper-item>
+                <paper-item label="Gold">Gold</paper-item>
+                <paper-item label="Random">Random</paper-item>
+                <paper-item label="Walking Dead"> Walking Dead</paper-item>
+              </paper-listbox>
+            </paper-dropdown-menu>
+          </div>
+          <div class="spacer"></div>
+          <div class="label">Appearance</div>
+      </div>
+
+      <div hidden$="[[collapse]]" class="expand">
+          <div class="values vertical">
+            <paper-dropdown-menu label="Orientation" selected-item-label="{{orientation}}">
+              <paper-listbox slot="dropdown-content" selected="0">
+                <paper-item label="Default">Default</paper-item>
+                <paper-item label="Axial">Axial</paper-item>
+                <paper-item label="Coronal">Coronal</paper-item>
+                <paper-item label="Sagittal">Sagittal</paper-item>
+              </paper-listbox>
+            </paper-dropdown-menu>
+          </div>
+          <div class="spacer"></div>
+          <div class="label">Orientation</div>
+      </div>
+
+      <div class="close expand">
+        <paper-icon-button id="show" icon$="{{_isOpenClass(collapse)}}" on-tap="_collapse">
+        </paper-icon-button>
+        <div class="spacer"></div>
+      </div>
+    </div>
+
+  </template>
+
+  <script>
+    /**
+     * `control-panel-2d-2d`
+     * Control panel for 2D view
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class ControlPanel2D extends Polymer.GestureEventListeners(Polymer.Element) {
+      static get is() {
+        return 'control-panel-2d';
+      }
+      static get properties() {
+        return {
+          collapse: {
+            type: Boolean,
+            value: true,
+            notify: true,
+          },
+          orientation: {
+            type: String,
+            value: 'Default',
+            notify: true,
+          },
+          windowLevel: {
+            type: String,
+            value: 'default',
+            notify: true,
+          },
+          colorLut: {
+            type: String,
+            value: 'default',
+            notify: true,
+          },
+          layout: {
+            type: Number,
+            value: 0,
+            notify: true,
+          },
+          annotations: {
+            type: Number,
+            value: 2,
+            notify: true,
+          },
+          controls: {
+            type: String,
+            value: 'default',
+            notify: true,
+          },
+        };
+      }
+
+      _collapse() {
+        this.set('collapse', !this.collapse);
+      }
+
+      /**
+       * Set classname for opened button
+       *
+       * @param {Boolean} opened
+       *
+       * @return {*}
+       */
+      _isOpenClass(collapsed) {
+        return collapsed ? 'icons:expand-more' : 'icons:close';
+      }
+    }
+    window.customElements.define(ControlPanel2D.is, ControlPanel2D);
+  </script>
+</dom-module>

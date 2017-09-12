@@ -1,0 +1,1082 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymer/lib/elements/dom-if.html">
+<link rel="import" href="../bower_components/polymer/lib/elements/dom-repeat.html">
+<link rel="import" href="../bower_components/polymer/lib/mixins/gesture-event-listeners.html">
+
+<!-- App components  -->
+<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
+
+<!-- Paper components  -->
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/paper-progress/paper-progress.html">
+<link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
+<link rel="import" href="../bower_components/paper-tabs/paper-tab.html">
+
+<!--Chips components  -->
+<link rel="import" href="../bower_components/chips-api/chips-api.html">
+<link rel="import" href="../bower_components/chips-api/behaviors/chips-plugin-behavior.html">
+<link rel="import" href="../bower_components/control-panel-2d/control-panel-2d.html">
+
+<!-- Local components  -->
+<link rel="import" href="elements/ami-viewer-2d.html">
+<link rel="import" href="elements/ami-viewer.html">
+<link rel="import" href="elements/gex-layout-manager.html">
+<link rel="import" href="elements/series-preview.html">
+
+<link rel="import" href="import-ami.html">
+
+<link rel="import" href="shared-styles.html">
+<link rel="import" href="layout-icons.html">
+<link rel="import" href="my-icons.html">
+
+<dom-module id="gex-home">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-flex: 1;
+            -ms-flex: 1;
+                flex: 1;
+        background-color: var(--dark-primary-color);
+        color: var(--text-primary-color);
+        font-weight: lighter;
+      }
+
+      .content {
+        -webkit-box-flex: 1;
+            -ms-flex: 1;
+                flex: 1;
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+            -ms-flex-direction: column;
+                flex-direction: column;
+        background-color: var(--dark-primary-color);
+        overflow: hidden;
+        position: relative;
+      }
+
+      .overlay {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: var(--dark-primary-color);
+        z-index: 2;
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+            -ms-flex-direction: column;
+                flex-direction: column;
+        -webkit-box-pack: center;
+            -ms-flex-pack: center;
+                justify-content: center;
+        -webkit-box-align: center;
+            -ms-flex-align: center;
+                align-items: center;
+        font-size: 24px;
+      }
+
+      .panel {
+        width: 156px;
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+            -ms-flex-direction: column;
+                flex-direction: column;
+      }
+
+      .viewersC {
+        -webkit-box-flex: 1;
+            -ms-flex: 1;
+                flex: 1;
+        display:-webkit-box;
+        display:-ms-flexbox;
+        display:flex;
+        -webkit-box-orient: horizontal;
+        -webkit-box-direction: normal;
+            -ms-flex-direction: row;
+                flex-direction: row;
+      }
+
+      .viewers {
+        -webkit-box-flex: 1;
+            -ms-flex: 1;
+                flex: 1;
+        height: 0;
+        width: 100%;
+      }
+
+      .viewerui {
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        height: 100%;
+        position: relative;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+            -ms-flex-direction: column;
+                flex-direction: column;
+        width: 0;
+        -webkit-box-flex: 1;
+            -ms-flex: 1;
+                flex: 1;
+        -webkit-box-sizing: border-box;
+                box-sizing: border-box;
+        border: 1px solid #212121;
+        border-bottom: 4px solid #212121;
+      }
+
+      .viewerui.active {
+        border-bottom-color: var(--accent-color);
+      }
+
+      .series{
+        -webkit-box-flex: 1;
+            -ms-flex: 1;
+                flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+
+      .label {
+        -webkit-box-flex: 0;
+            -ms-flex: 0;
+                flex: 0;
+        padding: 2px;
+        /*min-width: 0;*/
+        font-size: 12px;
+        color: var(--secondary-text-color);
+      }
+
+      .panel.bch {
+        border-right: 1px solid var(--divider-color);
+      }
+
+      .ge {
+        overflow: hidden;
+      }
+
+      .loader {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: var(--dark-primary-color);
+        z-index: 2;
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-align: center;
+            -ms-flex-align: center;
+                align-items: center;
+        -webkit-box-pack: center;
+            -ms-flex-pack: center;
+                justify-content: center;
+        color: #ffffff;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+            -ms-flex-direction: column;
+                flex-direction: column;
+      }
+
+      .viewHead {
+        width: 100%;
+        background-color: var(--dark-primary-color);
+      }
+
+      .illustration {
+        width: 128px;
+        height: 128px;
+        margin: auto;
+        margin-bottom: 24px;
+      }
+
+      .search-image {
+        background-image: url("/images/search.svg");
+        background-position: center;
+        background-size: contain;
+        background-repeat: no-repeat;
+      }
+
+      .left-image {
+        background-image: url("/images/people.svg");
+        background-position: center;
+        background-size: contain;
+        background-repeat: no-repeat;
+      }
+
+      .overlay paper-button {
+        display: block;
+      }
+
+      .retrieving {
+        padding: 10px;
+      }
+
+      #fullViewer:-webkit-full-screen {
+        width: 100%;
+        height: 100%;
+      }
+
+      [hidden] {
+        display: none;
+      }
+    </style>
+
+    <chips-api id="API"></chips-api>
+
+    <template is="dom-if" if="[[_isReady(dataStatusBch)]]">
+      <div hidden$="[[!visibleBCH]]" class="panel bch">
+        <app-toolbar>
+          <div main-title="">PACS</div>
+          <paper-icon-button icon="my-icons:search" on-tap="handleBCH"></paper-icon-button>
+          <paper-icon-button icon="my-icons:close" on-tap="hideBCH"></paper-icon-button>
+        </app-toolbar>
+        <div class="series">
+          <!-- Fetching ready -->
+          <template is="dom-if" if="[[_isReady(dataStatusBch)]]">
+            <template is="dom-repeat" items="[[dataBch]]">
+              <series-preview draggable="true" on-dragstart="_onDragStart" series="[[item]]" on-tap="_handleSeriesSelectedBch"><series-preview>
+            </series-preview></series-preview></template>
+          </template>
+
+        </div>
+        <div class="ge" hidden$="[[!_isSelected(dataSelectedBch)]]">
+          <app-toolbar>
+            <div main-title="">Reference</div>
+          </app-toolbar>
+          <div class="series">
+            <template is="dom-repeat" items="[[dataGe]]">
+              <series-preview draggable="true" on-dragstart="_onDragStart" series="[[item]]" on-tap="_handleSeriesSelectedGe"><series-preview>
+            </series-preview></series-preview></template>
+          </div>
+        </div>
+        <div class="label">
+          Copyright (c) 2017 FNNDSC, BCH. All rights reserved.
+        </div>
+      </div>
+      <div hidden$="[[visibleBCH]]" class="bch">
+        <paper-icon-button icon="my-icons:chevron-right" on-tap="showBCH"></paper-icon-button>
+      </div>
+
+    </template>
+
+    <div id="fullViewer" class="content">
+      <div class="overlay" hidden$="[[_isReady(dataStatusBch)]]">
+        <!-- Empty-->
+        <template is="dom-if" if="[[_isEmpty(dataStatusBch)]]">
+          <paper-button on-tap="handleBCH">
+            <div class="search-image illustration">
+            </div>
+            Find data on the PACS
+          </paper-button>
+        </template>
+
+        <!-- Running plugin -->
+        <template is="dom-if" if="[[_isRunning(dataStatusBch)]]">
+          <paper-progress indeterminate=""></paper-progress>
+          <div class="retrieving">Retrieving selection</div>
+          <paper-progress indeterminate=""></paper-progress>
+        </template>
+      </div>
+      <div class="overlay" hidden$="[[!_isReadyAndNotSelected(dataStatusBch, dataSelectedBch)]]">
+        <div>
+          <div class="left-image illustration">
+          </div>
+          <div>Select DICOM on the left panel</div>
+        </div>
+      </div>
+      <div class="viewHead">
+        <!-- <div>
+          Make viewew fs
+          <paper-icon-button icon="icons:fullscreen" on-tap="changeFullscreenViewer"></paper-icon-button>
+        </div> -->
+        <control-panel-2d hidden$="[[_hideControls(0, active)]]" annotations="{{annotations0}}" collapse="{{collapse}}" color-lut="{{colorLut0}}" layout="{{layout}}" orientation="{{orientation0}}" controls="{{controls}}"></control-panel-2d>
+        <control-panel-2d hidden$="[[_hideControls(1, active)]]" annotations="{{annotations1}}" collapse="{{collapse}}" color-lut="{{colorLut1}}" layout="{{layout}}" orientation="{{orientation1}}" controls="{{controls}}"></control-panel-2d>
+        <control-panel-2d hidden$="[[_hideControls(2, active)]]" annotations="{{annotations2}}" collapse="{{collapse}}" color-lut="{{colorLut2}}" layout="{{layout}}" orientation="{{orientation2}}" controls="{{controls}}"></control-panel-2d>
+        <control-panel-2d hidden$="[[_hideControls(3, active)]]" annotations="{{annotations3}}" collapse="{{collapse}}" color-lut="{{colorLut3}}" layout="{{layout}}" orientation="{{orientation3}}" controls="{{controls}}"></control-panel-2d>
+
+      </div>
+
+      <div class="viewersC">
+        <gex-layout-manager active="[[active]]" layout="[[layout]]" fullscreen="[[fullscreen]]" on-iron-resize="_layoutSizeChanged">
+            <ami-viewer id="viewer0" data-uid="0" slot="s0" annotations="{{annotations0}}" color-lut="{{colorLut0}}" cursor="{{cursor}}" orientation="{{orientation0}}" on-enter-fullscreen="_onEnterFullscreen" on-exit-fullscreen="_onExitFullscreen" on-activate="_onActivateRenderer" on-deactivate="_onDeactivateRenderer" on-drop="_onDrop" on-dragenter="_onDragEnter" on-dragleave="_onDragLeave" on-dragover="_onDragOver"></ami-viewer>
+            <ami-viewer id="viewer1" data-uid="1" slot="s1" annotations="{{annotations1}}" color-lut="{{colorLut1}}" cursor="{{cursor}}" orientation="{{orientation1}}" on-enter-fullscreen="_onEnterFullscreen" on-exit-fullscreen="_onExitFullscreen" on-activate="_onActivateRenderer" on-deactivate="_onDeactivateRenderer" on-drop="_onDrop" on-dragenter="_onDragEnter" on-dragleave="_onDragLeave" on-dragover="_onDragOver"></ami-viewer>
+            <ami-viewer id="viewer2" data-uid="2" slot="s2" annotations="{{annotations2}}" color-lut="{{colorLut2}}" cursor="{{cursor}}" orientation="{{orientation2}}" on-enter-fullscreen="_onEnterFullscreen" on-exit-fullscreen="_onExitFullscreen" on-activate="_onActivateRenderer" on-deactivate="_onDeactivateRenderer" on-drop="_onDrop" on-dragenter="_onDragEnter" on-dragleave="_onDragLeave" on-dragover="_onDragOver"></ami-viewer>
+            <ami-viewer id="viewer3" data-uid="3" slot="s3" drag="" annotations="{{annotations3}}" color-lut="{{colorLut3}}" cursor="{{cursor}}" orientation="{{orientation3}}" index-max="10" on-enter-fullscreen="_onEnterFullscreen" on-exit-fullscreen="_onExitFullscreen" on-activate="_onActivateRenderer" on-deactivate="_onDeactivateRenderer" on-drop="_onDrop" on-dragenter="_onDragEnter" on-dragleave="_onDragLeave" on-dragover="_onDragOver"></ami-viewer>
+        </gex-layout-manager>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    class GEXHome extends CHIPSPluginBehavior(
+      Polymer.GestureEventListeners(Polymer.Element)) {
+      static get is() {
+        return 'gex-home';
+      }
+
+      static get properties() {
+        return {
+          collapse: {
+            type: Boolean,
+            value: true,
+            observer: '_collapseChanged',
+          },
+          dataBch: {
+            type: Array,
+            value: [
+              {
+                details: {
+                  series: {
+                    description: 'Sag FLAIR CUBE',
+                    date: '2011-05-20',
+                    files: '159 images',
+                    preview: {
+                      blob: null,
+                      url: '../images/demo/5946503419920384_.jpg',
+                    },
+                  },
+                },
+              },
+              {
+                details: {
+                  series: {
+                    description: 'Borjan SAG T2',
+                    date: '2013-05-27',
+                    files: '176 images',
+                    preview: {
+                      blob: null,
+                      url: '../images/demo/sag.jpg',
+                    },
+                  },
+                },
+              },
+              {
+                details: {
+                  series: {
+                    description: 'SAG 3D IR',
+                    date: '2012-12-03',
+                    files: '90 images',
+                    preview: {
+                      blob: null,
+                      url: '../images/demo/46.jpg',
+                    },
+                  },
+                },
+              },
+              ],
+            observer: '_dataBchChanged',
+          },
+          dataStatusBch: {
+            type: String,
+            value: '',
+            observer: '_dataStatusBchChanged',
+          },
+          activeBch: {
+            type: Boolean,
+            value: true,
+            observer: '_activeBchChanged',
+          },
+          dataGe: {
+            type: Array,
+            value: [],
+            observer: '_dataGeChanged',
+          },
+          dataStatusGe: {
+            type: String,
+            value: '',
+          },
+          activeGe: {
+            type: Boolean,
+            value: false,
+            observer: '_activeGeChanged',
+          },
+          running: {
+            type: Boolean,
+            value: false,
+          },
+          visibleGE: {
+            type: Boolean,
+            value: true,
+            observer: '_visibleGeChanged',
+          },
+          visibleBCH: {
+            type: Boolean,
+            value: true,
+            observer: '_visibleBcgChanged',
+          },
+          stackHelperBch: {
+            type: Object,
+            value: {},
+            observer: '_stackHelperBchChanged',
+          },
+          stackSceneBch: {
+            type: Object,
+            value: {},
+          },
+          stackHelperGe: {
+            type: Object,
+            value: {},
+            observer: '_stackHelperGeChanged',
+          },
+          stackSceneGe: {
+            type: Object,
+            value: {},
+          },
+          geLink: {
+            type: String,
+            value: '',
+          },
+          previousInstance: {
+            type: Object,
+            value: {},
+          },
+          stackIndexBch: {
+            type: Number,
+            value: 0,
+            observer: '_stackIndexBchChanged',
+          },
+          stackMinIndexBch: {
+            type: Number,
+            value: 0,
+          },
+          stackMaxIndexBch: {
+            type: Number,
+            value: 0,
+          },
+          stackIntensityMinBch: {
+            type: Number,
+            value: 0,
+          },
+          stackIntensityMaxBch: {
+            type: Number,
+            value: 0,
+          },
+          stackIntensityRangeBch: {
+            type: Number,
+            value: 0,
+          },
+          stackWindowWidthBch: {
+            type: Number,
+            value: 0,
+            observer: '_stackWindowWidthBchChanged',
+          },
+          stackWindowCenterBch: {
+            type: Number,
+            value: 0,
+            observer: '_stackWindowCenterBchChanged',
+          },
+          stackIndexGe: {
+            type: Number,
+            value: 0,
+            observer: '_stackIndexGeChanged',
+          },
+          stackMinIndexGe: {
+            type: Number,
+            value: 0,
+          },
+          stackMaxIndexGe: {
+            type: Number,
+            value: 0,
+          },
+          stackIntensityMinGe: {
+            type: Number,
+            value: 0,
+          },
+          stackIntensityMaxGe: {
+            type: Number,
+            value: 0,
+          },
+          stackIntensityRangeGe: {
+            type: Number,
+            value: 0,
+          },
+          stackWindowWidthGe: {
+            type: Number,
+            value: 0,
+            observer: '_stackWindowWidthGeChanged',
+          },
+          stackWindowCenterGe: {
+            type: Number,
+            value: 0,
+            observer: '_stackWindowCenterGeChanged',
+          },
+          layout: {
+            type: Number,
+            value: 0,
+            observer: '_layoutSizeChanged',
+          },
+          active: {
+            type: Number,
+            value: -1,
+          },
+          fullscreen: {
+            type: Number,
+            value: -1,
+          },
+          fullscreenViewer: {
+            type: Boolean,
+            value: false,
+          },
+          datasets: {
+            type: Array,
+            value: [],
+            observer: '_datasetsChanged',
+          },
+        };
+      }
+
+      constructor() {
+        super();
+        this._resizeListenerBound = this._resizeListener.bind(this);
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+        window.addEventListener('resize', this._resizeListenerBound);
+      }
+
+      disconnectedCallback() {
+        super.disconnectedCallback();
+        window.removeEventListener('resize', this._resizeListenerBound);
+      }
+
+      handleBCH(event) {
+        event.stopPropagation();
+        event.preventDefault();
+        const openDialog = new CustomEvent(
+          'open-dialog',
+          {
+            detail: {
+              open: true,
+            },
+            bubbles: true,
+            composed: true,
+          }
+        );
+        this.dispatchEvent(openDialog);
+      }
+
+      handleGE(event) {
+        const data = {};
+        data.auth = {
+          type: 'token',
+          token: sessionStorage.getItem('token'),
+        };
+        //
+        const settings = {
+          aet: 'CHIPS',
+          aec: 'ORTHANC',
+          server_ip: '192.168.1.40',
+          server_port: '4242',
+        };
+
+        data.body = {};
+        data.body.template = {};
+        data.body.template.data = [
+          {name: 'aet', value: ''},
+          {name: 'aec', value: ''},
+          {name: 'server_ip', value: ''},
+          {name: 'server_port', value: ''},
+          {name: 'series_file', value: ''},
+          {name: 'series_uids', value: ''},
+          {name: 'previous_id', value: ''},
+        ];
+
+        data.body.data = settings;
+        data.body.data['previous_id'] = this.previousInstance.data.id;
+        data.body.data['series_file'] = '/ge-demo/normative-moco.txt';
+        data.body.data['series_uids'] = '0';
+
+        this.$.API.handleAs = 'json';
+        const start = this.__startPlugin(this.$.API, this.geLink, data);
+        start.then(this._handleRetrieveResponse.bind(this))
+          .catch(this._handleRetrieveError.bind(this));
+      }
+
+      _handleRetrieveResponse(response) {
+        const fetchData = new CustomEvent(
+          'start-ge',
+          {
+            detail: {
+              feedLink: this.feedLink,
+              pluginInstance: response.data[0],
+          },
+        });
+
+        // booo :(
+        // backend hangs if we do not wait a bit....
+        window.setTimeout(
+          () => {
+            this.dispatchEvent(fetchData);
+          }, 1000);
+      }
+
+      _handleRetrieveError(error) {
+        console.log(error);
+      }
+
+      hideBCH() {
+        this.visibleBCH = false;
+      }
+
+      hideGE() {
+        this.visibleGE = false;
+      }
+
+      showBCH() {
+        this.visibleBCH = true;
+      }
+
+      showGE() {
+        this.visibleGE = true;
+      }
+
+      _dataStatusBchChanged(status) {
+        if (status !== 'ready') {
+          this.set('dataBch', []);
+          this.set('dataSelectedBch', {});
+          this.set('dataGe', []);
+          this.set('dataSelectedGe', {});
+
+          // stop rendering loops
+          this.$.renderBch.stopRenderingLoop();
+          this.$.renderGe.stopRenderingLoop();
+        }
+      }
+
+      _visibleGeChanged(visible) {
+        return;
+        // this.$.renderBch.resize();
+        // this.$.renderGe.resize();
+      }
+
+      _visibleBcgChanged(visible) {
+        return;
+        // this.$.renderBch.resize();
+        // this.$.renderGe.resize();
+      }
+
+      _isEmpty(status) {
+        return status === 'empty';
+      }
+
+      _isRunning(status) {
+        return status === 'running';
+      }
+
+      _isFetching(status) {
+        return status === 'fetching';
+      }
+
+      _isReady(status) {
+        if(sessionStorage.getItem('username') === 'demo') {
+          this.dataStatusBch = 'ready';
+          return true;
+        }
+
+        return status === 'ready';
+      }
+
+      _isSelected(data) {
+        return !(data === undefined || !data.data);
+      }
+
+      _isReadyAndNotSelected(status, data) {
+        if(sessionStorage.getItem('username') === 'demo') {
+          return false;
+        }
+
+        const ready = this._isReady(status);
+        const selected = this._isSelected(data);
+        return ready && !selected;
+      }
+
+      _activeBchChanged(active) {
+        if (active) {
+          this.activeGe = false;
+        }
+      }
+
+      _activeGeChanged(active) {
+        if (active) {
+          this.activeBch = false;
+        }
+      }
+
+      _isLoading(target, dataSelectedBch, dataSelectedGe, urlsTotal) {
+        // number of files reset to 0 when urls are loaded
+        if (target === 'bch' && dataSelectedBch && dataSelectedBch.data &&
+          (dataSelectedGe === undefined || dataSelectedGe.data ==undefined) &&
+          urlsTotal > 0) {
+          return true;
+        } else if (
+          target === 'ge' &&
+          dataSelectedGe &&
+          dataSelectedGe.data &&
+          urlsTotal > 0) {
+          return true;
+        }
+
+        return false;
+      }
+
+      deselectBch() {
+        const selection = this.dataSelectedBch;
+        if(selection === undefined || !selection.path) {
+          return;
+        }
+
+        const path = this.dataSelectedBch.path;
+        this.set(['dataBch', ...path, 'selected'], false);
+        this.set('dataSelectedBch', {});
+
+        // clean up all stack helpers
+        this._resetStackHelper('Bch');
+        this._resetStackHelper('Ge');
+
+        // clean up Ge data
+        this._resetData('Ge');
+      }
+
+      deselectGe() {
+        const selection = this.dataSelectedGe;
+        if(selection === undefined || !selection.path) {
+          return;
+        }
+
+        const path = this.dataSelectedGe.path;
+        this.set(['dataGe', ...path, 'selected'], false);
+        this.set('dataSelectedGe', {});
+
+        //
+        this._resetStackHelper('Ge');
+      }
+
+      _dataBchChanged(dataBch) {
+        if (dataBch === undefined) {
+          return;
+        }
+
+        this.deselectBch();
+      }
+
+      _dataGeChanged(dataGe) {
+        if(dataGe === undefined) {
+          return;
+        }
+
+        this.deselectGe();
+      }
+
+      _collapseChanged() {
+        this._resizeListener();
+      }
+
+      _resetStackHelper(target) {
+        // stack
+        if (this[`stackHelper${target}`] !== null &&
+          this[`stackHelper${target}`]._stack) {
+          // reset renderers
+          this[`stackScene${target}`].remove(this[`stackHelper${target}`]);
+          this.set(`stackScene${target}`, null);
+          this[`stackHelper${target}`].dispose();
+          this.set(`stackHelper${target}`, null);
+        }
+      }
+
+      _resetData(target) {
+        // data
+        this.set(`data${target}`, []);
+        this.set(`dataSelected${target}`, {});
+        this.set(`dataStatus${target}`, 'empty');
+      }
+
+      classIt(active) {
+        const baseClass = 'viewerui';
+        const activeClass = active ? 'active' : '';
+
+        return `${baseClass} ${activeClass}`;
+      }
+
+      /**
+       * Stack helper Bch changed
+       *
+       * @param {*} stackHelper
+       */
+      _stackHelperBchChanged(stackHelper) {
+        this._stackHelperChanged(stackHelper, 'Bch');
+      }
+
+      _stackHelperGeChanged(stackHelper) {
+        this._stackHelperChanged(stackHelper, 'Ge');
+      }
+
+      _stackHelperChanged(stackHelper, target) {
+        if (stackHelper === undefined ||
+            stackHelper === null ||
+            stackHelper.stack === undefined) {
+          return;
+        }
+
+        // orientation
+        this.set(`orientation${target}`, 'default');
+        this[`stackHelper${target}`].orientation = 0;
+
+        // more
+        this.set(`stackIntensityAuto${target}`, false);
+        this._stackIntensityAutoChanged(target, false);
+
+        this.set(`stackInterpolation${target}`, true);
+        this._stackInterpolationChanged(target, true);
+
+        // intensity
+        // must be last to be set because some flags such as
+        // "intensity" can modify it
+        const stack = this[`stackHelper${target}`].stack;
+        this.set(`stackIntensityMin${target}`, stack.minMax[0]);
+        this.set(`stackIntensityMax${target}`, stack.minMax[1]);
+        const defaultWW = stack.minMax[1] - stack.minMax[0];
+        this.set(`stackIntensityRange${target}`, defaultWW);
+        this.set(`stackWindowWidth${target}`, defaultWW);
+        this.set(`stackWindowCenter${target}`, stack.minMax[0] + defaultWW / 2);
+      }
+
+      /**
+       * Stack index Bch changed
+       *
+       * @param {*} index
+       */
+      _stackIndexBchChanged(index) {
+        this._stackIndexChanged('Bch', index);
+      }
+
+      _stackIndexGeChanged(index) {
+        this._stackIndexChanged('Ge', index);
+      }
+
+      _stackIndexChanged(target, index) {
+        const stackHelper = this[`stackHelper${target}`];
+        if (index === undefined ||
+            stackHelper === undefined ||
+            stackHelper === null ||
+            stackHelper.stack === undefined) {
+          return;
+        }
+
+        stackHelper.index = index;
+
+        const auto = this[`stackIntensityAuto${target}`];
+
+        if (auto) {
+          const ww = stackHelper.slice.windowWidth;
+          this.set(`stackWindowWidth${target}`, ww);
+
+          const wc = stackHelper.slice.windowCenter;
+          this.set(`stackWindowCenter${target}`, wc);
+        }
+      }
+
+      /**
+       * Stack window width Bch changed
+       *
+       * @param {*} windowWidth
+       */
+      _stackWindowWidthBchChanged(windowWidth) {
+        this._stackWindowWidthChanged('Bch', windowWidth);
+      }
+
+      _stackWindowWidthGeChanged(windowWidth) {
+        this._stackWindowWidthChanged('Ge', windowWidth);
+      }
+
+      _stackWindowWidthChanged(target, windowWidth) {
+        const stackHelper = this[`stackHelper${target}`];
+        if (windowWidth === undefined ||
+            stackHelper === undefined ||
+            stackHelper === null ||
+            stackHelper.stack === undefined) {
+          return;
+        }
+
+        stackHelper.slice.windowWidth = windowWidth;
+      }
+
+      /**
+       * Stack window center Bch changed
+       *
+       * @param {*} windowCenter
+       */
+      _stackWindowCenterBchChanged(windowCenter) {
+        this._stackWindowCenterChanged('Bch', windowCenter);
+      }
+
+      _stackWindowCenterGeChanged(windowCenter) {
+        this._stackWindowCenterChanged('Ge', windowCenter);
+      }
+
+      _stackWindowCenterChanged(target, windowCenter) {
+        const stackHelper = this[`stackHelper${target}`];
+        if (windowCenter === undefined ||
+            stackHelper === undefined ||
+            stackHelper === null ||
+            stackHelper.stack === undefined) {
+          return;
+        }
+
+        stackHelper.slice.windowCenter = windowCenter;
+      }
+
+      /**
+       * Start dragging a series preview
+       *
+       * @param {*} event
+       */
+      _onDragStart(event) {
+        console.log(event);
+      }
+
+      /**
+       * Drop a series preview
+       *
+       * @param {*} event
+       */
+      _onDrop(event) {
+        event.preventDefault();
+        //
+        event.target.drag = false;
+        // alway load same data for now
+        const t1 = [
+          '36747136', '36747150', '36747164', '36747178',
+          '36747192', '36747206', '36747220', '36747234', '36747248', '36747262',
+          '36747276', '36747290', '36747304', '36747318', '36747332', '36747346',
+          '36747360', '36747374', '36747388', '36747402', '36747416', '36747430',
+          '36747444', '36747458', '36747472', '36747486', '36747500', '36747514',
+          '36747528', '36747542', '36747556', '36747570', '36747584', '36747598',
+          '36747612', '36747626', '36747640', '36747654', '36747668', '36747682',
+          '36747696', '36747710', '36747724', '36747738', '36747752', '36747766',
+          '36747780', '36747794', '36747808', '36747822', '36747836', '36747850',
+          '36747864', '36747878', '36747892', '36747906', '36747920', '36747934',
+          '36747948', '36747962', '36747976', '36747990', '36748004', '36748018',
+          '36748032', '36748046', '36748060', '36748074', '36748088', '36748102',
+          '36748116', '36748130', '36748144', '36748158', '36748172', '36748186',
+          '36748578', '36748592',
+          '36748606', '36748620', '36748634', '36748648', '36748662', '36748676',
+          '36748690', '36748704', '36748718', '36748732', '36748746', '36748760',
+          '36748774', '36748788', '36748802', '36748816', '36748830', '36748844',
+          '36748858', '36748872', '36748886', '36748900', '36748914', '36748928',
+          '36748942', '36748956', '36748970', '36748984', '36748998', '36749012',
+          '36749026', '36749040', '36749054', '36749068', '36749082', '36749096',
+          '36749110', '36749124', '36749138', '36749152', '36749166', '36749180',
+          '36749194', '36749208', '36749222', '36749236', '36749250', '36749264',
+          '36749278', '36749292', '36749306', '36749320', '36749334', '36749348',
+          '36749362', '36749376', '36749390', '36749404', '36749418',
+          '36749446', '36749460', '36749474', '36749488', '36749502', '36749516',
+          '36749530', '36749544', '36749558', '36749572', '36749586', '36749600',
+          '36749614', '36749628', '36749642', '36749656', '36749670', '36749684',
+          '36749698', '36749712', '36749726', '36749740', '36749754', '36749768',
+          '36749782', '36749796', '36749810', '36749824', '36749838', '36749852',
+          '36749866', '36749880', '36749894', '36749908', '36749922', '36749936',
+          '36749950', '36749964',
+        ];
+
+        const images = t1.map(function(v) {
+          return 'https://cdn.rawgit.com/FNNDSC/data/master/dicom/adi_brain/' + v;
+        });
+
+        // const targetViewerUID = event.target.dataset.uid;
+        const targetViewer = event.target;
+        targetViewer.images = images;
+      }
+
+      _onDragEnter(event) {
+        event.preventDefault();
+        console.log(event.target.dataset.uid);
+        event.target.drag = true;
+      }
+
+      _onDragOver(event) {
+        event.preventDefault();
+        console.log(event.target.dataset.uid);
+      }
+
+      _onDragLeave(event) {
+        event.preventDefault();
+        event.target.drag = false;
+        console.log(event.target.dataset.uid);
+      }
+
+      _onEnterFullscreen(event) {
+        console.log(event.target.dataset.uid);
+        this.fullscreen = event.target.dataset.uid;
+        this.active = this.fullscreen;
+        this._layoutSizeChanged();
+      }
+
+      _onExitFullscreen() {
+        this.fullscreen = -1;
+        this._layoutSizeChanged();
+      }
+
+      _onActivateRenderer(event) {
+        console.log('activate');
+        this.active = event.target.dataset.uid;
+      }
+
+      _onDeactivateRenderer(event) {
+        console.log('deactivate');
+        this.active = -1;
+      }
+
+      changeFullscreenViewer() {
+        // go fulll screen!
+        if(!this.fullscreenViewer) {
+          // request fullscreen
+          // https://developer.mozilla.org/en-US/docs/Web/API/Fullscreen_API
+          console.log(this.$.fullViewer);
+          this.$.fullViewer.webkitRequestFullScreen();
+          this._layoutSizeChanged();
+        }
+      }
+
+      _hideControls(current, target) {
+        if (Number(current) === 0 && Number(target) === -1) {
+          return false;
+        }
+
+        return (Number(current) !== Number(target));
+      }
+
+      _datasetsChanged(previous, next) {
+        console.log(previous);
+        console.log(next);
+      }
+
+      _resizeListener() {
+        this._layoutSizeChanged();
+      }
+
+      _layoutSizeChanged() {
+        console.log('layout changed');
+        this.$.viewer0.resize();
+        this.$.viewer1.resize();
+        this.$.viewer2.resize();
+        this.$.viewer3.resize();
+      }
+    }
+
+    window.customElements.define(GEXHome.is, GEXHome);
+  </script>
+</dom-module>

@@ -1,0 +1,457 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/lib/mixins/gesture-event-listeners.html">
+
+<!-- Paper components  -->
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/paper-slider/paper-slider.html">
+
+<!-- Iron components  -->
+<link href="../../bower_components/iron-icons/iron-icons.html" rel="import">
+<link href="../../bower_components/iron-icons/av-icons.html" rel="import">
+
+<!-- CHIPS components -->
+<link rel="import" href="../../bower_components/chips-api/chips-api.html">
+
+<!-- Local components -->
+<link rel="import" href="../import-ami.html">
+<link rel="import" href="./ami-renderer.html">
+
+<dom-module id="ami-viewer">
+  <template>
+
+    <style>
+      :host {
+        display: block;
+      }
+
+      .container {
+        height: 100%;
+        width: 100%;
+        display:flex;
+      }
+
+      .container > div {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: var(--dark-primary-color);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #ffffff;
+      }
+
+      .renderer-container {
+        flex-direction: column;
+        margin: 2px;
+      }
+
+      .toolbar {
+        width: 100%;
+        display: flex !important;
+        /* position: absolute;
+        top: 0;
+        background: rgba(0, 0, 0, .7); */
+      }
+
+      .renderer {
+        flex: 1;
+        width: 100%;
+        background-color: darkgray;
+        position: relative;
+      }
+
+      ami-renderer {
+        position: absolute;
+        top:0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+      }
+
+      .overlay {
+        z-index: 2;
+      }
+
+      .overlay.drag {
+        background-color: rgba(0, 0, 0, 0.8);
+        z-index: 3;
+      }
+
+      .drag > div {
+        padding: 45px;
+        border: 5px dashed var(--accent-color);
+      }
+
+      paper-slider {
+        flex: 1;
+        background-color: var(--dark-primary-color);
+        --paper-slider-container-color: #424242;
+        --paper-slider-activate-color: #424242;
+        --paper-slider-knob-color: var(--accent-color);
+        margin: 0;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+    </style>
+
+    <chips-api id="API"></chips-api>
+
+    <div class="container">
+      <div hidden$="[[!empty]]" class="overlay"> &lt; empty /&gt; </div>
+      <div hidden$="[[!drag]]" class="overlay drag">
+        <div> Drop data! </div>
+      </div>
+      <div hidden$="[[!loading]]" class="overlay"> Loading images ([[imagesLoaded]]/[[imagesTotal]]) </div>
+      <div hidden$="[[!loaded]]" class="renderer-container"> 
+        <div class="toolbar" on-tap="_activateViewer">
+          <paper-slider value="{{index}}" immediate-value="{{index}}" snaps="" min="[[indexMin]]" max="[[indexMax]]"></paper-slider>
+            <paper-icon-button icon$="{{_playIcon(play)}}" on-tap="_togglePlay"></paper-icon-button>
+            <paper-icon-button icon$="{{_fullscreenIcon(fullscreen)}}" on-tap="_toggleFullscren"></paper-icon-button>
+            <paper-icon-button icon="icons:clear" on-tap="_clear"></paper-icon-button>            
+        </div>
+        <div class="renderer">
+          <ami-renderer id="renderer" activate="{{activate}}" annotations="[[annotations]]" cursor="{{cursor}}" orientation="[[orientation]]" color-lut="{{colorLut}}" stack-scene="[[stackScene]]" stack-index="{{index}}" stack-max-index="{{indexMax}}"></ami-renderer>
+        </div>
+      </div>
+    </div>
+
+  </template>
+
+  <script>
+    class AmiViewer extends Polymer.GestureEventListeners(Polymer.Element) {
+      static get is() {
+        return 'ami-viewer';
+      }
+
+      static get properties() {
+        return {
+          empty: {
+            type: Boolean,
+            value: false,
+            observer: '_emptyChanged',
+          },
+          drag: {
+            type: Boolean,
+            value: false,
+            observer: '_dragChanged',
+          },
+          loading: {
+            type: Boolean,
+            value: false,
+            observer: '_loadingChanged',
+          },
+          loaded: {
+            type: Boolean,
+            value: false,
+            observer: '_loadedChanged',
+          },
+          activate: {
+            type: Boolean,
+            value: false,
+            observer: '_activateChanged',
+          },
+          fullscreen: {
+            type: Boolean,
+            value: false,
+            observer: '_fullscreenChanged',
+          },
+          play: {
+            type: Boolean,
+            value: false,
+            observer: '_playChanged',
+          },
+          annotations: {
+            type: Number,
+          },
+          orientation: {
+            type: String,
+          },
+          colorLut: {
+            type: String,
+          },
+          index: {
+            type: Number,
+            value: 0,
+          },
+          indexMin: {
+            type: Number,
+            value: 0,
+          },
+          indexMax: {
+            type: Number,
+            value: 0,
+          },
+          images: {
+            type: Array,
+            value: [],
+            observer: '_imagesChanged',
+          },
+          imagesTotal: {
+            type: Number,
+          },
+          imagesLoaded: {
+            type: Number,
+          },
+          imagesParsed: {
+            type: Number,
+          },
+          stackScene: {
+            type: Object,
+          },
+          stackHelper: {
+            type: Object,
+          },
+          cursor: {
+            type: Object,
+            value: {
+              x: 0,
+              y: 0,
+              z: 0,
+            },
+            notify: true,
+            observer: '_cursorChanged',
+          },
+        };
+      }
+
+      constructor() {
+        super();
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+      }
+
+      disconnectedCallback() {
+        super.disconnectedCallback();
+      }
+
+      _emptyChanged(empty) {
+
+      }
+
+      _dragChanged(drag) {
+
+      }
+
+      _loadingChanged(loading) {
+
+      }
+
+      _loadedChanged(loaded) {
+
+      }
+
+      _fullscreenChanged(fullscreen) {
+
+      }
+
+      _fullscreenIcon(fullscreen) {
+        return fullscreen ? 'icons:fullscreen-exit' : 'icons:fullscreen';
+      }
+
+      _toggleFullscren() {
+        if (!this.fullscreen) {
+          this._enterFullscreen();
+        } else {
+          this._exitFullscreen();
+        }
+
+        this.fullscreen = !this.fullscreen;
+        // ami/threejs?
+        // clear ami-renderer
+      }
+
+      _enterFullscreen() {
+        const enterFullscreen = new CustomEvent(
+          'enter-fullscreen',
+          {
+            detail: {},
+          }
+        );
+
+        this.dispatchEvent(enterFullscreen);
+      }
+
+      _exitFullscreen() {
+        const exitFullscreen = new CustomEvent(
+          'exit-fullscreen',
+          {
+            detail: {},
+          }
+        );
+
+        this.dispatchEvent(exitFullscreen);
+      }
+
+      _playIcon(play) {
+        return play ? 'av:pause' : 'av:play-arrow';
+      }
+
+      _togglePlay() {
+        if (!this.play) {
+          this._startPlay();
+        } else {
+          this._stopPlay();
+        }
+
+        this.play = !this.play;
+      }
+
+      _startPlay() {
+        this.playInterval = setInterval(() => {
+          this.index = (this.index + 1) % this.indexMax;
+        }, 300);
+      }
+
+      _stopPlay() {
+        clearInterval(this.playInterval);
+      }
+
+      _activateViewer() {
+        this.activate = true;
+      }
+
+      _activateChanged(activate) {
+        if (activate) {
+          const activateRenderer = new CustomEvent(
+            'activate',
+            {
+              detail: {},
+            }
+          );
+
+          this.dispatchEvent(activateRenderer);
+          this.activate = false;
+        }
+      }
+
+      _clear(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        this.images = [];
+
+        const deactivate = new CustomEvent(
+          'deactivate',
+          {
+            detail: {},
+          }
+        );
+
+        this.dispatchEvent(deactivate);
+      }
+
+      _imagesChanged() {
+        if(this.images.length === 0) {
+          this.empty = true;
+          this.drag = false;
+          this.loaded = false;
+          this.loading = false;
+          return;
+        }
+
+        this.loading = true;
+
+        // start loading the data!
+        return this._loadUrls(this.images)
+          .then((series) => {
+            // merge series
+            const mergedSeries = series[0].mergeSeries(series);
+            const firstSeries = mergedSeries[0];
+            return firstSeries;
+          })
+          .then((series) => {
+            this.empty = false;
+            this.loading = false;
+            this.loaded = true;
+
+            const helper = new AMI.default.Helpers.Stack(series.stack[0]);
+            const scene = new THREE.Scene();
+            scene.add(helper);
+            this.stackScene = scene;
+            this.stackHelper = helper;
+            this.stackHelper.bbox.visible = false;
+            this.stackHelper.border.visible = false;
+
+            // resize the renderer as it was initialized offscreen
+            this.$.renderer.resize();
+
+            // start rendering loop
+            this.$.renderer.startRenderingLoop();
+
+            // update series information
+            this.$.renderer.patientID = series.patientID;
+            this.$.renderer.patientName = series.patientName;
+            this.$.renderer.patientAge = series.patientAge;
+            this.$.renderer.patientBorthdate = series.patientBorthdate;
+            this.$.renderer.studyDate = series.studyDate;
+            this.$.renderer.studyDescription = series.studyDescription;
+            this.$.renderer.seriesDescription = series.seriesDescription;
+          });
+      }
+
+      _fetchUrl(url) {
+        const dataAPI = {};
+        dataAPI.auth = {
+          type: 'token',
+          token: sessionStorage.getItem('token'),
+        };
+        this.$.API.handleAs = 'arraybuffer';
+        return this.$.API.request( 'GET', url, dataAPI );
+      }
+
+      _loadUrl(url) {
+        const LoadersVolume = AMI.default.Loaders.Volume;
+        const loader = new LoadersVolume();
+
+        return fetch(url)
+          .then((response) => response.arrayBuffer())
+          .then((arrayBuffer) => {
+            this.imagesLoaded += 1;
+            return loader.parse({
+              url: url,
+              buffer: arrayBuffer,
+              })
+              .then((response) => {
+                this.imagesParsed +=1;
+                return response;
+              });
+          })
+          .catch(function(error) {
+            window.console.log('oops... something went wrong...');
+            window.console.log(error);
+          });
+      }
+
+      _loadUrls(urls) {
+        // number of files to be loaded
+        this.imagesTotal = urls.length;
+        this.imagesLoaded = 0;
+        this.imagesParsed = 0;
+
+        const loadSequences = [];
+        urls.forEach((url) => {
+          loadSequences.push(
+            this._loadUrl(url)
+          );
+        });
+        return Promise.all(loadSequences);
+      }
+
+      resize() {
+        this.$.renderer.resize();
+      }
+
+      _cursorChanged(cursor) {
+      }
+    }
+    window.customElements.define(AmiViewer.is, AmiViewer);
+  </script>
+</dom-module>
