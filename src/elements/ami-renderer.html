@@ -160,19 +160,30 @@
           seriesDescription: {
             type: String,
           },
+          controlKeyDown: {
+            type: Boolean,
+            value: false,
+          },
+          shihtKeyDown: {
+            type: Boolean,
+            value: false,
+          },
         };
       }
 
       constructor() {
         super();
-        this._onScrollBound = this._onScroll.bind(this);
         this._onMouseMoveBound = this._onMouseMove.bind(this);
+        this._onKeyPressedBound = this._onKeyPressed.bind(this);
+        this._onScrollBound = this._onScroll.bind(this);
       }
 
       disconnectedCallback() {
         super.disconnectedCallback();
-        this._controls.removeEventListener('OnScroll', this._onScrollBound);
         this._container.removeEventListener('mousemove', this._onMouseMoveBound);
+        window.removeEventListener('keydown', this._onKeyPressedBound);
+        window.removeEventListener('keyup', this._onKeyPressedBound);
+        this._controls.removeEventListener('OnScroll', this._onScrollBound);
       }
 
       ready() {
@@ -195,8 +206,10 @@
         this._initRenderer();
 
         // attach event listeners
-        this._controls.addEventListener('OnScroll', this._onScrollBound);
         this._container.addEventListener('mousemove', this._onMouseMoveBound);
+        window.addEventListener('keydown', this._onKeyPressedBound);
+        window.addEventListener('keyup', this._onKeyPressedBound);
+        this._controls.addEventListener('OnScroll', this._onScrollBound);
       }
 
       _initScene() {
@@ -326,8 +339,23 @@
 
         const intersects = raycaster.intersectObject(this.stackHelper.slice, true);
         if (intersects.length > 0) {
+          // update IJK of current view
+          const stack = this.stackHelper.stack;
+          let ijk =
+            AMI.default.Core.Utils.worldToData(stack.lps2IJK, intersects[0].point);
+
+          // update overlay
+          this.mouseI = ijk.x;
+          this.mouseJ = ijk.y;
+          this.mouseK = ijk.z;
+          this.mouseValue =
+            AMI.default.Core.Utils.value(this.stackHelper.stack, ijk);
+
+          // notify others if shift click
           // update cursor position
-          this.set('cursor', intersects[0].point);
+          if (this.shiftKeyDown) {
+            this.set('cursor', intersects[0].point);
+          }
         }
       }
 
@@ -356,6 +384,17 @@
             (ijk.getComponent(indexOrientation) >= 0)) {
             this.stackIndex = ijk.getComponent(indexOrientation);
           }
+        }
+      }
+
+      _onKeyPressed(event) {
+        this.controlKeyDown = event.ctrlKey;
+        this.shiftKeyDown = event.shiftKey;
+
+        if (!this.controlKeyDown) {
+          // // reset drag measures
+          // this.drag.start.x = null;
+          // this.drag.start.y = null;
         }
       }
 
