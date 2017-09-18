@@ -3,6 +3,9 @@
 
 <!-- Paper components  -->
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-menu-button/paper-menu-button.html">
 <link rel="import" href="../../bower_components/paper-slider/paper-slider.html">
 
 <!-- Iron components  -->
@@ -94,6 +97,10 @@
         margin: 0;
       }
 
+      paper-menu-button {
+        padding: 0;
+      }
+
       [hidden] {
         display: none !important;
       }
@@ -110,14 +117,22 @@
       <div hidden$=[[!loading]] class="overlay"> Loading images ([[imagesLoaded]]/[[imagesTotal]]) </div>
       <div hidden$=[[!loaded]] class="renderer-container"> 
         <div class="toolbar" on-tap="_activateViewer">
+          <paper-icon-button icon$="{{_playIcon(play)}}" on-tap="_togglePlay"></paper-icon-button>
           <paper-slider
             value="{{index}}"
             immediate-value="{{index}}"
-
             snaps
             min="[[indexMin]]"
             max="[[indexMax]]"></paper-slider>
-            <paper-icon-button icon$="{{_playIcon(play)}}" on-tap="_togglePlay"></paper-icon-button>
+
+          <paper-menu-button>
+              <paper-icon-button icon="av:subtitles" slot="dropdown-trigger" alt="menu"></paper-icon-button>
+              <paper-listbox slot="dropdown-content" selected="{{annotations}}">
+                <paper-item>none</paper-item>
+                <paper-item>partial</paper-item>
+                <paper-item>full</paper-item>
+              </paper-listbox>
+            </paper-menu-button>
             <paper-icon-button icon$="{{_fullscreenIcon(fullscreen)}}" on-tap="_toggleFullscren"></paper-icon-button>
             <paper-icon-button icon="icons:clear" on-tap="_clear"></paper-icon-button>            
         </div>
@@ -183,6 +198,7 @@
           },
           annotations: {
             type: Number,
+            value: 2,
           },
           orientation: {
             type: String,
