@@ -349,7 +349,7 @@
           this.mouseJ = ijk.y;
           this.mouseK = ijk.z;
           this.mouseValue =
-            AMI.default.Core.Utils.value(this.stackHelper.stack, ijk);
+            AMI.default.Core.Utils.getPixelData(this.stackHelper.stack, ijk);
 
           // notify others if shift click
           // update cursor position
@@ -373,7 +373,7 @@
           this.mouseJ = ijk.y;
           this.mouseK = ijk.z;
           this.mouseValue =
-            AMI.default.Core.Utils.value(this.stackHelper.stack, ijk);
+            AMI.default.Core.Utils.getPixelData(this.stackHelper.stack, ijk);
 
           // update stack index
           // for instance to synchronize viewers if cursor was changed from parent
