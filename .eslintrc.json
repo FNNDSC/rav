@@ -19,6 +19,7 @@
     "Polymer": true,
     "THREE": true,
     "AMI": true,
-    "CHIPSPluginBehavior": true
+    "CHIPSPluginBehavior": true,
+    "Highcharts": true
   }
 }

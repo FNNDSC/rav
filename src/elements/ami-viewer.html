@@ -146,7 +146,10 @@
             color-lut="{{colorLut}}"
             stack-scene="[[stackScene]]"
             stack-index="{{index}}"
-            stack-max-index="{{indexMax}}"></ami-renderer>
+            stack-max-index="{{indexMax}}"
+            window-center="{{windowCenter}}"
+            window-level="{{windowLevel}}"
+            window-width="{{windowWidth}}"></ami-renderer>
         </div>
       </div>
     </div>
@@ -194,7 +197,6 @@
           play: {
             type: Boolean,
             value: false,
-            observer: '_playChanged',
           },
           annotations: {
             type: Number,
@@ -202,6 +204,7 @@
           },
           orientation: {
             type: String,
+            value: 'default',
           },
           colorLut: {
             type: String,
@@ -238,6 +241,19 @@
           stackHelper: {
             type: Object,
           },
+          windowCenter: {
+            type: Number,
+            notify: true,
+          },
+          windowLevel: {
+            type: String,
+            notify: true,
+            observer: '_windowLevelChanged',
+          },
+          windowWidth: {
+            type: Number,
+            notify: true,
+          },
           cursor: {
             type: Object,
             value: {
@@ -247,6 +263,14 @@
             },
             notify: true,
             observer: '_cursorChanged',
+          },
+          minMax: {
+            type: Array,
+            notify: true,
+          },
+          histogram: {
+            type: Array,
+            notify: true,
           },
         };
       }
@@ -410,6 +434,31 @@
             this.stackHelper = helper;
             this.stackHelper.bbox.visible = false;
             this.stackHelper.border.visible = false;
+            this.stackHelper.slice.intensityAuto = false;
+
+            this.windowCenter = this.stackHelper.stack.windowCenter;
+            this.windowWidth = this.stackHelper.stack.windowWidth;
+            this.minMax = this.stackHelper.stack.minMax;
+
+            const histogram = new Array(1 + this.minMax[1] - this.minMax[0]);
+            const slope = this.stackHelper.stack.rescaleSlope;
+            const intercept = this.stackHelper.stack.rescaleIntercept;
+            for (let i = 0; i < this.stackHelper.stack.frame.length; i++) {
+              const frame = this.stackHelper.stack.frame[i];
+              for (let j = 0; j < frame.pixelData.length; j++) {
+                const value = AMI.default.Core.Utils.rescaleSlopeIntercept(
+                  frame.pixelData[j],
+                  slope,
+                  intercept)
+                ;
+                if (histogram[value] === undefined) {
+                  histogram[value] = 0;
+                }
+                histogram[value] += 1;
+              }
+            }
+
+            this.set('histogram', histogram);
 
             // resize the renderer as it was initialized offscreen
             this.$.renderer.resize();
@@ -426,6 +475,13 @@
             this.$.renderer.studyDescription = series.studyDescription;
             this.$.renderer.seriesDescription = series.seriesDescription;
           });
+      }
+
+      _windowLevelChanged() {
+        if (this.windowLevel === 'Default' && this.stackHelper) {
+          this.windowCenter = this.stackHelper.stack.windowCenter;
+          this.windowWidth = this.stackHelper.stack.windowWidth;
+        }
       }
 
       _fetchUrl(url) {

@@ -166,9 +166,11 @@
           },
           windowWidth: {
             type: Number,
+            observer: '_windowWidthChanged',
           },
           windowCenter: {
             type: Number,
+            observer: '_windowCenterChanged',
           },
         };
       }
@@ -179,6 +181,20 @@
 
       _fullAnnotations(annotations) {
         return annotations < 2;
+      }
+
+      _windowWidthChanged(windowWidth) {
+        if (windowWidth === undefined) {
+          return;
+        }
+        this.windowWidth = parseFloat(windowWidth.toFixed(2));
+      }
+
+      _windowCenterChanged(windowCenter) {
+        if (windowCenter === undefined) {
+          return;
+        }
+        this.windowCenter = parseFloat(windowCenter.toFixed(2));
       }
     }
     window.customElements.define(AMIRendererAnnotations.is, AMIRendererAnnotations);

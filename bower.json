@@ -36,7 +36,8 @@
     "moment-element": "abdonrd/moment-element#^2.0.0",
     "paper-progress": "PolymerElements/paper-progress#^2.0.1",
     "vaadin-split-layout": "v3.0.0-alpha1",
-    "google-chart": "^2.0.0"
+    "google-chart": "^2.0.0",
+    "highcharts": "^5.0.14"
   },
   "devDependencies": {
     "web-component-tester": "Polymer/web-component-tester#^6.0.0-prerelease.7"

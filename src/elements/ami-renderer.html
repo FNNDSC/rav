@@ -64,7 +64,9 @@
       patient-birthdate="[[patientBirthdate]]"
       study-date="[[studyDate]]"
       study-description="[[studyDescription]]"
-      series-description="[[seriesDescription]]"></ami-renderer-annotations>
+      series-description="[[seriesDescription]]"
+      window-center="[[windowCenter]]"
+      window-width="[[windowWidth]]"></ami-renderer-annotations>
 
     <div id="container">
     </div>
@@ -167,6 +169,28 @@
           shihtKeyDown: {
             type: Boolean,
             value: false,
+          },
+          dragX: {
+            type: Number,
+            value: null,
+          },
+          dragY: {
+            type: Number,
+            value: null,
+          },
+          windowCenter: {
+            type: Number,
+            notify: true,
+            observer: '_windowCenterChanged',
+          },
+          windowLevel: {
+            type: String,
+            notify: true,
+          },
+          windowWidth: {
+            type: Number,
+            notify: true,
+            observer: '_windowWidthChanged',
           },
         };
       }
@@ -356,7 +380,51 @@
           if (this.shiftKeyDown) {
             this.set('cursor', intersects[0].point);
           }
+
+          if (this.controlKeyDown) {
+            this.windowLevel = 'Manual';
+
+            const stack = this.stackHelper.stack;
+
+            if (this.dragX === null) {
+              this.dragX = event.clientX;
+              this.dragY = event.clientY;
+            }
+
+            let threshold = 15;
+            let dynamicRange = stack.minMax[1] - stack.minMax[0];
+            dynamicRange /= this._container.clientWidth;
+
+            if (Math.abs(event.clientX - this.dragX) > threshold) {
+              // window width
+              let width =
+                this.windowWidth + dynamicRange * (event.clientX - this.dragX);
+              if (width < 1) {
+                width = 1;
+              }
+              this.windowWidth = width;
+              this.dragX = event.clientX;
+            }
+
+            // set to manual intensity
+            if (Math.abs(event.clientY - this.dragY) > threshold) {
+              // window center
+              this.windowCenter -=
+                dynamicRange * (event.clientY - this.dragY);
+              this.dragY = event.clientY;
+            }
+          }
         }
+      }
+
+      _windowWidthChanged() {
+        this.stackHelper.slice.windowWidth = this.windowWidth;
+        this._changed = true;
+      }
+
+      _windowCenterChanged() {
+        this.stackHelper.slice.windowCenter = this.windowCenter;
+        this._changed = true;
       }
 
       _cursorChanged(cursor) {
@@ -392,9 +460,9 @@
         this.shiftKeyDown = event.shiftKey;
 
         if (!this.controlKeyDown) {
-          // // reset drag measures
-          // this.drag.start.x = null;
-          // this.drag.start.y = null;
+          // reset drag measures
+          this.dragX = null;
+          this.dragY = null;
         }
       }
 
