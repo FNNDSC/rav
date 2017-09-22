@@ -1,4 +1,5 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/lib/mixins/gesture-event-listeners.html">
 
 <!-- Paper components -->
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
@@ -9,6 +10,8 @@
 <!-- Highcharts components -->
 <link rel="import" href="../import-highcharts.html">
 
+<!-- Range slider will be needed at some point -->
+<!-- https://www.webcomponents.org/element/IftachSadeh/paper-range-slider -->
 <dom-module id="image-controls">
   <template>
 
@@ -72,7 +75,7 @@
       <div class="content">
         <div class="item">
           <paper-dropdown-menu label="Orientation" selected-item-label="{{orientation}}">
-              <paper-listbox slot="dropdown-content" selected="0">
+              <paper-listbox slot="dropdown-content" selected="{{orientationSelected}}">
                 <paper-item label="Default">Default</paper-item>
                 <paper-item label="Axial">Axial</paper-item>
                 <paper-item label="Coronal">Coronal</paper-item>
@@ -92,7 +95,7 @@
         </div>
         <div class="item">
           <paper-dropdown-menu label="Color LUT" selected-item-label="{{colorLut}}">
-              <paper-listbox slot="dropdown-content" selected="0">
+              <paper-listbox slot="dropdown-content" selected="{{colorLutSelected}}">
                 <paper-item label="Default">Default</paper-item>
                 <paper-item label="Spectrum">Spectrum</paper-item>
                 <paper-item label="Hot and Cold">Hot and Cold</paper-item>
@@ -103,7 +106,7 @@
             </paper-dropdown-menu>
         </div>
         <div class="item end">
-          <paper-button>reset</paper-button>
+          <paper-button on-tap="reset">reset</paper-button>
         </div>
       </div>
       <div class="spacer"></div>
@@ -112,7 +115,7 @@
   </template>
 
   <script>
-    class ImageControls extends Polymer.Element {
+    class ImageControls extends Polymer.GestureEventListeners(Polymer.Element) {
       static get is() {
         return 'image-controls';
       }
@@ -128,6 +131,10 @@
             type: String,
             notify: true,
           },
+          colorLutSelected: {
+            type: Number,
+            value: 0,
+          },
           histogram: {
             type: Array,
             observer: '_histogramChanged',
@@ -141,6 +148,10 @@
           orientation: {
             type: String,
             notify: true,
+          },
+          orientationSelected: {
+            type: Number,
+            value: 0,
           },
           windowLevel: {
             type: String,
@@ -174,13 +185,16 @@
             renderTo: this.$.chart,
           },
           title: {
-            text: 'Histogram',
+            text: null,
             style: {
               color: '#A0A0A3',
             },
           },
           subtitle: {
-            visible: false,
+            text: 'Histogram',
+            style: {
+              color: '#A0A0A3',
+            },
           },
           plotOptions: {
             series: {
@@ -235,6 +249,7 @@
         ],
         legend: {
           itemStyle: {
+            fontSize: '10px',
             color: '#E0E0E3',
           },
           itemHoverStyle: {
@@ -322,6 +337,12 @@
             this.highchart.reflow();
           }
         }
+      }
+
+      reset() {
+        this.colorLutSelected = 0;
+        this.orientationSelected = 0;
+        this.windowLevelSelected = 0;
       }
     }
     window.customElements.define(ImageControls.is, ImageControls);
