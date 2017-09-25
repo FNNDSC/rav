@@ -313,11 +313,7 @@
         </div>
       </div>
       <div class="viewHead">
-        <!-- <div>
-          Make viewew fs
-          <paper-icon-button icon="icons:fullscreen" on-tap="changeFullscreenViewer"></paper-icon-button>
-        </div> -->
-        <control-panel-2d layout="{{layout}}"></control-panel-2d>
+        <control-panel-2d layout="{{layout}}" theater-mode="{{theaterMode}}"></control-panel-2d>
       </div>
 
       <div class="viewersC">
@@ -686,6 +682,10 @@
             type: Array,
             value: [],
             observer: '_datasetsChanged',
+          },
+          theaterMode: {
+            type: Boolean,
+            observer: '_theaterModeChanged',
           },
         };
       }
@@ -1194,12 +1194,11 @@
         this.active = -1;
       }
 
-      changeFullscreenViewer() {
+      _theaterModeChanged() {
         // go fulll screen!
-        if(!this.fullscreenViewer) {
+        if(this.theaterMode) {
           // request fullscreen
           // https://developer.mozilla.org/en-US/docs/Web/API/Fullscreen_API
-          console.log(this.$.fullViewer);
           this.$.fullViewer.webkitRequestFullScreen();
           this._layoutSizeChanged();
         }
