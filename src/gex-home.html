@@ -42,6 +42,7 @@
         background-color: var(--dark-primary-color);
         color: var(--text-primary-color);
         font-weight: lighter;
+        width: 100%;
       }
 
       .content {
@@ -157,6 +158,10 @@
         color: var(--secondary-text-color);
       }
 
+      .border-bottom {
+        border-bottom: 1px solid var(--divider-color);
+      }
+
       .border-right {
         border-right: 1px solid var(--divider-color);
       }
@@ -223,11 +228,6 @@
         padding: 10px;
       }
 
-      #fullViewer:-webkit-full-screen {
-        width: 100%;
-        height: 100%;
-      }
-
       [hidden] {
         display: none;
       }
@@ -279,7 +279,7 @@
       </gex-panel>
     </template>
 
-    <div id="fullViewer" class="content">
+    <div class="content">
       <!-- No data loaded -->
       <div class="overlay" hidden$="[[_isReady(dataStatusBch)]]">
         <!-- Empty-->
@@ -309,7 +309,7 @@
       </div>
 
       <!-- global controls -->
-      <div class="globalControls">
+      <div class="globalControls border-bottom">
         <control-panel-2d layout="{{layout}}" theater-mode="{{theaterMode}}"></control-panel-2d>
       </div>
 
@@ -518,8 +518,7 @@
                   },
                 },
               },
-              ],
-            observer: '_dataBchChanged',
+            ],
           },
           dataStatusBch: {
             type: String,
@@ -534,7 +533,6 @@
           dataGe: {
             type: Array,
             value: [],
-            observer: '_dataGeChanged',
           },
           dataStatusGe: {
             type: String,
@@ -574,11 +572,6 @@
             type: Boolean,
             value: false,
           },
-          datasets: {
-            type: Array,
-            value: [],
-            observer: '_datasetsChanged',
-          },
           theaterMode: {
             type: Boolean,
             observer: '_theaterModeChanged',
@@ -589,16 +582,33 @@
       constructor() {
         super();
         this._resizeListenerBound = this._resizeListener.bind(this);
+        this._fullscreenListenerBound = this._fullscreenListener.bind(this);
       }
 
       connectedCallback() {
         super.connectedCallback();
         window.addEventListener('resize', this._resizeListenerBound);
+        this.addEventListener(
+          'webkitfullscreenchange', this._fullscreenListenerBound);
+        this.addEventListener(
+          'mozfullscreenchange', this._fullscreenListenerBound);
+        this.addEventListener(
+          'fullscreenchange', this._fullscreenListenerBound);
+        this.addEventListener(
+          'MSfullscreenchange', this._fullscreenListenerBound);
       }
 
       disconnectedCallback() {
         super.disconnectedCallback();
         window.removeEventListener('resize', this._resizeListenerBound);
+        this.removeEventListener(
+          'webkitfullscreenchange', this._fullscreenListenerBound);
+        this.removeEventListener(
+          'mozfullscreenchange', this._fullscreenListenerBound);
+        this.removeEventListener(
+          'fullscreenchange', this._fullscreenListenerBound);
+        this.addremoveEventListenerEventListener(
+          'MSfullscreenchange', this._fullscreenListenerBound);
       }
 
       handleBCH(event) {
@@ -682,10 +692,6 @@
           this.set('dataSelectedBch', {});
           this.set('dataGe', []);
           this.set('dataSelectedGe', {});
-
-          // stop rendering loops
-          // this.$.renderBch.stopRenderingLoop();
-          // this.$.renderGe.stopRenderingLoop();
         }
       }
 
@@ -756,80 +762,6 @@
         }
 
         return false;
-      }
-
-      deselectBch() {
-        const selection = this.dataSelectedBch;
-        if(selection === undefined || !selection.path) {
-          return;
-        }
-
-        const path = this.dataSelectedBch.path;
-        this.set(['dataBch', ...path, 'selected'], false);
-        this.set('dataSelectedBch', {});
-
-        // clean up all stack helpers
-        // this._resetStackHelper('Bch');
-        // this._resetStackHelper('Ge');
-
-        // // clean up Ge data
-        // this._resetData('Ge');
-      }
-
-      deselectGe() {
-        const selection = this.dataSelectedGe;
-        if(selection === undefined || !selection.path) {
-          return;
-        }
-
-        const path = this.dataSelectedGe.path;
-        this.set(['dataGe', ...path, 'selected'], false);
-        this.set('dataSelectedGe', {});
-
-        //
-        // this._resetStackHelper('Ge');
-      }
-
-      _dataBchChanged(dataBch) {
-        if (dataBch === undefined) {
-          return;
-        }
-
-        // this.deselectBch();
-      }
-
-      _dataGeChanged(dataGe) {
-        if(dataGe === undefined) {
-          return;
-        }
-
-        // this.deselectGe();
-      }
-
-      // _resetStackHelper(target) {
-      //   // stack
-      //   if (this[`stackHelper${target}`] !== null &&
-      //     this[`stackHelper${target}`]._stack) {
-      //     // reset renderers
-      //     this[`stackScene${target}`].remove(this[`stackHelper${target}`]);
-      //     this.set(`stackScene${target}`, null);
-      //     this[`stackHelper${target}`].dispose();
-      //     this.set(`stackHelper${target}`, null);
-      //   }
-      // }
-
-      // _resetData(target) {
-      //   // data
-      //   this.set(`data${target}`, []);
-      //   this.set(`dataSelected${target}`, {});
-      //   this.set(`dataStatus${target}`, 'empty');
-      // }
-
-      classIt(active) {
-        const baseClass = 'viewerui';
-        const activeClass = active ? 'active' : '';
-
-        return `${baseClass} ${activeClass}`;
       }
 
       /**
@@ -932,13 +864,42 @@
       }
 
       _theaterModeChanged() {
+        let currentlyFullscreen = false;
+        if (document.fullscreenElement ||
+          document.webkitFullscreenElement ||
+          document.mozFullScreenElement ||
+          document.msFullscreenElement) {
+          currentlyFullscreen = true;
+        }
+
         // go fulll screen!
-        if(this.theaterMode) {
+        if(this.theaterMode && !currentlyFullscreen) {
           // request fullscreen
           // https://developer.mozilla.org/en-US/docs/Web/API/Fullscreen_API
-          this.$.fullViewer.webkitRequestFullScreen();
-          this._layoutSizeChanged();
+          this.webkitRequestFullScreen();
+        } else if (!this.theaterMode && currentlyFullscreen) {
+          if (document.exitFullscreen)
+            document.exitFullscreen();
+          else if (document.webkitExitFullscreen)
+            document.webkitExitFullscreen();
+          else if (document.mozCancelFullScreen)
+            document.mozCancelFullScreen();
+          else if (document.msExitFullscreen)
+            document.msExitFullscreen();
         }
+      }
+
+      _fullscreenListener(event) {
+        // if user exit fullscreen with the "esc" key
+        // we notify the toolbar
+        if (!(document.fullscreenElement ||
+          document.webkitFullscreenElement ||
+          document.mozFullScreenElement ||
+          document.msFullscreenElement) && this.theaterMode) {
+          this.theaterMode = false;
+        }
+
+        this._layoutSizeChanged();
       }
 
       _hideControls(current, target) {
@@ -947,11 +908,6 @@
         }
 
         return (Number(current) !== Number(target));
-      }
-
-      _datasetsChanged(previous, next) {
-        console.log(previous);
-        console.log(next);
       }
 
       _resizeListener() {

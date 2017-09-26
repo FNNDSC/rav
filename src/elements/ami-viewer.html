@@ -279,14 +279,6 @@
         super();
       }
 
-      connectedCallback() {
-        super.connectedCallback();
-      }
-
-      disconnectedCallback() {
-        super.disconnectedCallback();
-      }
-
       _emptyChanged(empty) {
 
       }
@@ -394,13 +386,16 @@
         this.images = [];
 
         const deactivate = new CustomEvent(
-          'deactivate',
-          {
-            detail: {},
-          }
+          'deactivate', {}
         );
 
         this.dispatchEvent(deactivate);
+
+        this.$.renderer.stopRenderingLoop();
+        this.stackScene.remove(this.stackHelper);
+        this.stackScene = null;
+        this.stackHelper.dispose();
+        this.stackHelper = null;
       }
 
       _imagesChanged() {
@@ -474,6 +469,9 @@
             this.$.renderer.studyDate = series.studyDate;
             this.$.renderer.studyDescription = series.studyDescription;
             this.$.renderer.seriesDescription = series.seriesDescription;
+
+            // activate the element
+            this._activateChanged(true);
           });
       }
 
