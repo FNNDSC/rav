@@ -18,6 +18,7 @@
 <!-- Local components  -->
 <link rel="import" href="elements/ami-viewer-2d.html">
 <link rel="import" href="elements/ami-viewer.html">
+<link rel="import" href="elements/gex-panel.html">
 <link rel="import" href="elements/gex-layout-manager.html">
 <link rel="import" href="elements/series-preview.html">
 <link rel="import" href="elements/image-controls.html">
@@ -93,7 +94,7 @@
                 flex-direction: column;
       }
 
-      .viewersC {
+      .viewersContainer {
         -webkit-box-flex: 1;
             -ms-flex: 1;
                 flex: 1;
@@ -156,20 +157,11 @@
         color: var(--secondary-text-color);
       }
 
-      .panel.bch {
-        width: 156px;
-      }
-
-      .bch {
+      .border-right {
         border-right: 1px solid var(--divider-color);
       }
 
-
-      .panel.ge {
-        width: 256px;
-      }
-
-      .ge {
+      .border-left {
         border-left: 1px solid var(--divider-color);
       }
 
@@ -197,7 +189,7 @@
                 flex-direction: column;
       }
 
-      .viewHead {
+      .globalControls {
         width: 100%;
         background-color: var(--dark-primary-color);
       }
@@ -245,49 +237,50 @@
       id="API"></chips-api>
 
     <template is="dom-if" if="[[_isReady(dataStatusBch)]]">
-      <div hidden$="[[!visibleBCH]]" class="panel bch">
-        <app-toolbar>
-          <div main-title>PACS</div>
-          <paper-icon-button icon="my-icons:search" on-tap="handleBCH"></paper-icon-button>
-          <paper-icon-button icon="my-icons:chevron-left" on-tap="hideBCH"></paper-icon-button>
-        </app-toolbar>
-        <div class="series">
-          <!-- Fetching ready -->
-          <template is="dom-if" if="[[_isReady(dataStatusBch)]]">
-            <template is="dom-repeat" items="[[dataBch]]">
-              <series-preview
-                draggable="true"
-                on-dragstart="_onDragStart"
-                series="[[item]]"
-                on-tap="_handleSeriesSelectedBch"><series-preview>
-            </template>
-          </template>
-
-        </div>
-        <div class="ge" hidden$="[[!_isSelected(dataSelectedBch)]]">
-          <app-toolbar>
-            <div main-title>Reference</div>
-          </app-toolbar>
-          <div class="series">
-            <template is="dom-repeat" items="[[dataGe]]">
-              <series-preview
-                draggable="true"
-                on-dragstart="_onDragStart"
-                series="[[item]]"
-                on-tap="_handleSeriesSelectedGe"><series-preview>
-            </template>
+      <gex-panel
+        class="border-right"
+        on-is-open-changed="_panelIsOpenChanged">
+          <div slot="title">Images</div>
+          <div slot="title-actions">
+            <paper-icon-button icon="my-icons:search" on-tap="handleBCH"></paper-icon-button>
           </div>
-        </div>
-        <div class="label">
-          Copyright (c) 2017 FNNDSC, BCH. All rights reserved.</iron-icon>
-        </div>
-      </div>
-      <div hidden$="[[visibleBCH]]" class="bch">
-        <paper-icon-button icon="my-icons:chevron-right" on-tap="showBCH"></paper-icon-button>
-      </div>
+          <div slot="content">
+            <div class="series">
+                <!-- Fetching ready -->
+                <template is="dom-if" if="[[_isReady(dataStatusBch)]]">
+                  <template is="dom-repeat" items="[[dataBch]]">
+                    <series-preview
+                      draggable="true"
+                      on-dragstart="_onDragStart"
+                      series="[[item]]"
+                      on-tap="_handleSeriesSelectedBch"><series-preview>
+                  </template>
+                </template>
+
+              </div>
+              <div class="ge" hidden$="[[!_isSelected(dataSelectedBch)]]">
+                <app-toolbar>
+                  <div main-title>Reference</div>
+                </app-toolbar>
+                <div class="series">
+                  <template is="dom-repeat" items="[[dataGe]]">
+                    <series-preview
+                      draggable="true"
+                      on-dragstart="_onDragStart"
+                      series="[[item]]"
+                      on-tap="_handleSeriesSelectedGe"><series-preview>
+                  </template>
+                </div>
+              </div>
+              <div class="label">
+                Copyright (c) 2017 FNNDSC, BCH. All rights reserved.</iron-icon>
+              </div>
+          </div>
+      </gex-panel>
     </template>
 
     <div id="fullViewer" class="content">
+      <!-- No data loaded -->
       <div class="overlay" hidden$="[[_isReady(dataStatusBch)]]">
         <!-- Empty-->
         <template is="dom-if" if="[[_isEmpty(dataStatusBch)]]">
@@ -305,6 +298,8 @@
           <paper-progress indeterminate></paper-progress>
         </template>
       </div>
+
+      <!-- Data loaded but nothing selected -->
       <div class="overlay" hidden$="[[!_isReadyAndNotSelected(dataStatusBch, dataSelectedBch)]]">
         <div>
           <div class="left-image illustration">
@@ -312,11 +307,14 @@
           <div>Select DICOM on the left panel</div>
         </div>
       </div>
-      <div class="viewHead">
+
+      <!-- global controls -->
+      <div class="globalControls">
         <control-panel-2d layout="{{layout}}" theater-mode="{{theaterMode}}"></control-panel-2d>
       </div>
 
-      <div class="viewersC">
+      <!-- viewers container -->
+      <div class="viewersContainer">
         <gex-layout-manager
           active="[[active]]"
           layout="[[layout]]"
@@ -411,12 +409,13 @@
     </div>
 
     <template is="dom-if" if="[[_isReady(dataStatusBch)]]">
-        <div hidden$="[[!visibleInfo]]" class="panel ge">
-          <app-toolbar>
-            <div main-title>Selected image</div>
-            <paper-icon-button icon="my-icons:chevron-right" on-tap="hideInfo"></paper-icon-button>
-          </app-toolbar>
+      <gex-panel
+        class="border-left"
+        size="large"
+        on-is-open-changed="_panelIsOpenChanged">
 
+        <div slot="title">Selection</div>
+        <div slot="content">
           <image-controls
             hidden$="[[_hideControls(0, active)]]"
             activate="[[_hideControls(0, active)]]"
@@ -444,7 +443,7 @@
             activate="[[_hideControls(2, active)]]"
             color-lut="{{colorLut2}}"
             histogram="[[histogram2]]"
-            min-max="[[minMax2]]"9
+            min-max="[[minMax2]]"
             orientation="{{orientation2}}"
             window-center="{{windowCenter2}}"
             window-level="{{windowLevel2}}"
@@ -460,12 +459,12 @@
             window-center="{{windowCenter3}}"
             window-level="{{windowLevel3}}"
             window-width="{{windowWidth3}}"></image-controls>
-
-        </div>
-        <div hidden$="[[visibleInfo]]" class="ge">
-          <paper-icon-button icon="my-icons:chevron-left" on-tap="showInfo"></paper-icon-button>
-        </div>
-      </template>
+          </div>
+      </div>
+      <div hidden$="[[visibleInfo]]" class="ge">
+        <paper-icon-button icon="my-icons:chevron-left" on-tap="showInfo"></paper-icon-button>
+      </div>
+    </template>
   </template>
 
   <script>
@@ -477,11 +476,6 @@
 
       static get properties() {
         return {
-          collapse: {
-            type: Boolean,
-            value: true,
-            observer: '_collapseChanged',
-          },
           dataBch: {
             type: Array,
             value: [
@@ -555,34 +549,6 @@
             type: Boolean,
             value: false,
           },
-          visibleInfo: {
-            type: Boolean,
-            value: true,
-            observer: '_visibleGeChanged',
-          },
-          visibleBCH: {
-            type: Boolean,
-            value: true,
-            observer: '_visibleBcgChanged',
-          },
-          stackHelperBch: {
-            type: Object,
-            value: {},
-            observer: '_stackHelperBchChanged',
-          },
-          stackSceneBch: {
-            type: Object,
-            value: {},
-          },
-          stackHelperGe: {
-            type: Object,
-            value: {},
-            observer: '_stackHelperGeChanged',
-          },
-          stackSceneGe: {
-            type: Object,
-            value: {},
-          },
           geLink: {
             type: String,
             value: '',
@@ -590,76 +556,6 @@
           previousInstance: {
             type: Object,
             value: {},
-          },
-          stackIndexBch: {
-            type: Number,
-            value: 0,
-            observer: '_stackIndexBchChanged',
-          },
-          stackMinIndexBch: {
-            type: Number,
-            value: 0,
-          },
-          stackMaxIndexBch: {
-            type: Number,
-            value: 0,
-          },
-          stackIntensityMinBch: {
-            type: Number,
-            value: 0,
-          },
-          stackIntensityMaxBch: {
-            type: Number,
-            value: 0,
-          },
-          stackIntensityRangeBch: {
-            type: Number,
-            value: 0,
-          },
-          stackWindowWidthBch: {
-            type: Number,
-            value: 0,
-            observer: '_stackWindowWidthBchChanged',
-          },
-          stackWindowCenterBch: {
-            type: Number,
-            value: 0,
-            observer: '_stackWindowCenterBchChanged',
-          },
-          stackIndexGe: {
-            type: Number,
-            value: 0,
-            observer: '_stackIndexGeChanged',
-          },
-          stackMinIndexGe: {
-            type: Number,
-            value: 0,
-          },
-          stackMaxIndexGe: {
-            type: Number,
-            value: 0,
-          },
-          stackIntensityMinGe: {
-            type: Number,
-            value: 0,
-          },
-          stackIntensityMaxGe: {
-            type: Number,
-            value: 0,
-          },
-          stackIntensityRangeGe: {
-            type: Number,
-            value: 0,
-          },
-          stackWindowWidthGe: {
-            type: Number,
-            value: 0,
-            observer: '_stackWindowWidthGeChanged',
-          },
-          stackWindowCenterGe: {
-            type: Number,
-            value: 0,
-            observer: '_stackWindowCenterGeChanged',
           },
           layout: {
             type: Number,
@@ -780,22 +676,6 @@
         console.log(error);
       }
 
-      hideBCH() {
-        this.visibleBCH = false;
-      }
-
-      hideInfo() {
-        this.visibleInfo = false;
-      }
-
-      showBCH() {
-        this.visibleBCH = true;
-      }
-
-      showInfo() {
-        this.visibleInfo = true;
-      }
-
       _dataStatusBchChanged(status) {
         if (status !== 'ready') {
           this.set('dataBch', []);
@@ -804,23 +684,14 @@
           this.set('dataSelectedGe', {});
 
           // stop rendering loops
-          this.$.renderBch.stopRenderingLoop();
-          this.$.renderGe.stopRenderingLoop();
+          // this.$.renderBch.stopRenderingLoop();
+          // this.$.renderGe.stopRenderingLoop();
         }
       }
 
-      _visibleGeChanged(visible) {
+      _panelIsOpenChanged() {
         this._layoutSizeChanged();
         return;
-        // this.$.renderBch.resize();
-        // this.$.renderGe.resize();
-      }
-
-      _visibleBcgChanged(visible) {
-        this._layoutSizeChanged();
-        return;
-        // this.$.renderBch.resize();
-        // this.$.renderGe.resize();
       }
 
       _isEmpty(status) {
@@ -898,11 +769,11 @@
         this.set('dataSelectedBch', {});
 
         // clean up all stack helpers
-        this._resetStackHelper('Bch');
-        this._resetStackHelper('Ge');
+        // this._resetStackHelper('Bch');
+        // this._resetStackHelper('Ge');
 
-        // clean up Ge data
-        this._resetData('Ge');
+        // // clean up Ge data
+        // this._resetData('Ge');
       }
 
       deselectGe() {
@@ -916,7 +787,7 @@
         this.set('dataSelectedGe', {});
 
         //
-        this._resetStackHelper('Ge');
+        // this._resetStackHelper('Ge');
       }
 
       _dataBchChanged(dataBch) {
@@ -924,7 +795,7 @@
           return;
         }
 
-        this.deselectBch();
+        // this.deselectBch();
       }
 
       _dataGeChanged(dataGe) {
@@ -932,165 +803,33 @@
           return;
         }
 
-        this.deselectGe();
+        // this.deselectGe();
       }
 
-      _collapseChanged() {
-        this._resizeListener();
-      }
+      // _resetStackHelper(target) {
+      //   // stack
+      //   if (this[`stackHelper${target}`] !== null &&
+      //     this[`stackHelper${target}`]._stack) {
+      //     // reset renderers
+      //     this[`stackScene${target}`].remove(this[`stackHelper${target}`]);
+      //     this.set(`stackScene${target}`, null);
+      //     this[`stackHelper${target}`].dispose();
+      //     this.set(`stackHelper${target}`, null);
+      //   }
+      // }
 
-      _resetStackHelper(target) {
-        // stack
-        if (this[`stackHelper${target}`] !== null &&
-          this[`stackHelper${target}`]._stack) {
-          // reset renderers
-          this[`stackScene${target}`].remove(this[`stackHelper${target}`]);
-          this.set(`stackScene${target}`, null);
-          this[`stackHelper${target}`].dispose();
-          this.set(`stackHelper${target}`, null);
-        }
-      }
-
-      _resetData(target) {
-        // data
-        this.set(`data${target}`, []);
-        this.set(`dataSelected${target}`, {});
-        this.set(`dataStatus${target}`, 'empty');
-      }
+      // _resetData(target) {
+      //   // data
+      //   this.set(`data${target}`, []);
+      //   this.set(`dataSelected${target}`, {});
+      //   this.set(`dataStatus${target}`, 'empty');
+      // }
 
       classIt(active) {
         const baseClass = 'viewerui';
         const activeClass = active ? 'active' : '';
 
         return `${baseClass} ${activeClass}`;
-      }
-
-      /**
-       * Stack helper Bch changed
-       *
-       * @param {*} stackHelper
-       */
-      _stackHelperBchChanged(stackHelper) {
-        this._stackHelperChanged(stackHelper, 'Bch');
-      }
-
-      _stackHelperGeChanged(stackHelper) {
-        this._stackHelperChanged(stackHelper, 'Ge');
-      }
-
-      _stackHelperChanged(stackHelper, target) {
-        if (stackHelper === undefined ||
-            stackHelper === null ||
-            stackHelper.stack === undefined) {
-          return;
-        }
-
-        // orientation
-        this.set(`orientation${target}`, 'default');
-        this[`stackHelper${target}`].orientation = 0;
-
-        // more
-        this.set(`stackIntensityAuto${target}`, false);
-        this._stackIntensityAutoChanged(target, false);
-
-        this.set(`stackInterpolation${target}`, true);
-        this._stackInterpolationChanged(target, true);
-
-        // intensity
-        // must be last to be set because some flags such as
-        // "intensity" can modify it
-        const stack = this[`stackHelper${target}`].stack;
-        this.set(`stackIntensityMin${target}`, stack.minMax[0]);
-        this.set(`stackIntensityMax${target}`, stack.minMax[1]);
-        const defaultWW = stack.minMax[1] - stack.minMax[0];
-        this.set(`stackIntensityRange${target}`, defaultWW);
-        this.set(`stackWindowWidth${target}`, defaultWW);
-        this.set(`stackWindowCenter${target}`, stack.minMax[0] + defaultWW / 2);
-      }
-
-      /**
-       * Stack index Bch changed
-       *
-       * @param {*} index
-       */
-      _stackIndexBchChanged(index) {
-        this._stackIndexChanged('Bch', index);
-      }
-
-      _stackIndexGeChanged(index) {
-        this._stackIndexChanged('Ge', index);
-      }
-
-      _stackIndexChanged(target, index) {
-        const stackHelper = this[`stackHelper${target}`];
-        if (index === undefined ||
-            stackHelper === undefined ||
-            stackHelper === null ||
-            stackHelper.stack === undefined) {
-          return;
-        }
-
-        stackHelper.index = index;
-
-        const auto = this[`stackIntensityAuto${target}`];
-
-        if (auto) {
-          const ww = stackHelper.slice.windowWidth;
-          this.set(`stackWindowWidth${target}`, ww);
-
-          const wc = stackHelper.slice.windowCenter;
-          this.set(`stackWindowCenter${target}`, wc);
-        }
-      }
-
-      /**
-       * Stack window width Bch changed
-       *
-       * @param {*} windowWidth
-       */
-      _stackWindowWidthBchChanged(windowWidth) {
-        this._stackWindowWidthChanged('Bch', windowWidth);
-      }
-
-      _stackWindowWidthGeChanged(windowWidth) {
-        this._stackWindowWidthChanged('Ge', windowWidth);
-      }
-
-      _stackWindowWidthChanged(target, windowWidth) {
-        const stackHelper = this[`stackHelper${target}`];
-        if (windowWidth === undefined ||
-            stackHelper === undefined ||
-            stackHelper === null ||
-            stackHelper.stack === undefined) {
-          return;
-        }
-
-        stackHelper.slice.windowWidth = windowWidth;
-      }
-
-      /**
-       * Stack window center Bch changed
-       *
-       * @param {*} windowCenter
-       */
-      _stackWindowCenterBchChanged(windowCenter) {
-        this._stackWindowCenterChanged('Bch', windowCenter);
-      }
-
-      _stackWindowCenterGeChanged(windowCenter) {
-        this._stackWindowCenterChanged('Ge', windowCenter);
-      }
-
-      _stackWindowCenterChanged(target, windowCenter) {
-        const stackHelper = this[`stackHelper${target}`];
-        if (windowCenter === undefined ||
-            stackHelper === undefined ||
-            stackHelper === null ||
-            stackHelper.stack === undefined) {
-          return;
-        }
-
-        stackHelper.slice.windowCenter = windowCenter;
       }
 
       /**
@@ -1185,12 +924,10 @@
       }
 
       _onActivateRenderer(event) {
-        console.log('activate');
         this.active = event.target.dataset.uid;
       }
 
       _onDeactivateRenderer(event) {
-        console.log('deactivate');
         this.active = -1;
       }
 
@@ -1219,11 +956,9 @@
 
       _resizeListener() {
         this._layoutSizeChanged();
-        // this.$.imageControls.resize();
       }
 
       _layoutSizeChanged() {
-        console.log('layout changed');
         this.$.viewer0.resize();
         this.$.viewer1.resize();
         this.$.viewer2.resize();

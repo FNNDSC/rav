@@ -1,0 +1,89 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/lib/utils/flattened-nodes-observer.html">
+
+<!-- App components  -->
+<link rel="import" href="../../bower_components/app-layout/app-toolbar/app-toolbar.html">
+
+<!-- Paper components  -->
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+
+<link rel="import" href="../my-icons.html">
+
+<dom-module id="gex-panel">
+  <template>
+    <style>
+      :host {
+        display: flex;
+      }
+
+      .container, .content, .content ::slotted(*) {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .small {
+        width: 192px;
+      }
+
+      .large {
+        width: 256px;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+    </style>
+
+    <div hidden$="[[!isOpen]]" class$="container {{size}}">
+        <app-toolbar>
+            <div main-title><slot name="title"></slot></div>
+            <slot name="title-actions"></slot>
+            <paper-icon-button icon="my-icons:close" on-tap="_toggleOpen"></paper-icon-button>
+        </app-toolbar>
+        <div class="content">
+           <slot name="content" class="content"></slot>
+        </div>
+    </div>
+
+
+    <div hidden$="[[isOpen]]">
+        <paper-icon-button icon="icons:add" on-tap="_toggleOpen"></paper-icon-button>
+    </div>
+
+  </template>
+
+  <script>
+    class GexPanel extends Polymer.Element {
+      static get is() {
+        return 'gex-panel';
+      }
+
+      static get properties() {
+        return {
+          size: {
+            type: String,
+            value: 'small',
+            observer: '_sizeChanged',
+          },
+          side: {
+            type: String,
+            value: 'left',
+            observer: '_sideChanged',
+          },
+          isOpen: {
+            type: Boolean,
+            value: true,
+            notify: true,
+          },
+        };
+      }
+
+      _toggleOpen() {
+        this.set('isOpen', !this.isOpen);
+      }
+    }
+    window.customElements.define(GexPanel.is, GexPanel);
+  </script>
+</dom-module>
