@@ -300,13 +300,7 @@
       </div>
 
       <!-- Data loaded but nothing selected -->
-      <div class="overlay" hidden$="[[!_isReadyAndNotSelected(dataStatusBch, dataSelectedBch)]]">
-        <div>
-          <div class="left-image illustration">
-          </div>
-          <div>Select DICOM on the left panel</div>
-        </div>
-      </div>
+      <div hidden$="[[!_isReady(dataStatusBch)]]">
 
       <!-- global controls -->
       <div class="globalControls border-bottom">
@@ -405,6 +399,7 @@
               on-dragover="_onDragOver"></ami-viewer>
 
         </gex-layout-manager>
+      </div>
       </div>
     </div>
 
@@ -701,6 +696,7 @@
       }
 
       _isEmpty(status) {
+        console.log(status);
         return status === 'empty';
       }
 
@@ -713,10 +709,10 @@
       }
 
       _isReady(status) {
-        if(sessionStorage.getItem('username') === 'demo') {
-          this.dataStatusBch = 'ready';
-          return true;
-        }
+        // if(sessionStorage.getItem('username') === 'demo') {
+        //   this.dataStatusBch = 'ready';
+        //   return true;
+        // }
 
         return status === 'ready';
       }
@@ -726,9 +722,9 @@
       }
 
       _isReadyAndNotSelected(status, data) {
-        if(sessionStorage.getItem('username') === 'demo') {
-          return false;
-        }
+        // if(sessionStorage.getItem('username') === 'demo') {
+        //   return false;
+        // }
 
         const ready = this._isReady(status);
         const selected = this._isSelected(data);

@@ -79,12 +79,22 @@
         right: 0;
         text-align: right;
       }
+
+      #lutColorCanvas {
+        /* transform: rotate(90deg); */
+        transform-origin: left;
+        transform: rotate(90deg) translate(-50%, -50%) ;
+        /* transform-origin: top left; */
+        /* margin: 10px; */
+      }
     </style>
 
     <div id="overlay">
       <div hidden$=[[_partialAnnotations(annotations)]] id="top" class="top direction"></div>
       <div hidden$=[[_partialAnnotations(annotations)]] id="bottom" class="bottom direction"></div>
-      <div hidden$=[[_partialAnnotations(annotations)]] id="left" class="left direction"></div>
+      <div hidden$=[[_partialAnnotations(annotations)]] id="left" class="left direction">
+        <div id="lutColorCanvas"></div>
+      </div>
       <div hidden$=[[_partialAnnotations(annotations)]] id="right" class="right direction"></div>
 
       <div hidden$=[[_partialAnnotations(annotations)]] id="topLeft" class="top left information">
@@ -195,6 +205,10 @@
           return;
         }
         this.windowCenter = parseFloat(windowCenter.toFixed(2));
+      }
+
+      lutColorCanvas(canvas) {
+        this.$.lutColorCanvas.appendChild(canvas);
       }
     }
     window.customElements.define(AMIRendererAnnotations.is, AMIRendererAnnotations);

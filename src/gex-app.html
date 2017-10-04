@@ -11,7 +11,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../bower_components/polymer/lib/mixins/gesture-event-listeners.html">
 
-<link rel="import" href="../bower_components/app-layout/app-drawer-layout/app-drawer-layout.html">
 <link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
 <link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html">
 <link rel="import" href="../bower_components/app-layout/app-scroll-effects/app-scroll-effects.html">
@@ -26,6 +25,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
+<link rel="import" href="../bower_components/paper-tabs/paper-tab.html">
 
 <link rel="import" href="my-icons.html">
 <link rel="import" href="pacs-pull/gex-pacs-pull.html">
@@ -36,6 +37,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="gex-datastore.html">
 
 <link rel="lazy-import" href="gex-login.html">
+<link rel="lazy-import" href="gex-library.html">
+<link rel="lazy-import" href="gex-viewer.html">
 <link rel="lazy-import" href="gex-home.html">
 <link rel="lazy-import" href="gex-view404.html">
 
@@ -92,6 +95,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         display: flex;
         flex-direction: column;
         height: 100%;
+        background-color: var(--dark-primary-color);
+      }
+
+      .toolbar-login-actions {
+        display: flex;
+      }
+
+      [hidden] {
+        display: none;
       }
     </style>
 
@@ -123,16 +135,27 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       move-link="[[moveLink]]"
       query-link="[[queryLink]]"
       on-start-move="_handleStartMove"></gex-pacs-pull>
+      
+    <!-- gex-pacs-pull-settings dialog -->
+    <!-- must be at top level -->
 
     <!-- Main content -->
     <app-header-layout has-scrolling-region>
 
       <app-header slot="header" condenses reveals effects="waterfall">
         <app-toolbar>
-          <div main-title>GEXplorer</div>
-          <div hidden$="[[!login]]">
+          <div main-title>MedView</div>
+          <div hidden$="[[!login]]" class="toolbar-login-actions">
+            <paper-tabs 
+              selected="[[page]]"
+              attr-for-selected="name"
+              on-selected-changed="_paperTabSelectedChanged">
+              <paper-tab name="library">Library</paper-tab>
+              <paper-tab name="viewer">Viewer</paper-tab>
+            </paper-tabs>
             <paper-button on-tap="handleLogout">Logout</paper-button>
           </div>
+
         </app-toolbar>
       </app-header>
 
@@ -144,16 +167,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <gex-login
           name="login"
           on-login="handleLogin"></gex-login>
-          <!--           data-bch="[[data]]" -->
-        <gex-home
+        <gex-library
+          name="library"></gex-library>
+        <gex-viewer
+          name="viewer"></gex-viewer>
+        <!-- <gex-home
           name="home"
+          data-bch="[[data]]"
           data-status-bch="[[dataStatus]]"
           data-ge="[[dataGE]]"
           data-status-ge="[[dataGEStatus]]"
           previous-instance="[[pluginBch]]"
           ge-link="[[geLink]]"
           on-open-dialog="handleOpenDialog"
-          on-start-ge="_handleStartGE"></gex-home>
+          on-start-ge="_handleStartGE"></gex-home> -->
         <gex-view404
           name="view404"></gex-view404>
       </iron-pages>
@@ -256,10 +283,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         // Load page import on demand. Show 404 page if fails
         const resolvedPageUrl = this.resolveUrl('gex-' + page + '.html');
         Polymer.importHref(
-            resolvedPageUrl,
-            null,
-            this._showPage404.bind(this),
-            true);
+          resolvedPageUrl,
+          null,
+          this._showPage404.bind(this),
+          true
+        );
       }
 
       _showPage404() {
@@ -291,7 +319,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           this.set('route.path', '/login/');
         } else {
           if (this.page === 'login') {
-            this.set('route.path', '/home/');
+            this.set('route.path', '/library/');
           }
           this.fetchPlugins();
         }
@@ -349,6 +377,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             this.geLink = plugins[i].links.instances;
           }
         }
+      }
+
+      _paperTabSelectedChanged(event) {
+        const page = event.detail.value;
+        this.set('route.path', `/${page}/`);
       }
     }
 

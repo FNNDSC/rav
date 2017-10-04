@@ -565,6 +565,8 @@
         this._lutColor.lut = normalizedLut;
         this.stackHelper.slice.lut = normalizedLut;
         this.stackHelper.slice.lutTexture = this._lutColor.texture;
+        this.lutColorCanvas = this._lutColor._canvas;
+        this.$.overlay.lutColorCanvas(this.lutColorCanvas);
         this._sceneChanged();
       }
 
