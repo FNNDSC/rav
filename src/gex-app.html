@@ -21,25 +21,25 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/iron-selector/iron-selector.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 
-
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
 <link rel="import" href="../bower_components/paper-tabs/paper-tab.html">
 
-<link rel="import" href="my-icons.html">
-<link rel="import" href="pacs-pull/gex-pacs-pull.html">
+<!-- <link rel="import" href="gex-icons.html"> -->
+<!-- <link rel="import" href="pacs-pull/gex-pacs-pull.html"> -->
 
 <link rel="import" href="../bower_components/chips-api/chips-api.html">
 <link rel="import" href="../bower_components/chips-api/behaviors/chips-plugin-behavior.html">
 
 <link rel="import" href="gex-datastore.html">
 
+<link rel="import" href="pacs-pull/gex-pacs-settings-dialog.html">
+
 <link rel="lazy-import" href="gex-login.html">
 <link rel="lazy-import" href="gex-library.html">
 <link rel="lazy-import" href="gex-viewer.html">
-<link rel="lazy-import" href="gex-home.html">
 <link rel="lazy-import" href="gex-view404.html">
 
 <dom-module id="gex-app">
@@ -102,6 +102,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         display: flex;
       }
 
+      app-toolbar {
+        height: 48px;
+      }
+
+      app-toolbar paper-button {
+        font-size: 14px;
+      }
+
       [hidden] {
         display: none;
       }
@@ -130,21 +138,28 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       plugin-status="{{dataGEStatus}}"></gex-datastore>
 
     <!-- PACS pull dialog -->
-    <gex-pacs-pull
+    <!-- <gex-pacs-pull
       id="PACSPull"
       move-link="[[moveLink]]"
       query-link="[[queryLink]]"
-      on-start-move="_handleStartMove"></gex-pacs-pull>
+      on-start-move="_handleStartMove"></gex-pacs-pull> -->
       
     <!-- gex-pacs-pull-settings dialog -->
     <!-- must be at top level -->
+    <gex-pacs-settings-dialog
+      id="pacsSettingsDialog"
+      aet="{{aet}}"
+      aec="{{aec}}"
+      aet-listener="{{aetListener}}"
+      server-ip="{{serverIp}}"
+      server-port="{{serverPort}}"></gex-pacs-settings-dialog>
 
     <!-- Main content -->
     <app-header-layout has-scrolling-region>
 
       <app-header slot="header" condenses reveals effects="waterfall">
         <app-toolbar>
-          <div main-title>MedView</div>
+          <div main-title>MV</div>
           <div hidden$="[[!login]]" class="toolbar-login-actions">
             <paper-tabs 
               selected="[[page]]"
@@ -168,7 +183,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           name="login"
           on-login="handleLogin"></gex-login>
         <gex-library
-          name="library"></gex-library>
+          name="library"
+          aet="[[aet]]"
+          aec="[[aec]]"
+          aet-listener="[[aetListener]]"
+          server-ip="[[serverIp]]"
+          server-port="[[serverPort]]"
+          on-open-pacs-settings-dialog="handleOpenPacsSettingsDialog"></gex-library>
         <gex-viewer
           name="viewer"></gex-viewer>
         <!-- <gex-home
@@ -382,6 +403,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       _paperTabSelectedChanged(event) {
         const page = event.detail.value;
         this.set('route.path', `/${page}/`);
+      }
+
+      handleOpenPacsSettingsDialog() {
+        this.$.pacsSettingsDialog.open();
       }
     }
 

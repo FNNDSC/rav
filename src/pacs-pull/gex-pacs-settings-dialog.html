@@ -1,0 +1,140 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+
+<dom-module id="gex-pacs-settings-dialog">
+  <template>
+    <style>
+      :host {
+        display: flex;
+        position: relative;
+      }
+
+      .content {
+        display: flex;
+        flex-direction: column;
+        width: 640px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      @media (max-width: 640px) {
+        .content {
+          width: 100%;
+        }
+      }
+    </style>
+
+    <paper-dialog
+      id="dialog"
+      with-backdrop
+      on-iron-overlay-closed="close">
+      <h2>PACS Settings</h2>
+      <paper-dialog-scrollable>
+        <div class="content">
+          <div class="item">
+            <paper-input label="PACS Server IP" value="{{serverIp}}"></paper-input>
+          </div>
+          <div class="item">
+            <paper-input label="PACS Server Port" value="{{serverPort}}"></paper-input>
+          </div>
+          <div class="item">
+            <paper-input label="Called AET" value="{{aec}}"></paper-input>
+          </div>
+          <div class="item">
+            <paper-input label="Calling AET" value="{{aet}}"></paper-input>
+          </div>
+        </div>
+      </paper-dialog-scrollable>
+
+      <div class="buttons">
+        <paper-button dialog-dismiss>Cancel</paper-button>
+        <paper-button dialog-confirm autofocus>OK</paper-button>
+      </div>
+    </paper-dialog>
+
+  </template>
+
+  <script>
+    class GexPacsSettingsDialog extends Polymer.Element {
+      static get is() {
+        return 'gex-pacs-settings-dialog';
+      }
+    
+      static get properties() {
+        return {
+          aet: {
+            type: String,
+            value: 'CHIPS',
+            notify: true,
+          },
+          aec: {
+            type: String,
+            value: 'ORTHANC',
+            notify: true,
+          },
+          aetListener: {
+            type: String,
+            value: 'CHIPS',
+            notify: true,
+          },
+          serverIp: {
+            type: String,
+            value: '192.168.1.40',
+            notify: true,
+          },
+          serverPort: {
+            type: String,
+            value: '4242',
+            notify: true,
+          },
+        };
+      }
+
+      open() {
+        this.$.dialog.open();
+        // store current if user wants to cancel
+        this.previousState = {
+          aet: this.aet,
+          aec: this.aec,
+          aetListener: this.aetListener,
+          serverIp: this.serverIp,
+          serverPort: this.serverPort,
+        };
+      }
+
+      close(event) {
+        const detail = event.detail;
+
+        //
+        // can receive different depending on how
+        // the dialog is closed
+        //
+        // click on backdrop:
+        // {canceled: true}
+        //
+        // click on cancel:
+        // {canceled: false, confirmed: false}
+        //
+        // click on ok:
+        // {canceled: false, confirmed: true}
+
+        if (!detail.confirmed || detail.canceled) {
+          this.setState(this.previousState);
+        }
+      }
+
+      setState(state) {
+        this.aet = state.aet;
+        this.aec = state.aec;
+        this.aetListener = state.aetListener;
+        this.serverIp = state.serverIp;
+        this.serverPort = state.serverPort;
+      }
+    }
+    window.customElements.define(GexPacsSettingsDialog.is, GexPacsSettingsDialog);
+  </script>
+</dom-module>

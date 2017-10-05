@@ -1,0 +1,198 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymer/lib/mixins/gesture-event-listeners.html">
+
+<!-- app elements -->
+<link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
+<link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html">
+<link rel="import" href="../bower_components/app-layout/app-scroll-effects/app-scroll-effects.html">
+<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
+
+<!-- iron elements -->
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+
+<!-- paper elements -->
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+
+<link rel="import" href="./gex-icons.html">
+
+<dom-module id="gex-library">
+  <template>
+    <style>
+      :host {
+        display: flex;
+        height: 100%;
+        flex-direction: column;
+      }
+
+      app-toolbar {
+        /* background-color: darkblue; */
+        height: 92px;
+      }
+
+      .container {
+        flex: 1;
+        display: flex;
+      }
+
+      .left-panel {
+        width: 172px;
+        background-color: red;
+      }
+
+      .main-panel {
+        flex: 1;
+        flex-direction: column;
+        display: flex;
+      }
+
+      .query-selection {
+        height: 172px;
+        flex-shrink: 0;
+        background-color: blue;
+      }
+
+      .query-results {
+        flex: 1;
+        background-color: green;
+      }
+
+      paper-button {
+        font-size: 12px;
+        /* background-color: var(--paper-green-500); */
+        color: grey;
+        border: 1px solid grey;
+      }
+
+      paper-button[active], paper-button.search {
+        background-color: var(--accent-color);
+        border-color: var(--accent-color);
+        color: white;
+      }
+
+      paper-button.settings {
+        border: none;
+      }
+
+      paper-icon-button {
+        color: #fff;
+      }
+
+      paper-input {
+        display: inline-block;
+      }
+
+      paper-input paper-icon-button {
+        width: 23px;
+        height: 23px;
+        padding: 0px 4px;
+      }
+
+      paper-input label {
+        color: grey;
+      }
+    </style>
+
+    <app-toolbar>
+      <paper-dropdown-menu label="Data source">
+        <paper-listbox slot="dropdown-content" selected="0">
+          <paper-item>Remote PACS Server</paper-item>
+        </paper-listbox>
+      </paper-dropdown-menu>
+      <paper-button class="settings" on-tap="openPacsSettingsDialog"><iron-icon icon="icons:settings"></iron-icon>Settings</paper-button>
+      <!-- <paper-icon-button icon="icons:settings" title="settings" ></paper-icon-button> -->
+      <paper-button active="{{byPatientId}}" toggles>Patient ID</paper-button>
+      <paper-button active="{{byPatientName}}" toggles>Patient Name</paper-button>
+      <paper-button active="{{byStudyDesc}}" toggles>Study Desc.</paper-button>
+      <paper-button active="{{bySeriesDesc}}"  toggles>Series Desc.</paper-button>
+      <paper-input label="Search input" value="{{searchInput}}">
+        <paper-icon-button hidden$=[[noValue(searchInput)]] on-tap="clearSearchInput" slot="suffix" icon="clear" alt="clear" title="clear">
+        </paper-icon-button>
+      </paper-input>
+      <paper-button class="search" on-tap="search"><iron-icon icon="icons:search"></iron-icon>Search data</paper-button>
+    </app-toolbar>
+
+    <div class="container">
+      <div class="left-panel"></div>
+      <div class="main-panel">
+          <div class="query-results"></div>
+          <div class="query-selection"></div>
+      </div>
+    </div>
+
+  </template>
+
+  <script>
+    class GexLibrary extends Polymer.GestureEventListeners(Polymer.Element) {
+      static get is() {
+        return 'gex-library';
+      }
+
+      static get properties() {
+        return {
+          aet: {
+            type: String,
+          },
+          aec: {
+            type: String,
+          },
+          aetListener: {
+            type: String,
+          },
+          serverIp: {
+            type: String,
+          },
+          serverPort: {
+            type: String,
+          },
+          searchInput: {
+            type: String,
+            value: '',
+          },
+          byPatientId: {
+            type: Boolean,
+            value: true,
+          },
+          byPatientName: {
+            type: Boolean,
+            value: false,
+          },
+          byStudyDesc: {
+            type: Boolean,
+            value: false,
+          },
+          bySeriesDesc: {
+            type: Boolean,
+            value: false,
+          },
+        };
+      }
+
+      openPacsSettingsDialog() {
+        const openPacsSettingsDialogEvent =
+          new CustomEvent('open-pacs-settings-dialog', {});
+        this.dispatchEvent(openPacsSettingsDialogEvent);
+      }
+
+      noValue(value) {
+        return value === '';
+      }
+
+      clearSearchInput() {
+        this.searchInput = '';
+      }
+
+      search() {
+        console.log('search data!');
+        // pacs query feed for now
+        // searching = true;
+        // handle error (i.e. pacs ip not correct)
+      }
+    }
+    window.customElements.define(GexLibrary.is, GexLibrary);
+  </script>
+</dom-module>

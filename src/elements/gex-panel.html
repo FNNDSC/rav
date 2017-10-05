@@ -7,7 +7,7 @@
 <!-- Paper components  -->
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 
-<link rel="import" href="../my-icons.html">
+<!-- <link rel="import" href="../gex-icons.html"> -->
 
 <dom-module id="gex-panel">
   <template>
@@ -40,7 +40,7 @@
         <app-toolbar>
             <div main-title><slot name="title"></slot></div>
             <slot name="title-actions"></slot>
-            <paper-icon-button icon="my-icons:close" on-tap="_toggleOpen"></paper-icon-button>
+            <paper-icon-button icon="icons:close" on-tap="_toggleOpen"></paper-icon-button>
         </app-toolbar>
         <div class="content">
            <slot name="content" class="content"></slot>
