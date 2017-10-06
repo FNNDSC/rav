@@ -18,6 +18,12 @@
 <link rel="import" href="../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
 
+<!-- vaadin elements -->
+<link rel="import" href="../bower_components/vaadin-grid/vaadin-grid.html">
+<link rel="import" href="../bower_components/vaadin-grid/vaadin-grid-selection-column.html">
+<link rel="import" href="../bower_components/vaadin-grid/vaadin-grid-sorter.html">
+<link rel="import" href="../bower_components/vaadin-grid/vaadin-grid-filter.html">
+
 <link rel="import" href="./gex-icons.html">
 
 <dom-module id="gex-library">
@@ -27,11 +33,6 @@
         display: flex;
         height: 100%;
         flex-direction: column;
-      }
-
-      app-toolbar {
-        /* background-color: darkblue; */
-        height: 92px;
       }
 
       .container {
@@ -51,14 +52,23 @@
       }
 
       .query-selection {
-        height: 172px;
+        height: 92px;
         flex-shrink: 0;
         background-color: blue;
+      }
+
+      .overlay {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
       }
 
       .query-results {
         flex: 1;
         background-color: green;
+        position: relative;
       }
 
       paper-button {
@@ -95,32 +105,187 @@
       paper-input label {
         color: grey;
       }
+      
+      .section {
+        display: flex;
+        align-items: center;
+        height: 80%;
+        padding-left: 6px;
+        padding-right: 6px;
+      }
+
+      .section.search {
+        flex: 1;
+      }
+
+      .section.search paper-input {
+        flex:1;
+      }
+
+      .section.parameters {
+        max-width: 368px;
+      }
+
+      .section .title {
+        font-size: 14px;
+        font-weight: lighter;
+        height: 100%;
+        color: var(--secondary-text-color);
+      }
+
+      .section .values {
+        display:flex;
+        flex-wrap: wrap;
+        align-items: center;
+        height: 100%;
+      }
+
+      .border-left {
+        border-left: 1px solid var(--divider-color);
+      }
+
+      vaadin-grid {
+        height: 100%;
+        background-color: var(--dark-primary-color);
+        --vaadin-grid-header-cell: {
+          background-color: var(--default-primary-color);
+          padding-top: 0;
+    padding-bottom: 0;
+        };
+        --vaadin-grid-body-cell: {
+          background-color: var(--dark-primary-color);
+        };
+        --vaadin-grid-body-row-hover-cell: {
+          background-color: var(--light-primary-color);
+          font-weight: bold;
+          cursor: pointer;
+        };
+        --vaadin-grid-body-row-selected-cell: {
+          background-color: var(--light-primary-color);
+        };
+      }
     </style>
 
     <app-toolbar>
-      <paper-dropdown-menu label="Data source">
-        <paper-listbox slot="dropdown-content" selected="0">
-          <paper-item>Remote PACS Server</paper-item>
-        </paper-listbox>
-      </paper-dropdown-menu>
-      <paper-button class="settings" on-tap="openPacsSettingsDialog"><iron-icon icon="icons:settings"></iron-icon>Settings</paper-button>
+      <div class="section">
+        <paper-dropdown-menu label="Data source">
+          <paper-listbox slot="dropdown-content" selected="0">
+            <paper-item>Remote PACS Server</paper-item>
+          </paper-listbox>
+        </paper-dropdown-menu>
+        <paper-button class="settings" on-tap="openPacsSettingsDialog"><iron-icon icon="icons:settings"></iron-icon>Settings</paper-button>
+      </div>
       <!-- <paper-icon-button icon="icons:settings" title="settings" ></paper-icon-button> -->
-      <paper-button active="{{byPatientId}}" toggles>Patient ID</paper-button>
-      <paper-button active="{{byPatientName}}" toggles>Patient Name</paper-button>
-      <paper-button active="{{byStudyDesc}}" toggles>Study Desc.</paper-button>
-      <paper-button active="{{bySeriesDesc}}"  toggles>Series Desc.</paper-button>
-      <paper-input label="Search input" value="{{searchInput}}">
-        <paper-icon-button hidden$=[[noValue(searchInput)]] on-tap="clearSearchInput" slot="suffix" icon="clear" alt="clear" title="clear">
-        </paper-icon-button>
-      </paper-input>
-      <paper-button class="search" on-tap="search"><iron-icon icon="icons:search"></iron-icon>Search data</paper-button>
+      <!-- <div class="section parameters border-left">
+        <div class="title"> Search parameters
+        </div>
+        <div class ="values">
+          <paper-button active="{{byPatientId}}" toggles>Patient ID</paper-button>
+          <paper-button active="{{byPatientName}}" toggles>Patient Name</paper-button>
+          <paper-button active="{{byStudyDesc}}" toggles>Study Desc.</paper-button>
+          <paper-button active="{{bySeriesDesc}}"  toggles>Series Desc.</paper-button>
+        </div>
+      </div> -->
+      <div class="section border-left">
+        <paper-dropdown-menu label="Search by">
+            <paper-listbox slot="dropdown-content" selected="0">
+              <paper-item>Patient ID</paper-item>
+              <paper-item>Patient Name</paper-item>
+              <paper-item>Study Desc.</paper-item>
+              <paper-item>Series Desc.</paper-item>
+            </paper-listbox>
+          </paper-dropdown-menu>
+      </div>
+      <div class="search section border-left">
+        <paper-input label="Search input" value="{{searchInput}}">
+          <paper-icon-button hidden$=[[noValue(searchInput)]] on-tap="clearSearchInput" slot="suffix" icon="clear" alt="clear" title="clear">
+          </paper-icon-button>
+        </paper-input>
+        <paper-button class="search" on-tap="search"><iron-icon icon="icons:search"></iron-icon>Search data</paper-button>
+      </div>
     </app-toolbar>
 
     <div class="container">
-      <div class="left-panel"></div>
+      <div class="left-panel">
+        ADVANCED RESULTS FILTERING
+      </div>
       <div class="main-panel">
-          <div class="query-results"></div>
-          <div class="query-selection"></div>
+          <div class="query-results">
+            <div class="search overlay">
+            </div>
+            <div class="error overlay">
+            </div>
+            <vaadin-grid
+            id="grid"
+            aria-label="Basic Binding Example"
+            multi-sort="true"
+            items="[[data]]"
+            selected-items="{{selection}}"
+            >
+      
+            <vaadin-grid-selection-column id="selectionColumn" auto-select>
+            </vaadin-grid-selection-column>
+      
+            <vaadin-grid-column>
+              <template class="header">
+                <vaadin-grid-sorter path="PatientName.value">
+                  <vaadin-grid-filter aria-label="Patient Name" path="PatientName.value" value="[[_filterPatientName]]">
+                    <paper-input slot="filter" label="Patient Name" value="{{_filterPatientName::input}}"></paper-input>
+                  </vaadin-grid-filter>
+                </vaadin-grid-sorter>
+              </template>
+              <template>[[item.PatientName.value]]</template>
+            </vaadin-grid-column>
+      
+            <vaadin-grid-column>
+              <template class="header">
+                <vaadin-grid-sorter path="PatientID.value">
+                  <vaadin-grid-filter aria-label="Patient ID" path="PatientID.value" value="[[_filterPatientID]]">
+                    <paper-input slot="filter" label="Patient ID" value="{{_filterPatientID::input}}"></paper-input>
+                  </vaadin-grid-filter>
+                </vaadin-grid-sorter>
+              </template>
+              <template>[[item.PatientID.value]]</template>
+            </vaadin-grid-column>
+      
+            <vaadin-grid-column>
+              <template class="header">
+                <vaadin-grid-sorter path="StudyDescription.value">
+                  <vaadin-grid-filter aria-label="Study Description" path="StudyDescription.value" value="[[_filterStudyDescription]]">
+                    <paper-input slot="filter" label="Study Description" value="{{_filterStudyDescription::input}}"></paper-input>
+                  </vaadin-grid-filter>
+                </vaadin-grid-sorter>
+              </template>
+              <template>[[item.StudyDescription.value]]</template>
+            </vaadin-grid-column>
+      
+            <vaadin-grid-column>
+              <template class="header">
+                <vaadin-grid-sorter path="SeriesDescription.value">
+                  <vaadin-grid-filter aria-label="Series Description" path="SeriesDescription.value" value="[[_filterSeriesDescription]]">
+                    <paper-input slot="filter" label="Series Description" value="{{_filterSeriesDescription::input}}"></paper-input>
+                  </vaadin-grid-filter>
+                </vaadin-grid-sorter>
+              </template>
+              <template>[[item.SeriesDescription.value]]</template>
+            </vaadin-grid-column>
+      
+            <vaadin-grid-column>
+              <template class="header">
+                <vaadin-grid-sorter path="ModalitiesInStudy.value">
+                  <vaadin-grid-filter aria-label="Modalities in Study" path="ModalitiesInStudy.value" value="[[_filterModalitiesInStudy]]">
+                    <paper-input slot="filter" label="Modalities in Study" value="{{_filterModalitiesInStudy::input}}"></paper-input>
+                  </vaadin-grid-filter>
+                </vaadin-grid-sorter>
+              </template>
+              <template>[[item.ModalitiesInStudy.value]]</template>
+            </vaadin-grid-column>
+      
+          </vaadin-grid>
+          </div>
+          <div class="query-selection">
+            AUTO SHOW SELECTION
+          </div>
       </div>
     </div>
 
