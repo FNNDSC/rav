@@ -19,12 +19,38 @@
 <link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
 
 <!-- vaadin elements -->
+<link rel="import" href="../bower_components/vaadin-material-theme/vaadin-grid.html">
 <link rel="import" href="../bower_components/vaadin-grid/vaadin-grid.html">
 <link rel="import" href="../bower_components/vaadin-grid/vaadin-grid-selection-column.html">
 <link rel="import" href="../bower_components/vaadin-grid/vaadin-grid-sorter.html">
 <link rel="import" href="../bower_components/vaadin-grid/vaadin-grid-filter.html">
 
 <link rel="import" href="./gex-icons.html">
+
+<!-- <dom-module id="vaadin-grid-styles" theme-for="vaadin-grid">
+  <template>
+    <style>
+      /* Old way */
+
+        [part~="header-cell"] {
+          background-color: var(--default-primary-color);
+          padding-top: 0;
+    padding-bottom: 0;
+        };
+        [part~="body-cell"] {
+          background-color: var(--dark-primary-color);
+        };
+        [part~="row"]:hover {
+          background-color: var(--light-primary-color);
+          font-weight: bold;
+          cursor: pointer;
+        };
+        --vaadin-grid-body-row-selected-cell {
+          background-color: var(--light-primary-color);
+        };
+    </style>
+  </template>
+</dom-module> -->
 
 <dom-module id="gex-library">
   <template>
@@ -67,8 +93,10 @@
 
       .query-results {
         flex: 1;
-        background-color: green;
+        background-color: #59E959;
         position: relative;
+        display: flex;
+        flex-direction: column;
       }
 
       paper-button {
@@ -104,6 +132,11 @@
 
       paper-input label {
         color: grey;
+      }
+
+      vaadin-grid {
+        background-color: var(--dark-primary-color);
+        height: 100%;
       }
       
       .section {
@@ -142,27 +175,6 @@
 
       .border-left {
         border-left: 1px solid var(--divider-color);
-      }
-
-      vaadin-grid {
-        height: 100%;
-        background-color: var(--dark-primary-color);
-        --vaadin-grid-header-cell: {
-          background-color: var(--default-primary-color);
-          padding-top: 0;
-    padding-bottom: 0;
-        };
-        --vaadin-grid-body-cell: {
-          background-color: var(--dark-primary-color);
-        };
-        --vaadin-grid-body-row-hover-cell: {
-          background-color: var(--light-primary-color);
-          font-weight: bold;
-          cursor: pointer;
-        };
-        --vaadin-grid-body-row-selected-cell: {
-          background-color: var(--light-primary-color);
-        };
       }
     </style>
 
@@ -208,6 +220,7 @@
     <div class="container">
       <div class="left-panel">
         ADVANCED RESULTS FILTERING
+        <paper-button on-tap="addData">Add data</paper-button>
       </div>
       <div class="main-panel">
           <div class="query-results">
@@ -220,8 +233,7 @@
             aria-label="Basic Binding Example"
             multi-sort="true"
             items="[[data]]"
-            selected-items="{{selection}}"
-            >
+            selected-items="{{selection}}">
       
             <vaadin-grid-selection-column id="selectionColumn" auto-select>
             </vaadin-grid-selection-column>
@@ -283,7 +295,7 @@
       
           </vaadin-grid>
           </div>
-          <div class="query-selection">
+          <div id="selectionCheckout" hidden="[[isSelectionEmpty]]" class="query-selection">
             AUTO SHOW SELECTION
           </div>
       </div>
@@ -334,7 +346,26 @@
             type: Boolean,
             value: false,
           },
+          data: {
+            type: Array,
+            value: [],
+          },
+          selection: {
+            type: Array,
+            value: [],
+            notify: true,
+          },
+          isSelectionEmpty: {
+            type: Boolean,
+            value: true,
+          },
         };
+      }
+
+      static get observers() {
+        return [
+            '_selectionChanged(selection.splices)',
+          ];
       }
 
       openPacsSettingsDialog() {
@@ -357,7 +388,40 @@
         // searching = true;
         // handle error (i.e. pacs ip not correct)
       }
+
+      isSelectionEmpty(selection) {
+        console.log(selection);
+        return selection.length === 0;
+      }
+
+
+      _selectionChanged() {
+        this.isSelectionEmpty = (this.selection.length <= 0);
+      }
+
+      addData() {
+        const data = {
+          PatientName: {
+            value: 'Nicolas',
+          },
+          PatientID: {
+            value: Date.now(),
+          },
+          SeriesDescription: {
+            value: '270387',
+          },
+          StudyDescription: {
+            value: '270387',
+          },
+          ModalitiesInStudy: {
+            value: 'MR',
+          },
+        };
+
+        this.push('data', data);
+      }
     }
+
     window.customElements.define(GexLibrary.is, GexLibrary);
   </script>
 </dom-module>

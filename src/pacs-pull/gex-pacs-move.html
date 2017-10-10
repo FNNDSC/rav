@@ -161,6 +161,7 @@
             type: Array,
             value: [],
             notify: true,
+            observer: '_selectionChanged',
           },
           settings: {
             type: Object,
@@ -272,6 +273,10 @@
         // this.selection = [] does not reset the seleciton Column.
         this.$.selectionColumn.selectAll = true;
         this.$.selectionColumn.selectAll = false;
+      }
+
+      _selectionChanged() {
+        console.log(this.selection);
       }
 
     }
