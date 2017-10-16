@@ -63,6 +63,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         --ge-primary-color: #2196f3;
         --ge-light-color: #e3f2fd;
 
+        --paper-dialog-background-color: var(--default-primary-color);
+
         /* paper-input */
         --paper-input-container-focus-color: var(--accent-color);
         --paper-input-container-invalid-color: red;
@@ -188,9 +190,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           aet="[[aet]]"
           aec="[[aec]]"
           aet-listener="[[aetListener]]"
+          move-link="[[moveLink]]"
+          query-link="[[queryLink]]"
           server-ip="[[serverIp]]"
           server-port="[[serverPort]]"
-          on-open-pacs-settings-dialog="handleOpenPacsSettingsDialog"></gex-library>
+          on-open-pacs-settings-dialog="handleOpenPacsSettingsDialog"
+          on-start-move="_handleStartMove"></gex-library>
         <gex-viewer
           name="viewer"></gex-viewer>
         <!-- <gex-home

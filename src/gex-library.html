@@ -17,8 +17,10 @@
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
 
 <!-- vaadin elements -->
+
 <link rel="import" href="../bower_components/vaadin-material-theme/vaadin-grid.html">
 <link rel="import" href="../bower_components/vaadin-grid/vaadin-grid.html">
 <link rel="import" href="../bower_components/vaadin-grid/vaadin-grid-selection-column.html">
@@ -27,27 +29,16 @@
 
 <link rel="import" href="./gex-icons.html">
 
-<!-- <dom-module id="vaadin-grid-styles" theme-for="vaadin-grid">
-  <template>
-    <style>
-      /* Old way */
+<link rel="import" href="../bower_components/chips-api/chips-api.html">
+<link rel="import" href="../bower_components/chips-api/behaviors/chips-plugin-behavior.html">
 
-        [part~="header-cell"] {
-          background-color: var(--default-primary-color);
-          padding-top: 0;
-    padding-bottom: 0;
-        };
-        [part~="body-cell"] {
-          background-color: var(--dark-primary-color);
-        };
-        [part~="row"]:hover {
-          background-color: var(--light-primary-color);
-          font-weight: bold;
-          cursor: pointer;
-        };
-        --vaadin-grid-body-row-selected-cell {
-          background-color: var(--light-primary-color);
-        };
+<!-- <dom-module id="valo-grid" theme-for="vaadin-grid">
+  <template>
+    <style include="valo-grid">
+      [part~="header-cell"],
+      [part~="footer-cell"] {
+        background-color: blue;
+      }
     </style>
   </template>
 </dom-module> -->
@@ -78,7 +69,7 @@
       }
 
       .query-selection {
-        height: 92px;
+        height: 72px;
         flex-shrink: 0;
         background-color: blue;
       }
@@ -89,11 +80,20 @@
         bottom: 0;
         left: 0;
         right: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-primary-color);
+        font-weight: lighter;
+      }
+
+      .overlay > * {
+        text-align: center;
       }
 
       .query-results {
         flex: 1;
-        background-color: #59E959;
+        background-color: var(--default-primary-color);
         position: relative;
         display: flex;
         flex-direction: column;
@@ -110,6 +110,12 @@
         background-color: var(--accent-color);
         border-color: var(--accent-color);
         color: white;
+      }
+
+      paper-button[disabled] {
+        background-color: var(--default-primary-color);
+        border-color: var(--default-primary-color);
+        color: var(--disabled-text-color);
       }
 
       paper-button.settings {
@@ -176,7 +182,14 @@
       .border-left {
         border-left: 1px solid var(--divider-color);
       }
+
+      [hidden] {
+        display: none;
+      }
     </style>
+
+    <chips-api
+      id="API"></chips-api>
 
     <app-toolbar>
       <div class="section">
@@ -187,17 +200,6 @@
         </paper-dropdown-menu>
         <paper-button class="settings" on-tap="openPacsSettingsDialog"><iron-icon icon="icons:settings"></iron-icon>Settings</paper-button>
       </div>
-      <!-- <paper-icon-button icon="icons:settings" title="settings" ></paper-icon-button> -->
-      <!-- <div class="section parameters border-left">
-        <div class="title"> Search parameters
-        </div>
-        <div class ="values">
-          <paper-button active="{{byPatientId}}" toggles>Patient ID</paper-button>
-          <paper-button active="{{byPatientName}}" toggles>Patient Name</paper-button>
-          <paper-button active="{{byStudyDesc}}" toggles>Study Desc.</paper-button>
-          <paper-button active="{{bySeriesDesc}}"  toggles>Series Desc.</paper-button>
-        </div>
-      </div> -->
       <div class="section border-left">
         <paper-dropdown-menu label="Search by">
             <paper-listbox slot="dropdown-content" selected="0">
@@ -213,7 +215,7 @@
           <paper-icon-button hidden$=[[noValue(searchInput)]] on-tap="clearSearchInput" slot="suffix" icon="clear" alt="clear" title="clear">
           </paper-icon-button>
         </paper-input>
-        <paper-button class="search" on-tap="search"><iron-icon icon="icons:search"></iron-icon>Search data</paper-button>
+        <paper-button class="search" on-tap="search" disabled$=[[noValue(searchInput)]]><iron-icon icon="icons:search"></iron-icon>Search data</paper-button>
       </div>
     </app-toolbar>
 
@@ -221,22 +223,41 @@
       <div class="left-panel">
         ADVANCED RESULTS FILTERING
         <paper-button on-tap="addData">Add data</paper-button>
+        <paper-button on-tap="statusReady">Ready</paper-button>
+        <paper-button on-tap="statusProgress">Progress</paper-button>
+        <paper-button on-tap="statusError">Error</paper-button>
       </div>
       <div class="main-panel">
           <div class="query-results">
-            <div class="search overlay">
+            <div
+              hidden$="[[!isProgress]]"
+              class="search overlay">
+              <div>
+                <paper-spinner active>...</paper-spinner>
+                <template is="dom-repeat" items="[[loadingSteps]]">
+                  <div>[[index]] - [[item]]</div>
+                </template>
+              </div>
             </div>
-            <div class="error overlay">
+            <div
+              hidden$="[[!isError]]"
+              class="error overlay">
+              <div>
+                <div>[[errorMessage]]</div>
+                <div>Please make sure the data source settings are correct and try again.</div>
+                <div>If the error persists, contact dev@babymry.org for assistance.</div>
+              </div>
             </div>
             <vaadin-grid
-            id="grid"
-            aria-label="Basic Binding Example"
-            multi-sort="true"
-            items="[[data]]"
-            selected-items="{{selection}}">
-      
-            <vaadin-grid-selection-column id="selectionColumn" auto-select>
-            </vaadin-grid-selection-column>
+              hidden$="[[!isReady]]"
+              id="grid"
+              aria-label="Basic Binding Example"
+              multi-sort="true"
+              items="[[data]]"
+              selected-items="{{selection}}"      
+              active-item="{{activeItem}}">
+            <!-- <vaadin-grid-selection-column id="selectionColumn" auto-select>
+            </vaadin-grid-selection-column> -->
       
             <vaadin-grid-column>
               <template class="header">
@@ -296,7 +317,7 @@
           </vaadin-grid>
           </div>
           <div id="selectionCheckout" hidden="[[isSelectionEmpty]]" class="query-selection">
-            AUTO SHOW SELECTION
+            <paper-button on-tap="retrieveData">View selection [[selection.0.PatientID.value]]</paper-button>
           </div>
       </div>
     </div>
@@ -304,7 +325,10 @@
   </template>
 
   <script>
-    class GexLibrary extends Polymer.GestureEventListeners(Polymer.Element) {
+    class GexLibrary extends
+      CHIPSPluginBehavior(
+        Polymer.GestureEventListeners(
+          Polymer.Element)) {
       static get is() {
         return 'gex-library';
       }
@@ -320,6 +344,21 @@
           aetListener: {
             type: String,
           },
+          feedLink: {
+            type: String,
+          },
+          moveLink: {
+            type: String,
+          },
+          moveInstance: {
+            type: String,
+          },
+          queryLink: {
+            type: String,
+          },
+          queryInstance: {
+            type: String,
+          },
           serverIp: {
             type: String,
           },
@@ -330,25 +369,22 @@
             type: String,
             value: '',
           },
-          byPatientId: {
-            type: Boolean,
-            value: true,
-          },
-          byPatientName: {
-            type: Boolean,
-            value: false,
-          },
-          byStudyDesc: {
-            type: Boolean,
-            value: false,
-          },
-          bySeriesDesc: {
-            type: Boolean,
-            value: false,
-          },
           data: {
             type: Array,
             value: [],
+          },
+          loadingSteps: {
+            type: Array,
+            value: [],
+          },
+          errorMessage: {
+            type: String,
+            value: '',
+          },
+          activeItem: {
+            type: Object,
+            value: null,
+            observer: '_activeItemChanged',
           },
           selection: {
             type: Array,
@@ -358,6 +394,21 @@
           isSelectionEmpty: {
             type: Boolean,
             value: true,
+          },
+          isReady: {
+            type: Boolean,
+            value: true,
+            observer: '_isReadyChanged',
+          },
+          isError: {
+            type: Boolean,
+            value: false,
+            observer: '_isErrorChanged',
+          },
+          isProgress: {
+            type: Boolean,
+            value: false,
+            observer: '_isProgressChanged',
           },
         };
       }
@@ -382,21 +433,17 @@
         this.searchInput = '';
       }
 
-      search() {
-        console.log('search data!');
-        // pacs query feed for now
-        // searching = true;
-        // handle error (i.e. pacs ip not correct)
-      }
-
       isSelectionEmpty(selection) {
         console.log(selection);
         return selection.length === 0;
       }
 
-
       _selectionChanged() {
         this.isSelectionEmpty = (this.selection.length <= 0);
+      }
+
+      _activeItemChanged(item) {
+        this.selection = item ? [item] : [];
       }
 
       addData() {
@@ -419,6 +466,218 @@
         };
 
         this.push('data', data);
+      }
+
+      search() {
+        // prepare data
+        const data = {};
+        data.auth = {
+          type: 'token',
+          token: sessionStorage.getItem('token'),
+        };
+        //
+        data.body = {};
+        data.body.template = {};
+        data.body.template.data = [
+          {name: 'aet', value: ''},
+          {name: 'aec', value: ''},
+          {name: 'server_ip', value: ''},
+          {name: 'server_port', value: ''},
+        ];
+
+        data.body.data = {};
+        data.body.data['aet'] = this.aet;
+        data.body.data['aet_listener'] = this.aetListener;
+        data.body.data['aec'] = this.aec;
+        data.body.data['server_ip'] = this.serverIp;
+        data.body.data['server_port'] = this.serverPort;
+
+        const patientID = this.searchInput;
+        data.body.template.data.push({
+          name: 'patient_id',
+          value: '',
+        });
+        data.body.data['patient_id'] = patientID;
+
+        // post to CUBE
+        this.isProgress = true;
+        this.loadingSteps = [];
+        this.loadingSteps.push('Starting PACS Query...');
+        const start = this.__startPlugin(this.$.API, this.queryLink, data);
+        start.then((response) => {
+            console.log(response);
+            this.queryInstance = Number(response.data[0].data.id);
+            this.feedLink = response.data[0].links.feed;
+            this.push('loadingSteps', 'Contacting the PACS Server...');
+            return response;
+          })
+          // https://github.com/FNNDSC/ChRIS_ultron_backEnd/issues/17
+          .then(this.__wait.bind(this, 1000))
+          .then((response) => {
+            this.push('loadingSteps', 'Waiting for answer...');
+            return response;
+          })
+          .then(this.__waitEndPlugin.bind(this, this.$.API, data))
+          .then((response) => {
+            this.push('loadingSteps', 'Processing results...');
+            return response;
+          })
+          .then(this.__getFilesPlugin.bind(this, this.$.API, data))
+          .then(this._getFileContent.bind(this))
+          .then(this._handleQueryResponse.bind(this))
+          .catch(this._handleQueryError.bind(this));
+      }
+
+      _getFileContent(files) {
+        const file = files[0].links.file_resource;
+        const data = {};
+        data.auth = {
+          type: 'token',
+          token: sessionStorage.getItem('token'),
+        };
+        return this.$.API.request('GET', file, data);
+      }
+
+      _handleQueryResponse(response) {
+        this.isReady = true;
+        // set data
+        // this.data = response; ?
+      }
+
+      _handleQueryError(error) {
+        this.isError = true;
+        this.errorMessage = error.notification.text;
+        console.log(error);
+      }
+
+      retrieveData() {
+        const data = {};
+        data.auth = {
+          type: 'token',
+          token: sessionStorage.getItem('token'),
+        };
+        //
+        data.body = {};
+        data.body.template = {};
+        data.body.template.data = [
+          {name: 'aet', value: ''},
+          {name: 'aec', value: ''},
+          {name: 'server_ip', value: ''},
+          {name: 'server_port', value: ''},
+          {name: 'previous_id', value: ''},
+        ];
+
+        data.body.data = {};
+        data.body.data['aet'] = this.aet;
+        data.body.data['aet_listener'] = this.aetListener;
+        data.body.data['aec'] = this.aec;
+        data.body.data['server_ip'] = this.serverIp;
+        data.body.data['server_port'] = this.serverPort;
+        data.body.data['previous_id'] = this.queryInstance;
+
+        const uids = [];
+        for (let j=0; j<this.selection.length; j++) {
+          uids.push(this.selection[j]['uid'].value);
+        }
+        if (uids.length > 0) {
+          data.body.template.data.push(
+            {name: 'series_uids', value: ''});
+          data.body.data['series_uids'] = uids.join(',');
+        }
+
+        const start = this.__startPlugin(this.$.API, this.moveLink, data);
+        start.then(this._handleRetrieveResponse.bind(this))
+          .catch(this._handleRetrieveError.bind(this));
+
+        // also get the atlases
+      }
+
+      _handleRetrieveResponse(response) {
+        this.set('moveInstance', response.data[0]);
+        // go to the viewer
+        const moveStarted = new CustomEvent(
+          'start-move',
+          {
+            detail: {
+              feedLink: this.feedLink,
+              pluginInstance: this.moveInstance,
+          },
+        });
+
+        // booo :(
+        // backend hangs if we do not wait a bit....
+        window.setTimeout(
+          () => {
+            this.dispatchEvent(moveStarted);
+          }, 1000);
+      }
+
+      _handleRetrieveError(error) {
+        console.log('retrieve error');
+        console.log(error);
+      }
+
+      statusReady() {
+        this.isReady = true;
+      }
+
+      statusError() {
+        this.isError = true;
+      }
+
+      statusProgress() {
+        this.isProgress = true;
+      }
+
+      _isReadyChanged(isReady) {
+        if (isReady) {
+          this.isError = false;
+          this.isProgress = false;
+          this.selection = [];
+          this.loadingSteps = [];
+        }
+      }
+
+      _isErrorChanged(isError) {
+        if (isError) {
+          this.isReady = false;
+          this.isProgress = false;
+          this.selection = [];
+          this.loadingSteps = [];
+        }
+      }
+
+      _isProgressChanged(isProgress) {
+        if (isProgress) {
+          this.isReady = false;
+          this.isError = false;
+          this.selection = [];
+          this.loadingSteps = [];
+        }
+      }
+
+      validatePatientID() {
+        // only letters, return and comma are valid characters
+        const re = /[^a-zA-Z0-9\n\,\ ]/;
+        const foundInvalid = this.patientID.match(re);
+
+        if (foundInvalid && foundInvalid.length > 0) {
+          this.$.patientIDInput.errorMessage =
+            'Some of the characters are not valid.';
+          this.$.patientIDInput.invalid = true;
+          return false;
+        }
+
+        return true;
+      }
+
+      formatPatientID() {
+        // replace line break and spaces by commas
+        const re = /[\n\ ]/gi;
+        const formattedPatientID = this.patientID
+          .trim()
+          .replace(re, ',');
+        return formattedPatientID;
       }
     }
 
