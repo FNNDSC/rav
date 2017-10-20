@@ -22,6 +22,16 @@
 <!-- vaadin elements -->
 
 <link rel="import" href="../bower_components/vaadin-material-theme/vaadin-grid.html">
+<dom-module id="my-valo-grid" theme-for="vaadin-grid">
+  <template>
+    <style>
+      [part~="header-cell"],
+      [part~="footer-cell"] {
+        background-color: blue;
+      }
+    </style>
+  </template>
+</dom-module>
 <link rel="import" href="../bower_components/vaadin-grid/vaadin-grid.html">
 <link rel="import" href="../bower_components/vaadin-grid/vaadin-grid-selection-column.html">
 <link rel="import" href="../bower_components/vaadin-grid/vaadin-grid-sorter.html">
@@ -31,17 +41,6 @@
 
 <link rel="import" href="../bower_components/chips-api/chips-api.html">
 <link rel="import" href="../bower_components/chips-api/behaviors/chips-plugin-behavior.html">
-
-<!-- <dom-module id="valo-grid" theme-for="vaadin-grid">
-  <template>
-    <style include="valo-grid">
-      [part~="header-cell"],
-      [part~="footer-cell"] {
-        background-color: blue;
-      }
-    </style>
-  </template>
-</dom-module> -->
 
 <dom-module id="gex-library">
   <template>
@@ -71,7 +70,10 @@
       .query-selection {
         height: 72px;
         flex-shrink: 0;
-        background-color: blue;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--default-primary-color);
       }
 
       .overlay {
@@ -113,9 +115,9 @@
       }
 
       paper-button[disabled] {
-        background-color: var(--default-primary-color);
-        border-color: var(--default-primary-color);
-        color: var(--disabled-text-color);
+        color: #424242;
+        background: none;
+        border: 1px solid #424242;
       }
 
       paper-button.settings {
@@ -193,15 +195,15 @@
 
     <app-toolbar>
       <div class="section">
-        <paper-dropdown-menu label="Data source">
+        <paper-dropdown-menu disabled$=[[isProgress]] label="Data source">
           <paper-listbox slot="dropdown-content" selected="0">
             <paper-item>Remote PACS Server</paper-item>
           </paper-listbox>
         </paper-dropdown-menu>
-        <paper-button class="settings" on-tap="openPacsSettingsDialog"><iron-icon icon="icons:settings"></iron-icon>Settings</paper-button>
+        <paper-button disabled$=[[isProgress]] class="settings" on-tap="openPacsSettingsDialog"><iron-icon icon="icons:settings"></iron-icon>Settings</paper-button>
       </div>
       <div class="section border-left">
-        <paper-dropdown-menu label="Search by">
+        <paper-dropdown-menu disabled$=[[isProgress]] label="Search by">
             <paper-listbox slot="dropdown-content" selected="0">
               <paper-item>Patient ID</paper-item>
               <paper-item>Patient Name</paper-item>
@@ -211,11 +213,11 @@
           </paper-dropdown-menu>
       </div>
       <div class="search section border-left">
-        <paper-input label="Search input" value="{{searchInput}}">
+        <paper-input disabled$=[[isProgress]] label="Search input" value="{{searchInput}}">
           <paper-icon-button hidden$=[[noValue(searchInput)]] on-tap="clearSearchInput" slot="suffix" icon="clear" alt="clear" title="clear">
           </paper-icon-button>
         </paper-input>
-        <paper-button class="search" on-tap="search" disabled$=[[noValue(searchInput)]]><iron-icon icon="icons:search"></iron-icon>Search data</paper-button>
+        <paper-button class="search" on-tap="search" disabled$=[[isProgress]]><iron-icon icon="icons:search"></iron-icon>Search data</paper-button>
       </div>
     </app-toolbar>
 
@@ -223,42 +225,55 @@
       <div class="left-panel">
         ADVANCED RESULTS FILTERING
         <paper-button on-tap="addData">Add data</paper-button>
+        <paper-button on-tap="removeData">Remove data</paper-button>
+        <paper-button on-tap="statusInitial">Initial</paper-button>        
         <paper-button on-tap="statusReady">Ready</paper-button>
         <paper-button on-tap="statusProgress">Progress</paper-button>
         <paper-button on-tap="statusError">Error</paper-button>
       </div>
       <div class="main-panel">
-          <div class="query-results">
-            <div
-              hidden$="[[!isProgress]]"
-              class="search overlay">
-              <div>
-                <paper-spinner active>...</paper-spinner>
-                <template is="dom-repeat" items="[[loadingSteps]]">
-                  <div>[[index]] - [[item]]</div>
-                </template>
-              </div>
+        <div class="query-results">
+          <div
+            hidden$="[[!isInitial]]"
+            class="search overlay">
+            <div>
+              Initial state - search data from above :)
             </div>
-            <div
-              hidden$="[[!isError]]"
-              class="error overlay">
-              <div>
-                <div>[[errorMessage]]</div>
-                <div>Please make sure the data source settings are correct and try again.</div>
-                <div>If the error persists, contact dev@babymry.org for assistance.</div>
-              </div>
+          </div>
+          <div
+            hidden$="[[!isReadyAndEmpty(isReady, isEmpty)]]"
+            class="search overlay">
+            <div>
+              Empty - no data found...
             </div>
-            <vaadin-grid
-              hidden$="[[!isReady]]"
-              id="grid"
-              aria-label="Basic Binding Example"
-              multi-sort="true"
-              items="[[data]]"
-              selected-items="{{selection}}"      
-              active-item="{{activeItem}}">
-            <!-- <vaadin-grid-selection-column id="selectionColumn" auto-select>
-            </vaadin-grid-selection-column> -->
-      
+          </div>
+          <div
+            hidden$="[[!isProgress]]"
+            class="search overlay">
+            <div>
+              <paper-spinner active>...</paper-spinner>
+              <template is="dom-repeat" items="[[loadingSteps]]">
+                <div>[[index]] - [[item]]</div>
+              </template>
+            </div>
+          </div>
+          <div
+            hidden$="[[!isError]]"
+            class="error overlay">
+            <div>
+              <div>[[errorMessage]]</div>
+              <div>Please make sure the data source settings are correct and try again.</div>
+              <div>If the error persists, contact dev@babymry.org for assistance.</div>
+            </div>
+          </div>
+          <vaadin-grid
+            hidden$="[[!isReadyAndNotEmpty(isReady, isEmpty)]]"
+            id="grid"
+            aria-label="Basic Binding Example"
+            multi-sort="true"
+            items="[[data]]"
+            selected-items="{{selection}}"      
+            active-item="{{activeItem}}">\
             <vaadin-grid-column>
               <template class="header">
                 <vaadin-grid-sorter path="PatientName.value">
@@ -280,7 +295,7 @@
               </template>
               <template>[[item.PatientID.value]]</template>
             </vaadin-grid-column>
-      
+        
             <vaadin-grid-column>
               <template class="header">
                 <vaadin-grid-sorter path="StudyDescription.value">
@@ -313,15 +328,13 @@
               </template>
               <template>[[item.ModalitiesInStudy.value]]</template>
             </vaadin-grid-column>
-      
           </vaadin-grid>
-          </div>
-          <div id="selectionCheckout" hidden="[[isSelectionEmpty]]" class="query-selection">
-            <paper-button on-tap="retrieveData">View selection [[selection.0.PatientID.value]]</paper-button>
-          </div>
+        </div>
+        <div id="selectionCheckout" hidden="[[isSelectionEmpty]]" class="query-selection">
+          <paper-button on-tap="retrieveData">Open selection [[selection.0.PatientID.value]] in viewer</paper-button>
+        </div>
       </div>
     </div>
-
   </template>
 
   <script>
@@ -373,6 +386,10 @@
             type: Array,
             value: [],
           },
+          isEmpty: {
+            type: Boolean,
+            value: true,
+          },
           loadingSteps: {
             type: Array,
             value: [],
@@ -395,9 +412,14 @@
             type: Boolean,
             value: true,
           },
-          isReady: {
+          isInitial: {
             type: Boolean,
             value: true,
+            observer: '_isInitialChanged',
+          },
+          isReady: {
+            type: Boolean,
+            value: false,
             observer: '_isReadyChanged',
           },
           isError: {
@@ -415,8 +437,9 @@
 
       static get observers() {
         return [
-            '_selectionChanged(selection.splices)',
-          ];
+          '_dataChanged(data.splices)',
+          '_selectionChanged(selection.splices)',
+        ];
       }
 
       openPacsSettingsDialog() {
@@ -427,6 +450,12 @@
 
       noValue(value) {
         return value === '';
+      }
+
+      noValueOrIsProgress(value, progress) {
+        const test = value === '' || progress;
+        console.log(test);
+        return test;
       }
 
       clearSearchInput() {
@@ -468,6 +497,10 @@
         this.push('data', data);
       }
 
+      removeData() {
+        this.data = [];
+      }
+
       search() {
         // prepare data
         const data = {};
@@ -492,34 +525,38 @@
         data.body.data['server_ip'] = this.serverIp;
         data.body.data['server_port'] = this.serverPort;
 
-        const patientID = this.searchInput;
+        // const patientID = this.searchInput;
         data.body.template.data.push({
           name: 'patient_id',
           value: '',
         });
-        data.body.data['patient_id'] = patientID;
+        data.body.data['patient_id'] = '1';
 
         // post to CUBE
         this.isProgress = true;
         this.loadingSteps = [];
         this.loadingSteps.push('Starting PACS Query...');
+
         const start = this.__startPlugin(this.$.API, this.queryLink, data);
         start.then((response) => {
-            console.log(response);
+            // go pacs query
             this.queryInstance = Number(response.data[0].data.id);
             this.feedLink = response.data[0].links.feed;
             this.push('loadingSteps', 'Contacting the PACS Server...');
+            console.log(response);
             return response;
           })
           // https://github.com/FNNDSC/ChRIS_ultron_backEnd/issues/17
-          .then(this.__wait.bind(this, 1000))
+          .then(this.__wait.bind(this, 10000))
           .then((response) => {
             this.push('loadingSteps', 'Waiting for answer...');
+            console.log(response);
             return response;
           })
           .then(this.__waitEndPlugin.bind(this, this.$.API, data))
           .then((response) => {
             this.push('loadingSteps', 'Processing results...');
+            console.log(response);
             return response;
           })
           .then(this.__getFilesPlugin.bind(this, this.$.API, data))
@@ -542,6 +579,7 @@
         this.isReady = true;
         // set data
         // this.data = response; ?
+        //
       }
 
       _handleQueryError(error) {
@@ -617,6 +655,10 @@
         console.log(error);
       }
 
+      statusInitial() {
+        this.isInitial = true;
+      }
+
       statusReady() {
         this.isReady = true;
       }
@@ -629,8 +671,20 @@
         this.isProgress = true;
       }
 
+      _isInitialChanged(isInitial) {
+        if (isInitial) {
+          this.isReady = false;
+          this.isError = false;
+          this.isProgress = false;
+          this.data = [];
+          this.selection = [];
+          this.loadingSteps = [];
+        }
+      }
+
       _isReadyChanged(isReady) {
         if (isReady) {
+          this.isInitial = false;
           this.isError = false;
           this.isProgress = false;
           this.selection = [];
@@ -640,8 +694,10 @@
 
       _isErrorChanged(isError) {
         if (isError) {
+          this.isInitial = false;
           this.isReady = false;
           this.isProgress = false;
+          this.data = [];
           this.selection = [];
           this.loadingSteps = [];
         }
@@ -649,8 +705,10 @@
 
       _isProgressChanged(isProgress) {
         if (isProgress) {
+          this.isInitial = false;
           this.isReady = false;
           this.isError = false;
+          this.data = [];
           this.selection = [];
           this.loadingSteps = [];
         }
@@ -678,6 +736,23 @@
           .trim()
           .replace(re, ',');
         return formattedPatientID;
+      }
+
+      isReadyAndEmpty(ready, empty) {
+        return ready && empty;
+      }
+
+      isReadyAndNotEmpty(ready, empty) {
+        return ready && !empty;
+      }
+
+      _dataChanged(data) {
+        if (!data) {
+          this.isEmpty = true;
+          return;
+        }
+
+        this.isEmpty = (data.length === 0);
       }
     }
 

@@ -1,0 +1,67 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<dom-module id="ra-logo">
+  <template>
+    <style include="shared-styles">
+      p {
+        font-family: sans-serif;
+        color: #fff;
+        font-weight: lighter
+      }
+
+      p.big {
+        font-size:92px;
+        margin-bottom: 24px;
+      }
+
+      p.small {
+        font-size:18px;
+      }
+
+      span {
+        background:var(--default-primary-color);
+        background: var(--light-primary-color); /* Old browsers */
+        background: -webkit-linear-gradient(130deg, var(--light-primary-color) 0%, var(--dark-primary-color) 92%, var(--accent-color) 100%);
+        background: -moz-linear-gradient(130deg, var(--light-primary-color) 0%, var(--dark-primary-color) 92%, var(--accent-color) 100%);
+        background: -o-linear-gradient(130deg, var(--light-primary-color) 0%, var(--dark-primary-color) 92%, var(--accent-color) 100%);
+        background: linear-gradient(130deg, var(--light-primary-color) 0%, var(--dark-primary-color) 92%, var(--accent-color) 100%);
+        box-shadow:inset 0px 2px 2px rgba(50,50,50,.6);  
+
+      }
+
+      p.big > span {
+        padding:10px 22px;
+        border:3px solid #fff;
+      }
+
+      p.small > span {
+        padding:2px 4px;
+        border:1px solid #fff;
+      }
+    </style>
+
+    <p class$="{{size}}">
+      <span>Ra</span>  
+    </p>
+  </template>
+
+  <script>
+    class RaLogo extends Polymer.Element {
+      static get is() {
+        return 'ra-logo';
+      }
+
+
+      static get properties() {
+        return {
+          size: {
+            type: String,
+            value: 'normal',
+          },
+        };
+      }
+    }
+
+    window.customElements.define(RaLogo.is, RaLogo);
+  </script>
+</dom-module>

@@ -116,26 +116,6 @@
       </div>
       <div hidden$=[[!loading]] class="overlay"> Loading images ([[imagesLoaded]]/[[imagesTotal]]) </div>
       <div hidden$=[[!loaded]] class="renderer-container"> 
-        <div class="toolbar" on-tap="_activateViewer">
-          <paper-icon-button icon$="{{_playIcon(play)}}" on-tap="_togglePlay"></paper-icon-button>
-          <paper-slider
-            value="{{index}}"
-            immediate-value="{{index}}"
-            snaps
-            min="[[indexMin]]"
-            max="[[indexMax]]"></paper-slider>
-
-          <paper-menu-button>
-              <paper-icon-button icon="av:subtitles" slot="dropdown-trigger" alt="menu"></paper-icon-button>
-              <paper-listbox slot="dropdown-content" selected="{{annotations}}">
-                <paper-item>none</paper-item>
-                <paper-item>basic</paper-item>
-                <paper-item>full</paper-item>
-              </paper-listbox>
-            </paper-menu-button>
-            <paper-icon-button icon$="{{_fullscreenIcon(fullscreen)}}" on-tap="_toggleFullscren"></paper-icon-button>
-            <paper-icon-button icon="icons:clear" on-tap="_clear"></paper-icon-button>            
-        </div>
         <div class="renderer">
           <ami-renderer
             id="renderer"
@@ -151,6 +131,26 @@
             window-level="{{windowLevel}}"
             window-width="{{windowWidth}}"></ami-renderer>
         </div>
+        <div class="toolbar" on-tap="_activateViewer">
+            <paper-icon-button icon$="{{_playIcon(play)}}" on-tap="_togglePlay"></paper-icon-button>
+            <paper-slider
+              value="{{index}}"
+              immediate-value="{{index}}"
+              snaps
+              min="[[indexMin]]"
+              max="[[indexMax]]"></paper-slider>
+  
+            <paper-menu-button>
+                <paper-icon-button icon="av:subtitles" slot="dropdown-trigger" alt="menu"></paper-icon-button>
+                <paper-listbox slot="dropdown-content" selected="{{annotations}}">
+                  <paper-item>none</paper-item>
+                  <paper-item>basic</paper-item>
+                  <paper-item>full</paper-item>
+                </paper-listbox>
+              </paper-menu-button>
+              <paper-icon-button icon$="{{_fullscreenIcon(fullscreen)}}" on-tap="_toggleFullscren"></paper-icon-button>
+              <paper-icon-button icon="icons:clear" on-tap="_clear"></paper-icon-button>            
+          </div>
       </div>
     </div>
 

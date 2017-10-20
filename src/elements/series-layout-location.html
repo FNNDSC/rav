@@ -1,0 +1,187 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<dom-module id="series-layout-location">
+  <template>
+
+    <style>
+      :host {
+        display: block;
+      }
+
+      .layout {
+        stroke: #fff;
+        stroke-width: 1;
+        fill: none;
+      }
+
+      .cube {
+        fill-opacity: 0;
+      }
+
+      .cube.full {
+        fill: var(--primary-text-color);
+        fill-opacity: .5;
+      }
+
+
+      /* L0 */
+      .l1.rl0, .l2.rl0, .l3.rl0 {
+        stroke: none;
+      }
+
+      /* L1 */
+      .l2.rl1, .l3.rl1 {
+        stroke: none;
+      }
+
+      /* L2 */
+      .l3.rl2 {
+        stroke: none;
+      }
+
+      /* L3 */
+      /* Show it all! */
+    </style>
+
+    <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width$="{{size}}" height$="{{size}}" viewBox="0 0 32 32">
+        <path class$="cube {{_fill(0, tick, layout, seriesUid)}}" d="M0 0 L16 0 L16 16 L0 16 L0 0"></path>
+        <path class$="cube {{_fill(1, tick, layout, seriesUid)}}" d="M16 0 L32 0 L32 16 L16 16 L16 0"></path>
+        <path class$="cube {{_fill(2, tick, layout, seriesUid)}}" d="M0 16 L16 16 L16 32 L0 32 L0 16"></path>
+        <path class$="cube {{_fill(3, tick, layout, seriesUid)}}" d="M16 16 L32 16 L32 32 L16 32 L16 16"></path>
+
+        <path class$="layout l0 rl[[layoutType]]" d="M0 0 L32 0 L32 32 L0 32 L 0 0">
+        </path>
+        <path class$="layout l1 rl[[layoutType]]" d="M16 0 L16 32">
+        </path>
+        <path class$="layout l2 rl[[layoutType]]" d="M16 16 L32 16">
+        </path>
+        <path class$="layout l3 rl[[layoutType]]" d="M0 16 L16 16">
+        </path>
+    </svg>
+
+  </template>
+
+  <script>
+    class SeriesLayoutLocation extends Polymer.Element {
+      static get is() {
+        return 'series-layout-location';
+      }
+
+      static get properties() {
+        return {
+          layoutType: {
+            type: Number,
+            value: 0,
+          },
+          layout: {
+            type: Array,
+            value: [-1],
+          },
+          seriesUid: {
+            type: Number,
+          },
+          size: {
+            type: Number,
+            value: 32,
+          },
+          tick: {
+            type: Boolean,
+            value: true,
+          },
+        };
+      }
+
+      static get observers() {
+        return [
+            // path seems incorrect...
+            '_layoutChanged(layout.*)',
+          ];
+      }
+
+      _layoutChanged(layout) {
+        console.log(layout);
+        if (layout === undefined) {
+          return;
+        }
+
+        this.layoutType = layout.base.length - 1;
+        this.tick = !this.tick;
+      }
+
+      _fill(quarter, tick, layout, seriesUid) {
+        // layout 0
+        //
+        if (layout.length === 1) {
+          if (layout[0] === seriesUid) {
+            return 'full';
+          }
+        }
+
+        // layout 1
+        //
+        if (layout.length === 2) {
+          if (layout[0] === seriesUid) {
+            if (quarter === 0 || quarter === 2) {
+              return 'full';
+            }
+          }
+
+          if (layout[1] === seriesUid) {
+            if (quarter === 1 || quarter === 3) {
+              return 'full';
+            }
+          }
+        }
+
+        // layout 2
+        if (layout.length === 3) {
+          if (layout[0] === seriesUid) {
+            if (quarter === 0 || quarter === 2) {
+              return 'full';
+            }
+          }
+
+          if (layout[1] === seriesUid) {
+            if (quarter === 1) {
+              return 'full';
+            }
+          }
+
+          if (layout[2] === seriesUid) {
+            if (quarter === 3) {
+              return 'full';
+            }
+          }
+        }
+
+        // layout 3
+        if (layout.length === 4) {
+          if (layout[0] === seriesUid) {
+            if (quarter === 0) {
+              return 'full';
+            }
+          }
+
+          if (layout[1] === seriesUid) {
+            if (quarter === 2) {
+              return 'full';
+            }
+          }
+
+          if (layout[2] === seriesUid) {
+            if (quarter === 1) {
+              return 'full';
+            }
+          }
+
+          if (layout[3] === seriesUid) {
+            if (quarter === 3) {
+              return 'full';
+            }
+          }
+        }
+      }
+    }
+    window.customElements.define(SeriesLayoutLocation.is, SeriesLayoutLocation);
+  </script>
+</dom-module>

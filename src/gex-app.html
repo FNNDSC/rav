@@ -35,6 +35,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <link rel="import" href="gex-datastore.html">
 
+<link rel="import" href="elements/ra-logo.html">
+<link rel="import" href="elements/ra-status-modal.html">
 <link rel="import" href="pacs-pull/gex-pacs-settings-dialog.html">
 
 <link rel="lazy-import" href="gex-login.html">
@@ -107,10 +109,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       app-toolbar {
         height: 48px;
+        font-size: 18px;
       }
 
       app-toolbar paper-button {
         font-size: 14px;
+      }
+
+      ra-logo {
+        margin-right: 2px;
       }
 
       [hidden] {
@@ -157,12 +164,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       server-ip="{{serverIp}}"
       server-port="{{serverPort}}"></gex-pacs-settings-dialog>
 
+    <!-- ra status modal -->
+    <!-- <ra-status-modal
+      status="[[status]]"></ra-status-modal> -->
+
     <!-- Main content -->
     <app-header-layout has-scrolling-region>
 
       <app-header slot="header" condenses reveals effects="waterfall">
         <app-toolbar>
-          <div main-title>MV</div>
+          <ra-logo size="small"></ra-logo>
+          <div main-title>dio viewer</div>
           <div hidden$="[[!login]]" class="toolbar-login-actions">
             <paper-tabs 
               selected="[[page]]"
@@ -196,18 +208,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           server-port="[[serverPort]]"
           on-open-pacs-settings-dialog="handleOpenPacsSettingsDialog"
           on-start-move="_handleStartMove"></gex-library>
+        <!-- <gex-viewer
+          name="viewer"></gex-viewer> -->
         <gex-viewer
-          name="viewer"></gex-viewer>
-        <!-- <gex-home
-          name="home"
-          data-bch="[[data]]"
-          data-status-bch="[[dataStatus]]"
-          data-ge="[[dataGE]]"
-          data-status-ge="[[dataGEStatus]]"
+          name="viewer"
           previous-instance="[[pluginBch]]"
           ge-link="[[geLink]]"
           on-open-dialog="handleOpenDialog"
-          on-start-ge="_handleStartGE"></gex-home> -->
+          on-start-ge="_handleStartGE"></gex-viewer>
         <gex-view404
           name="view404"></gex-view404>
       </iron-pages>
