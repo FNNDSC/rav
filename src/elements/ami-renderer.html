@@ -93,6 +93,11 @@
             value: {},
             observer: '_stackSceneChanged',
           },
+          localizerScene: {
+            type: Object,
+            value: {},
+            observer: '_localizerSceneChanged',
+          },
           activate: {
             type: Boolean,
             notify: true,
@@ -296,6 +301,9 @@
         if (this._changed) {
           this._renderer.clear();
           this._renderer.render( this._scene, this._camera );
+          if (this.localizerScene) {
+            this._renderer.render(this.localizerScene, this._camera);
+          }
           this._changed = false;
         }
       }
@@ -326,6 +334,13 @@
         if (this.stackHelper && this.stackHelper.stack) {
           this.stackHelper.slice.canvasWidth = width;
           this.stackHelper.slice.canvasHeight = height;
+        }
+
+        // update localizer scene
+        if (this.localizerHelper) {
+          console.log(this.localizerHelper);
+          this.localizerHelper.canvasWidth = width;
+          this.localizerHelper.canvasHeight = height;
         }
 
         this._renderer.setSize(width, height);
@@ -476,6 +491,16 @@
         this._scene = stackScene;
         this.stackHelper = this._scene.children[0];
         this.update();
+      }
+
+      _localizerSceneChanged(localizerScene) {
+        if (localizerScene === undefined ||
+            localizerScene === null ||
+            !localizerScene.children) {
+          return;
+        }
+
+        this.localizerHelper = localizerScene.children[0];
       }
 
       update() {

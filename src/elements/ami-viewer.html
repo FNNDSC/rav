@@ -125,6 +125,7 @@
             orientation="[[orientation]]"
             color-lut="{{colorLut}}"
             stack-scene="[[stackScene]]"
+            localizer-scene="[[localizerScene]]"
             stack-index="{{index}}"
             stack-max-index="{{indexMax}}"
             window-center="{{windowCenter}}"
@@ -205,6 +206,7 @@
           orientation: {
             type: String,
             value: 'default',
+            observer: '_orientationChanged',
           },
           colorLut: {
             type: String,
@@ -212,6 +214,7 @@
           index: {
             type: Number,
             value: 0,
+            observer: '_indexChanged',
           },
           indexMin: {
             type: Number,
@@ -271,6 +274,25 @@
           histogram: {
             type: Array,
             notify: true,
+          },
+          localizer: {
+            type: Object,
+            notify: true,
+          },
+          localizer0: {
+            type: Object,
+            notify: true,
+            observer: '_localizerChanged',
+          },
+          localizer1: {
+            type: Object,
+            notify: true,
+            observer: '_localizerChanged',
+          },
+          localizer2: {
+            type: Object,
+            notify: true,
+            observer: '_localizerChanged',
           },
         };
       }
@@ -386,12 +408,18 @@
         this.images = [];
 
         const deactivate = new CustomEvent(
-          'deactivate', {}
+          'deactivate',
+          {}
         );
 
         this.dispatchEvent(deactivate);
 
         this.$.renderer.stopRenderingLoop();
+
+        // cleanup localizer
+        console.log('todo: cleaup localizer');
+
+        // cleanup stack
         this.stackScene.remove(this.stackHelper);
         this.stackScene = null;
         this.stackHelper.dispose();
@@ -422,7 +450,9 @@
             this.loading = false;
             this.loaded = true;
 
-            const helper = new AMI.default.Helpers.Stack(series.stack[0]);
+            // init the stack helper
+            const stack = series.stack[0];
+            const helper = new AMI.default.Helpers.Stack(stack);
             const scene = new THREE.Scene();
             scene.add(helper);
             this.stackScene = scene;
@@ -430,6 +460,16 @@
             this.stackHelper.bbox.visible = false;
             this.stackHelper.border.visible = false;
             this.stackHelper.slice.intensityAuto = false;
+
+            // init the localizer
+            this.localizer = helper.slice.cartesianEquation();
+            this.localizerHelper = new AMI.default.Helpers.Localizer(
+              stack,
+              this.stackHelper.slice.geometry,
+              this.localizer);
+            const localizerScene = new THREE.Scene();
+            localizerScene.add(this.localizerHelper);
+            this.localizerScene = localizerScene;
 
             this.windowCenter = this.stackHelper.stack.windowCenter;
             this.windowWidth = this.stackHelper.stack.windowWidth;
@@ -535,6 +575,91 @@
       }
 
       _cursorChanged(cursor) {
+      }
+
+      _localizerChanged(localizer) {
+        if (this.localizerHelper === undefined) {
+          return;
+        }
+
+        const referenceNormal = new THREE.Vector3(
+          this.localizerHelper.referencePlane.x,
+          this.localizerHelper.referencePlane.y,
+          this.localizerHelper.referencePlane.z
+        );
+
+        if (this.localizer0 !== undefined) {
+          // also make sure it is not parallel to reference place
+          const l0Normal = new THREE.Vector3(
+            this.localizer0.x,
+            this.localizer0.y,
+            this.localizer0.z
+          );
+          l0Normal.cross(referenceNormal);
+          console.log(l0Normal);
+
+          if (l0Normal.length() > 0.01) {
+            this.localizerHelper.plane1 = this.localizer0;
+            this.localizerHelper.color1 = new THREE.Color(0x00ff00);
+          }
+        }
+
+        if (this.localizer1 !== undefined) {
+          // also make sure it is not parallel to reference place
+          const l1Normal = new THREE.Vector3(
+            this.localizer1.x,
+            this.localizer1.y,
+            this.localizer1.z
+          );
+          l1Normal.cross(referenceNormal);
+          console.log(l1Normal);
+
+          if (l1Normal.length() > 0.01) {
+            this.localizerHelper.plane2 = this.localizer1;
+            this.localizerHelper.color2 = new THREE.Color(0x00ff00);
+          }
+        }
+
+        if (this.localizer2 !== undefined) {
+          // also make sure it is not parallel to reference place
+          const l2Normal = new THREE.Vector3(
+            this.localizer2.x,
+            this.localizer2.y,
+            this.localizer2.z
+          );
+          l2Normal.cross(referenceNormal);
+          console.log(l2Normal);
+
+          if (l2Normal.length() > 0.01) {
+            this.localizerHelper.plane3 = this.localizer2;
+            this.localizerHelper.color3 = new THREE.Color(0x00ff00);
+          }
+        }
+
+        this.$.renderer.resize();
+      }
+
+      _orientationChanged() {
+        this._updateLocalizer();
+      }
+
+      _indexChanged() {
+        this._updateLocalizer();
+      }
+
+      _updateLocalizer() {
+        if (this.stackHelper === undefined) {
+          return;
+        }
+
+        // update localizer helper
+        this.localizerHelper.referencePlane =
+          this.stackHelper.slice.cartesianEquation();
+        this.localizerHelper.geometry = this.stackHelper.slice.geometry;
+
+        // notify other renderer of new plane position
+        this.localizer = this.localizerHelper.referencePlane;
+        this.$.renderer.resize();
       }
     }
     window.customElements.define(AmiViewer.is, AmiViewer);
