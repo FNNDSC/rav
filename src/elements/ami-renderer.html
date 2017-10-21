@@ -302,6 +302,7 @@
           this._renderer.clear();
           this._renderer.render( this._scene, this._camera );
           if (this.localizerScene) {
+            console.log(this.localizerScene);
             this._renderer.render(this.localizerScene, this._camera);
           }
           this._changed = false;
@@ -331,7 +332,8 @@
         this._camera.fitBox(2, 1);
 
         // update info to draw borders properly
-        if (this.stackHelper && this.stackHelper.stack) {
+        if (this.stackHelper && this.stackHelper.slice) {
+          console.log(this.stackHelper);
           this.stackHelper.slice.canvasWidth = width;
           this.stackHelper.slice.canvasHeight = height;
         }

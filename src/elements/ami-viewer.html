@@ -417,7 +417,13 @@
         this.$.renderer.stopRenderingLoop();
 
         // cleanup localizer
-        console.log('todo: cleaup localizer');
+        // notify the other renderers
+        this.localizer = new THREE.Vector4();
+        // free memory
+        this.localizerScene.remove(this.localizerHelper);
+        this.localizerScene = null;
+        // this.localizerHelper.dispose();
+        this.localizerHelper = null;
 
         // cleanup stack
         this.stackScene.remove(this.stackHelper);
@@ -467,6 +473,13 @@
               stack,
               this.stackHelper.slice.geometry,
               this.localizer);
+            this.localizerHelper.plane1 = new THREE.Vector4();
+            this.localizerHelper.plane2 = new THREE.Vector4();
+            this.localizerHelper.plane3 = new THREE.Vector4();
+            this.localizerHelper.color1 = new THREE.Vector3();
+            this.localizerHelper.color2 = new THREE.Vector3();
+            this.localizerHelper.color3 = new THREE.Vector3();
+
             const localizerScene = new THREE.Scene();
             localizerScene.add(this.localizerHelper);
             this.localizerScene = localizerScene;
@@ -578,7 +591,8 @@
       }
 
       _localizerChanged() {
-        if (this.localizerHelper === undefined) {
+        if (this.localizerHelper === undefined ||
+          this.localizerHelper === null) {
           return;
         }
 
@@ -588,7 +602,7 @@
           this.localizerHelper.referencePlane.z
         );
 
-        if (this.localizer0 !== undefined) {
+        if (this.localizer0 !== undefined && this.localizer0 !== null) {
           // also make sure it is not parallel to reference place
           const l0Normal = new THREE.Vector3(
             this.localizer0.x,
@@ -596,15 +610,16 @@
             this.localizer0.z
           );
           l0Normal.cross(referenceNormal);
-          console.log(l0Normal);
 
           if (l0Normal.length() > 0.01) {
             this.localizerHelper.plane1 = this.localizer0;
             this.localizerHelper.color1 = new THREE.Color(0x00ff00);
+          } else {
+            this.localizerHelper.plane1 = l0Normal;
           }
         }
 
-        if (this.localizer1 !== undefined) {
+        if (this.localizer1 !== undefined && this.localizer1 !== null) {
           // also make sure it is not parallel to reference place
           const l1Normal = new THREE.Vector3(
             this.localizer1.x,
@@ -612,15 +627,17 @@
             this.localizer1.z
           );
           l1Normal.cross(referenceNormal);
-          console.log(l1Normal);
 
           if (l1Normal.length() > 0.01) {
+            console.log(this.localizer1);
             this.localizerHelper.plane2 = this.localizer1;
             this.localizerHelper.color2 = new THREE.Color(0x00ff00);
+          } else {
+            this.localizerHelper.plane2 = l1Normal;
           }
         }
 
-        if (this.localizer2 !== undefined) {
+        if (this.localizer2 !== undefined && this.localizer2 !== null) {
           // also make sure it is not parallel to reference place
           const l2Normal = new THREE.Vector3(
             this.localizer2.x,
@@ -628,14 +645,14 @@
             this.localizer2.z
           );
           l2Normal.cross(referenceNormal);
-          console.log(l2Normal);
 
           if (l2Normal.length() > 0.01) {
             this.localizerHelper.plane3 = this.localizer2;
             this.localizerHelper.color3 = new THREE.Color(0x00ff00);
+          } else {
+            this.localizerHelper.plane3 = l2Normal;
           }
         }
-
         this.$.renderer.resize();
       }
 
@@ -649,10 +666,13 @@
       }
 
       _updateLocalizer() {
-        if (this.stackHelper === undefined) {
+        if (
+          this.stackHelper === undefined ||
+          this.stackHelper === null) {
           return;
         }
 
+        console.log(this.localizerHelper);
         // update localizer helper
         this.localizerHelper.referencePlane =
           this.stackHelper.slice.cartesianEquation();
