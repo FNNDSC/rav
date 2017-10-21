@@ -577,7 +577,7 @@
       _cursorChanged(cursor) {
       }
 
-      _localizerChanged(localizer) {
+      _localizerChanged() {
         if (this.localizerHelper === undefined) {
           return;
         }
@@ -641,6 +641,7 @@
 
       _orientationChanged() {
         this._updateLocalizer();
+        this._localizerChanged();
       }
 
       _indexChanged() {
