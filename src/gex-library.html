@@ -20,18 +20,6 @@
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
 
 <!-- vaadin elements -->
-
-<link rel="import" href="../bower_components/vaadin-material-theme/vaadin-grid.html">
-<dom-module id="my-valo-grid" theme-for="vaadin-grid">
-  <template>
-    <style>
-      [part~="header-cell"],
-      [part~="footer-cell"] {
-        background-color: blue;
-      }
-    </style>
-  </template>
-</dom-module>
 <link rel="import" href="../bower_components/vaadin-grid/vaadin-grid.html">
 <link rel="import" href="../bower_components/vaadin-grid/vaadin-grid-selection-column.html">
 <link rel="import" href="../bower_components/vaadin-grid/vaadin-grid-sorter.html">
@@ -41,6 +29,7 @@
 
 <link rel="import" href="../bower_components/chips-api/chips-api.html">
 <link rel="import" href="../bower_components/chips-api/behaviors/chips-plugin-behavior.html">
+<link rel="import" href="./elements/vaadin-grid-style.html">
 
 <dom-module id="gex-library">
   <template>
@@ -187,6 +176,10 @@
 
       [hidden] {
         display: none;
+      }
+
+      .left-panel > paper-button {
+        color: #fff;
       }
     </style>
 

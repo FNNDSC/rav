@@ -101,6 +101,10 @@
         padding: 0;
       }
 
+      .iron-selected {
+        color: var(--accent-color);
+      }
+
       [hidden] {
         display: none !important;
       }
@@ -141,16 +145,17 @@
               min="[[indexMin]]"
               max="[[indexMax]]"></paper-slider>
   
-            <paper-menu-button>
-                <paper-icon-button icon="av:subtitles" slot="dropdown-trigger" alt="menu"></paper-icon-button>
-                <paper-listbox slot="dropdown-content" selected="{{annotations}}">
-                  <paper-item>none</paper-item>
-                  <paper-item>basic</paper-item>
-                  <paper-item>full</paper-item>
-                </paper-listbox>
-              </paper-menu-button>
-              <paper-icon-button icon$="{{_fullscreenIcon(fullscreen)}}" on-tap="_toggleFullscren"></paper-icon-button>
-              <paper-icon-button icon="icons:clear" on-tap="_clear"></paper-icon-button>            
+            <paper-menu-button vertical-align="bottom">
+              <paper-icon-button icon="av:subtitles" slot="dropdown-trigger" alt="menu"></paper-icon-button>
+              <paper-listbox slot="dropdown-content" selected="{{annotations}}">
+                <paper-item>none</paper-item>
+                <paper-item>basic</paper-item>
+                <paper-item>full</paper-item>
+              </paper-listbox>
+            </paper-menu-button>
+            <paper-icon-button class$="{{_isLinked(linked)}}" icon="icons:link" on-tap="_toggleLinked"></paper-icon-button>                        
+            <paper-icon-button icon$="{{_fullscreenIcon(fullscreen)}}" on-tap="_toggleFullscren"></paper-icon-button>
+            <paper-icon-button icon="icons:clear" on-tap="_clear"></paper-icon-button>            
           </div>
       </div>
     </div>
@@ -228,6 +233,16 @@
             type: Array,
             value: [],
             observer: '_imagesChanged',
+          },
+          indexSync: {
+            type: Number,
+            value: 0,
+            notify: true,
+            observer: '_indexSyncChanged',
+          },
+          linked: {
+            type: Boolean,
+            value: false,
           },
           imagesTotal: {
             type: Number,
@@ -663,6 +678,11 @@
 
       _indexChanged() {
         this._updateLocalizer();
+
+        // if sync'ed, update value: this.indexSync = this.index;
+        if (this.linked) {
+          this.indexSync = this.index;
+        }
       }
 
       _updateLocalizer() {
@@ -672,7 +692,6 @@
           return;
         }
 
-        console.log(this.localizerHelper);
         // update localizer helper
         this.localizerHelper.referencePlane =
           this.stackHelper.slice.cartesianEquation();
@@ -682,7 +701,24 @@
         this.localizer = this.localizerHelper.referencePlane;
         this.$.renderer.resize();
       }
+
+      _indexSyncChanged(indexSync) {
+       // if synced, update index this.index = indexSunc;
+       if (this.linked) {
+          this.index = indexSync;
+        }
+      }
+
+      _toggleLinked() {
+        this.linked = !this.linked;
+      }
+
+      _isLinked(linked) {
+        return linked ? 'iron-selected' : '';
+      }
     }
     window.customElements.define(AmiViewer.is, AmiViewer);
   </script>
 </dom-module>
+
+<!-- TODO: play skips last index -->
