@@ -57,6 +57,27 @@
         /* position: absolute;
         top: 0;
         background: rgba(0, 0, 0, .7); */
+        width: 100%;
+        display: flex !important;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: var(--default-primary-color);
+        z-index: 2;
+      }
+
+      .shortcut {
+        position: absolute;
+        top: 0;
+        right: 0;
+        z-index: 2;
+        background-color: rgba(0, 0, 0, .7);
+        border-radius: 50%;
+      }
+
+      paper-icon-button {
+        background-color: var(--dark-primary-color);
       }
 
       .renderer {
@@ -113,7 +134,7 @@
 
     <chips-api id="API"></chips-api>
 
-    <div class="container">
+    <div class="container" on-mouseenter="_showControls" on-mouseleave="_hideControls">
       <div hidden$=[[!empty]] class="overlay"> &lt; empty /&gt; </div>
       <div hidden$=[[!drag]] class="overlay drag">
         <div> Drop data! </div>
@@ -136,7 +157,8 @@
             window-level="{{windowLevel}}"
             window-width="{{windowWidth}}"></ami-renderer>
         </div>
-        <div class="toolbar" on-tap="_activateViewer">
+        <paper-icon-button hidden$="{{!linked}}" class$="shortcut {{_isLinked(linked)}}" icon="icons:link" on-tap="_toggleLinked"></paper-icon-button>                                
+        <div hidden$="{{!showControls}}" class="toolbar" on-tap="_activateViewer">
             <paper-icon-button icon$="{{_playIcon(play)}}" on-tap="_togglePlay"></paper-icon-button>
             <paper-slider
               value="{{index}}"
@@ -308,6 +330,10 @@
             type: Object,
             notify: true,
             observer: '_localizerChanged',
+          },
+          showControls: {
+            type: Boolean,
+            value: false,
           },
         };
       }
@@ -716,9 +742,21 @@
       _isLinked(linked) {
         return linked ? 'iron-selected' : '';
       }
+
+      _showControls() {
+        this.showControls = true;
+        // setTimeout(() => {
+        //   this.showControls = false;
+        //   }, 3000);
+      }
+
+      _hideControls() {
+        this.showControls = false;
+      }
     }
     window.customElements.define(AmiViewer.is, AmiViewer);
   </script>
 </dom-module>
 
 <!-- TODO: play skips last index -->
+<!-- TODO: window level should -->

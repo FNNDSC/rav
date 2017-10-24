@@ -505,25 +505,25 @@
         data.body = {};
         data.body.template = {};
         data.body.template.data = [
-          {name: 'aet', value: ''},
-          {name: 'aec', value: ''},
-          {name: 'server_ip', value: ''},
-          {name: 'server_port', value: ''},
+          {name: 'str_pfdcm', value: ''},
+          {name: 'str_patientID', value: ''},
+          {name: 'str_PACSservice', value: ''},
+          {name: 'str_resultFile', value: ''},
         ];
 
         data.body.data = {};
-        data.body.data['aet'] = this.aet;
-        data.body.data['aet_listener'] = this.aetListener;
-        data.body.data['aec'] = this.aec;
-        data.body.data['server_ip'] = this.serverIp;
-        data.body.data['server_port'] = this.serverPort;
+        data.body.data['str_pfdcm'] = '192.168.1.189:5015';
+        data.body.data['str_patientID'] = this.aetListener;
+        data.body.data['str_PACSservice'] = 'orthanc';
+        data.body.data['str_resultFile'] = 'results.json ';
+        // data.body.data['server_port'] = this.serverPort;
 
-        // const patientID = this.searchInput;
-        data.body.template.data.push({
-          name: 'patient_id',
-          value: '',
-        });
-        data.body.data['patient_id'] = '1';
+        // // const patientID = this.searchInput;
+        // data.body.template.data.push({
+        //   name: 'patient_id',
+        //   value: '',
+        // });
+        // data.body.data['patient_id'] = '1';
 
         // post to CUBE
         this.isProgress = true;
@@ -559,6 +559,7 @@
       }
 
       _getFileContent(files) {
+        console.log(files);
         const file = files[0].links.file_resource;
         const data = {};
         data.auth = {
