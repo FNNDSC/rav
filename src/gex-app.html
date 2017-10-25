@@ -150,8 +150,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <!-- PACS pull dialog -->
     <!-- <gex-pacs-pull
       id="PACSPull"
-      move-link="[[moveLink]]"
-      query-link="[[queryLink]]"
+      move-link="[[pacsRetrieveLink]]"
+      query-link="[[pacsQueryLink]]"
       on-start-move="_handleStartMove"></gex-pacs-pull> -->
       
     <!-- gex-pacs-pull-settings dialog -->
@@ -202,8 +202,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           aet="[[aet]]"
           aec="[[aec]]"
           aet-listener="[[aetListener]]"
-          move-link="[[moveLink]]"
-          query-link="[[queryLink]]"
+          move-link="[[pacsRetrieveLink]]"
+          query-link="[[pacsQueryLink]]"
+          s3-path-link="[[s3PathLink]]"
+          s3-retrieve-link="[[s3RetrieveLink]]"
           server-ip="[[serverIp]]"
           server-port="[[serverPort]]"
           on-open-pacs-settings-dialog="handleOpenPacsSettingsDialog"
@@ -254,11 +256,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             value: [],
             observer: '_pluginsChanged',
           },
-          moveLink: {
+          pacsRetrieveLink: {
             type: String,
             value: '',
           },
-          queryLink: {
+          pacsQueryLink: {
+            type: String,
+            value: '',
+          },
+          s3PathLink: {
+            type: String,
+            value: '',
+          },
+          s3RetrieveLink: {
             type: String,
             value: '',
           },
@@ -403,13 +413,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         if (plugins === undefined) {
           return;
         }
+        console.log(plugins);
         for (let i = 0; i < this.plugins.length; i++) {
           if (this.plugins[i].data.name === 'pacsquery') {
-            this.queryLink = plugins[i].links.instances;
+            this.pacsQueryLink = plugins[i].links.instances;
           }
           if (this.plugins[i].data.name === 'pacsretrieve') {
-            this.moveLink = plugins[i].links.instances;
-            this.geLink = plugins[i].links.instances;
+            this.pacsRetrieveLink = plugins[i].links.instances;
+          }
+          if (this.plugins[i].data.name === 's3path') {
+            this.s3PathLink = plugins[i].links.instances;
+          }
+          if (this.plugins[i].data.name === 's3retrieve') {
+            this.s3RetrieveLink = plugins[i].links.instances;
           }
         }
       }
