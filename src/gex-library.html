@@ -559,7 +559,7 @@
             return response;
           })
           // https://github.com/FNNDSC/ChRIS_ultron_backEnd/issues/17
-          .then(this.__wait.bind(this, 10000))
+          .then(this.__wait.bind(this, 20000))
           .then((response) => {
             this.push('loadingSteps', 'Waiting for answer...');
             console.log(response);
@@ -571,6 +571,7 @@
             console.log(response);
             return response;
           })
+          .then(this.__wait.bind(this, 1000))
           .then(this.__getFilesPlugin.bind(this, this.$.API, data))
           .then(this._getFileContent.bind(this))
           .then(this._handleQueryResponse.bind(this))
@@ -579,15 +580,24 @@
 
       _getFileContent(files) {
         console.log(files);
-        return this._resultsJson();
+        // return this._resultsJson();
+        let index = 0;
+        for (let i = 0; i<files.data.length; i++) {
+          if (files.data[i].data.path === '/results.json') {
+            index = i;
+            break;
+          }
+        }
 
-        // const file = files[0].links.file_resource;
-        // const data = {};
-        // data.auth = {
-        //   type: 'token',
-        //   token: sessionStorage.getItem('token'),
-        // };
-        // return this.$.API.request('GET', file, data);
+        console.log(index);
+
+        const file = files.data[index].links.file_resource;
+        const data = {};
+        data.auth = {
+          type: 'token',
+          token: sessionStorage.getItem('token'),
+        };
+        return this.$.API.request('GET', file, data);
       }
 
       _handleQueryResponse(response) {
@@ -597,7 +607,7 @@
 
       _handleQueryError(error) {
         this.isError = true;
-        this.errorMessage = error.notification.text;
+        // this.errorMessage = error.notification.text;
         console.log(error);
       }
 

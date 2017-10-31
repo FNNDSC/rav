@@ -220,10 +220,6 @@
         background-repeat: no-repeat;
       }
 
-      .overlay paper-button {
-        display: block;
-      }
-
       .retrieving {
         padding: 10px;
       }
@@ -240,48 +236,47 @@
     <chips-api
       id="API"></chips-api>
 
-    <template is="dom-if" if="[[_isReady(dataStatusBch)]]">
-      <gex-panel
-        class="border-right"
-        on-is-open-changed="_panelIsOpenChanged">
-          <div slot="title">Series</div>
-          <div slot="content">
-            <div class="series">
-                <!-- Fetching ready -->
-                <template is="dom-if" if="[[_isReady(dataStatusBch)]]">
-                  <template is="dom-repeat" items="[[dataBch]]">
-                    <series-preview
-                      active="[[active]]"
-                      layout="[[currentLayout]]"
-                      draggable="true"
-                      on-dragstart="_onDragStart"
-                      series="[[item]]"><series-preview>
-                  </template>
+    <gex-panel
+      class="border-right"
+      hidden$=[[!_isReady(dataStatusBch)]]
+      on-is-open-changed="_panelIsOpenChanged">
+        <div slot="title">Series</div>
+        <div slot="content">
+          <div class="series">
+              <!-- Fetching ready -->
+              <template is="dom-if" if="[[_isReady(dataStatusBch)]]">
+                <template is="dom-repeat" items="[[dataBch]]">
+                  <series-preview
+                    active="[[active]]"
+                    layout="[[currentLayout]]"
+                    draggable="true"
+                    on-dragstart="_onDragStart"
+                    series="[[item]]"><series-preview>
                 </template>
+              </template>
 
+            </div>
+            <div class="ge" hidden$="[[!_isSelected(dataSelectedBch)]]">
+              <app-toolbar>
+                <div main-title>Reference</div>
+              </app-toolbar>
+              <div class="series">
+                <template is="dom-repeat" items="[[dataGe]]">
+                  <series-preview
+                    active="[[active]]"
+                    layout="[[currentLayout]]"
+                    draggable="true"
+                    on-dragstart="_onDragStart"
+                    series="[[item]]"
+                    on-tap="_handleSeriesSelectedGe"><series-preview>
+                </template>
               </div>
-              <div class="ge" hidden$="[[!_isSelected(dataSelectedBch)]]">
-                <app-toolbar>
-                  <div main-title>Reference</div>
-                </app-toolbar>
-                <div class="series">
-                  <template is="dom-repeat" items="[[dataGe]]">
-                    <series-preview
-                      active="[[active]]"
-                      layout="[[currentLayout]]"
-                      draggable="true"
-                      on-dragstart="_onDragStart"
-                      series="[[item]]"
-                      on-tap="_handleSeriesSelectedGe"><series-preview>
-                  </template>
-                </div>
-              </div>
-              <div class="label">
-                Copyright (c) 2017 FNNDSC, BCH. All rights reserved.</iron-icon>
-              </div>
-          </div>
-      </gex-panel>
-    </template>
+            </div>
+            <div class="label">
+              Copyright (c) 2017 FNNDSC, BCH. All rights reserved.</iron-icon>
+            </div>
+        </div>
+    </gex-panel>
 
     <div class="content">
       <!-- global controls -->
@@ -404,64 +399,63 @@
       </div>
       </div>
     </div>
+    <paper-icon-button icon="gex-icons:chevron-left" on-tap="_activate"></paper-icon-button>
+    <gex-panel
+      class="border-left"
+      size="large"
+      hidden$="[[!_isActive(active)]]"
+      on-is-open-changed="_panelIsOpenChanged">
 
-    <template is="dom-if" if="[[_isReady(dataStatusBch)]]">
-      <gex-panel
-        class="border-left"
-        size="large"
-        on-is-open-changed="_panelIsOpenChanged">
+      <div slot="title">Active view</div>
+      <div slot="content">
+        <image-controls
+          hidden$="[[_hideControls(0, active)]]"
+          activate="[[_hideControls(0, active)]]"
+          color-lut="{{colorLut0}}"
+          histogram="[[histogram0]]"
+          min-max="[[minMax0]]"
+          orientation="{{orientation0}}"
+          window-center="{{windowCenter0}}"
+          window-level="{{windowLevel0}}"
+          window-width="{{windowWidth0}}"></image-controls>
 
-        <div slot="title">Selection</div>
-        <div slot="content">
-          <image-controls
-            hidden$="[[_hideControls(0, active)]]"
-            activate="[[_hideControls(0, active)]]"
-            color-lut="{{colorLut0}}"
-            histogram="[[histogram0]]"
-            min-max="[[minMax0]]"
-            orientation="{{orientation0}}"
-            window-center="{{windowCenter0}}"
-            window-level="{{windowLevel0}}"
-            window-width="{{windowWidth0}}"></image-controls>
+        <image-controls
+          hidden$="[[_hideControls(1, active)]]"
+          activate="[[_hideControls(1, active)]]"
+          color-lut="{{colorLut1}}"
+          histogram="[[histogram1]]"
+          min-max="[[minMax1]]"
+          orientation="{{orientation1}}"
+          window-center="{{windowCenter1}}"
+          window-level="{{windowLevel1}}"
+          window-width="{{windowWidth1}}"></image-controls>
 
-          <image-controls
-            hidden$="[[_hideControls(1, active)]]"
-            activate="[[_hideControls(1, active)]]"
-            color-lut="{{colorLut1}}"
-            histogram="[[histogram1]]"
-            min-max="[[minMax1]]"
-            orientation="{{orientation1}}"
-            window-center="{{windowCenter1}}"
-            window-level="{{windowLevel1}}"
-            window-width="{{windowWidth1}}"></image-controls>
+        <image-controls
+          hidden$="[[_hideControls(2, active)]]"
+          activate="[[_hideControls(2, active)]]"
+          color-lut="{{colorLut2}}"
+          histogram="[[histogram2]]"
+          min-max="[[minMax2]]"
+          orientation="{{orientation2}}"
+          window-center="{{windowCenter2}}"
+          window-level="{{windowLevel2}}"
+          window-width="{{windowWidth2}}"></image-controls>
 
-          <image-controls
-            hidden$="[[_hideControls(2, active)]]"
-            activate="[[_hideControls(2, active)]]"
-            color-lut="{{colorLut2}}"
-            histogram="[[histogram2]]"
-            min-max="[[minMax2]]"
-            orientation="{{orientation2}}"
-            window-center="{{windowCenter2}}"
-            window-level="{{windowLevel2}}"
-            window-width="{{windowWidth2}}"></image-controls>
-
-          <image-controls
-            hidden$="[[_hideControls(3, active)]]"
-            activate="[[_hideControls(3, active)]]"
-            color-lut="{{colorLut3}}"
-            histogram="[[histogram3]]"
-            min-max="[[minMax3]]"
-            orientation="{{orientation3}}"
-            window-center="{{windowCenter3}}"
-            window-level="{{windowLevel3}}"
-            window-width="{{windowWidth3}}"></image-controls>
-          </div>
-      </div>
-      <div hidden$="[[visibleInfo]]" class="ge">
-        <paper-icon-button icon="gex-icons:chevron-left" on-tap="showInfo"></paper-icon-button>
-      </div>
-    </template>
+        <image-controls
+          hidden$="[[_hideControls(3, active)]]"
+          activate="[[_hideControls(3, active)]]"
+          color-lut="{{colorLut3}}"
+          histogram="[[histogram3]]"
+          min-max="[[minMax3]]"
+          orientation="{{orientation3}}"
+          window-center="{{windowCenter3}}"
+          window-level="{{windowLevel3}}"
+          window-width="{{windowWidth3}}"></image-controls>
+        </div>
+    </div>
+    <div hidden$="[[visibleInfo]]" class="ge">
+      <paper-icon-button icon="gex-icons:chevron-left" on-tap="showInfo"></paper-icon-button>
+    </div>
   </template>
 
   <script>
@@ -945,6 +939,20 @@
         this.$.viewer1.resize();
         this.$.viewer2.resize();
         this.$.viewer3.resize();
+      }
+
+      _isActive(active) {
+        console.log('ACTIVE!!');
+        console.log(active > -1);
+        return active > -1;
+      }
+
+      _activate() {
+        if ( this.active !== 0) {
+          this.active = 0;
+        } else {
+          this.active = 1;
+        }
       }
     }
 
