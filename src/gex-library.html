@@ -270,7 +270,11 @@
             multi-sort="true"
             items="[[data]]"
             selected-items="{{selection}}"      
-            active-item="{{activeItem}}">\
+            active-item="{{activeItem}}">
+
+            <vaadin-grid-selection-column id="selectionColumn" auto-select>
+            </vaadin-grid-selection-column>
+
             <vaadin-grid-column>
               <template class="header">
                 <vaadin-grid-sorter path="PatientName.value">
@@ -472,6 +476,7 @@
       }
 
       _selectionChanged() {
+        console.log(this.selection);
         this.isSelectionEmpty = (this.selection.length <= 0);
       }
 
