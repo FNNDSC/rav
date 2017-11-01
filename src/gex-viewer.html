@@ -409,6 +409,7 @@
       <div slot="title">Active view</div>
       <div slot="content">
         <image-controls
+          id="ic0"
           hidden$="[[_hideControls(0, active)]]"
           activate="[[_hideControls(0, active)]]"
           color-lut="{{colorLut0}}"
@@ -565,6 +566,7 @@
           active: {
             type: Number,
             value: -1,
+            observer: '_activeChanged',
           },
           fullscreen: {
             type: Number,
@@ -944,15 +946,20 @@
       _isActive(active) {
         console.log('ACTIVE!!');
         console.log(active > -1);
+        // this.$.ic0._reflow();
         return active > -1;
       }
 
       _activate() {
-        if ( this.active !== 0) {
-          this.active = 0;
-        } else {
-          this.active = 1;
+        this.$.ic0._reflow();
+      }
+
+      _activeChanged(active) {
+        if (active === undefined || active === -1) {
+          return;
         }
+        console.log(active);
+        this.$[`ic${active}`]._reflow();
       }
     }
 

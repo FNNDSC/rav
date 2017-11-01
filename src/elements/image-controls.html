@@ -173,6 +173,11 @@
         };
       }
 
+      ready() {
+        super.ready();
+        console.log('ready');
+      }
+
       connectedCallback() {
         super.connectedCallback();
         this.highchart = Highcharts.chart({
@@ -260,6 +265,7 @@
             },
           },
         });
+        console.log('images-controls connected');
       }
 
       _histogramChanged() {
@@ -331,13 +337,20 @@
       }
 
       _activateChanged(activate) {
-        console.log(activate);
-        if (this.highchart && !this.activate) {
+        console.log(this.activate);
+        console.log(this.highchart);
+        if (this.highchart && this.activate) {
           if (!this.$.container.contains(this.$.chart)) {
             this.$.container.appendChild(this.$.chart);
             this.highchart.reflow();
+            console.log('reflow');
           }
         }
+      }
+
+      _reflow() {
+        this.$.container.appendChild(this.$.chart);
+        this.highchart.reflow();
       }
 
       reset() {
