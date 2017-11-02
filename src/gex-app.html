@@ -27,17 +27,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
 <link rel="import" href="../bower_components/paper-tabs/paper-tab.html">
 
-<!-- <link rel="import" href="gex-icons.html"> -->
-<!-- <link rel="import" href="pacs-pull/gex-pacs-pull.html"> -->
-
 <link rel="import" href="../bower_components/chips-api/chips-api.html">
 <link rel="import" href="../bower_components/chips-api/behaviors/chips-plugin-behavior.html">
 
 <link rel="import" href="gex-datastore.html">
 
 <link rel="import" href="elements/ra-logo.html">
-<link rel="import" href="elements/ra-status-modal.html">
-<link rel="import" href="pacs-pull/gex-pacs-settings-dialog.html">
+<link rel="import" href="gex-pacs-settings-dialog.html">
 
 <link rel="lazy-import" href="gex-login.html">
 <link rel="lazy-import" href="gex-library.html">
@@ -147,13 +143,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       plugin-data="{{dataGE}}"
       plugin-status="{{dataGEStatus}}"></gex-datastore>
 
-    <!-- PACS pull dialog -->
-    <!-- <gex-pacs-pull
-      id="PACSPull"
-      move-link="[[pacsRetrieveLink]]"
-      query-link="[[pacsQueryLink]]"
-      on-start-move="_handleStartMove"></gex-pacs-pull> -->
-      
     <!-- gex-pacs-pull-settings dialog -->
     <!-- must be at top level -->
     <gex-pacs-settings-dialog
@@ -163,10 +152,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       aet-listener="{{aetListener}}"
       server-ip="{{serverIp}}"
       server-port="{{serverPort}}"></gex-pacs-settings-dialog>
-
-    <!-- ra status modal -->
-    <!-- <ra-status-modal
-      status="[[status]]"></ra-status-modal> -->
 
     <!-- Main content -->
     <app-header-layout has-scrolling-region>
@@ -210,8 +195,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           server-port="[[serverPort]]"
           on-open-pacs-settings-dialog="handleOpenPacsSettingsDialog"
           on-start-move="_handleStartMove"></gex-library>
-        <!-- <gex-viewer
-          name="viewer"></gex-viewer> -->
         <gex-viewer
           name="viewer"
           previous-instance="[[pluginBch]]"

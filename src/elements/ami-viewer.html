@@ -39,7 +39,7 @@
         bottom: 0;
         left: 0;
         right: 0;
-        background-color: var(--dark-primary-color);
+        background-color: rgba(0, 0, 0, .2);
         display: flex;
         justify-content: center;
         align-items: center;
@@ -55,6 +55,7 @@
       .toolbar {
         width: 100%;
         display: flex !important;
+        flex-direction: column;
         /* position: absolute;
         top: 0;
         background: rgba(0, 0, 0, .7); */
@@ -64,8 +65,18 @@
         bottom: 0;
         left: 0;
         right: 0;
-        background-color: var(--default-primary-color);
+        background-color: rgba(0, 0, 0, .7);
         z-index: 2;
+        height: 40px;
+      }
+
+      .toolbar-controls {
+        display: flex;
+        align-items: center;
+      }
+
+      .spacer {
+        flex: 1;
       }
 
       .shortcut {
@@ -78,7 +89,7 @@
       }
 
       paper-icon-button {
-        background-color: var(--dark-primary-color);
+        background-color: rgba(0, 0, 0, 0);
       }
 
       .renderer {
@@ -111,12 +122,15 @@
       }
 
       paper-slider {
+        width: 100%;
         flex: 1;
-        background-color: var(--dark-primary-color);
+        background-color: transparent;
         --paper-slider-container-color: #424242;
         --paper-slider-activate-color: #424242;
         --paper-slider-knob-color: var(--accent-color);
         margin: 0;
+        margin-top: -20px;
+        margin-bottom: -20px;
       }
 
       paper-menu-button {
@@ -158,27 +172,30 @@
             window-level="{{windowLevel}}"
             window-width="{{windowWidth}}"></ami-renderer>
         </div>
-        <paper-icon-button hidden$="{{!linked}}" class$="shortcut {{_isLinked(linked)}}" icon="icons:link" on-tap="_toggleLinked"></paper-icon-button>                                
+        <paper-icon-button hidden$="{{!linked}}" class$="shortcut {{_isLinked(linked)}}" icon="icons:link" on-tap="_toggleLinked"></paper-icon-button>
         <div hidden$="{{!showControls}}" class="toolbar" on-tap="_activateViewer">
-            <paper-icon-button icon$="{{_playIcon(play)}}" on-tap="_togglePlay"></paper-icon-button>
             <paper-slider
-              value="{{index}}"
-              immediate-value="{{index}}"
-              snaps
-              min="[[indexMin]]"
-              max="[[indexMax]]"></paper-slider>
-  
-            <paper-menu-button vertical-align="bottom">
-              <paper-icon-button icon="av:subtitles" slot="dropdown-trigger" alt="menu"></paper-icon-button>
-              <paper-listbox slot="dropdown-content" selected="{{annotations}}">
-                <paper-item>none</paper-item>
-                <paper-item>basic</paper-item>
-                <paper-item>full</paper-item>
-              </paper-listbox>
-            </paper-menu-button>
-            <paper-icon-button class$="{{_isLinked(linked)}}" icon="icons:link" on-tap="_toggleLinked"></paper-icon-button>                        
-            <paper-icon-button icon$="{{_fullscreenIcon(fullscreen)}}" on-tap="_toggleFullscren"></paper-icon-button>
-            <paper-icon-button icon="icons:clear" on-tap="_clear"></paper-icon-button>            
+            value="{{index}}"
+            immediate-value="{{index}}"
+            snaps
+            min="[[indexMin]]"
+            max="[[indexMax]]"></paper-slider>
+            <div class="toolbar-controls">
+              <paper-icon-button icon$="{{_playIcon(play)}}" on-tap="_togglePlay"></paper-icon-button>
+              [[index]] / [[indexMax]]
+              <div class="spacer"></div>
+              <paper-menu-button vertical-align="bottom">
+                <paper-icon-button icon="av:subtitles" slot="dropdown-trigger" alt="menu"></paper-icon-button>
+                <paper-listbox slot="dropdown-content" selected="{{annotations}}">
+                  <paper-item>none</paper-item>
+                  <paper-item>basic</paper-item>
+                  <paper-item>full</paper-item>
+                </paper-listbox>
+              </paper-menu-button>
+              <paper-icon-button class$="{{_isLinked(linked)}}" icon="icons:link" on-tap="_toggleLinked"></paper-icon-button>                        
+              <paper-icon-button icon$="{{_fullscreenIcon(fullscreen)}}" on-tap="_toggleFullscren"></paper-icon-button>
+              <paper-icon-button icon="icons:clear" on-tap="_clear"></paper-icon-button>            
+            </div>
           </div>
       </div>
     </div>
@@ -417,8 +434,8 @@
 
       _startPlay() {
         this.playInterval = setInterval(() => {
-          this.index = (this.index + 1) % this.indexMax;
-        }, 300);
+          this.index = (this.index + 1) % (this.indexMax + 1);
+        }, 200);
       }
 
       _stopPlay() {
@@ -464,7 +481,7 @@
         // free memory
         this.localizerScene.remove(this.localizerHelper);
         this.localizerScene = null;
-        // this.localizerHelper.dispose();
+        this.localizerHelper.dispose();
         this.localizerHelper = null;
 
         // cleanup stack
@@ -500,7 +517,7 @@
 
             // init the stack helper
             const stack = series.stack[0];
-            const helper = new AMI.default.Helpers.Stack(stack);
+            const helper = new AMI.StackHelper(stack);
             const scene = new THREE.Scene();
             scene.add(helper);
             this.stackScene = scene;
@@ -511,7 +528,7 @@
 
             // init the localizer
             this.localizer = helper.slice.cartesianEquation();
-            this.localizerHelper = new AMI.default.Helpers.Localizer(
+            this.localizerHelper = new AMI.LocalizerHelper(
               stack,
               this.stackHelper.slice.geometry,
               this.localizer);
@@ -536,7 +553,7 @@
             for (let i = 0; i < this.stackHelper.stack.frame.length; i++) {
               const frame = this.stackHelper.stack.frame[i];
               for (let j = 0; j < frame.pixelData.length; j++) {
-                const value = AMI.default.Core.Utils.rescaleSlopeIntercept(
+                const value = AMI.UtilsCor.rescaleSlopeIntercept(
                   frame.pixelData[j],
                   slope,
                   intercept)
@@ -588,8 +605,7 @@
       }
 
       _loadUrl(url) {
-        const LoadersVolume = AMI.default.Loaders.Volume;
-        const loader = new LoadersVolume();
+        const loader = new AMI.VolumeLoader();
 
         return fetch(url)
           .then((response) => response.arrayBuffer())
@@ -626,7 +642,9 @@
       }
 
       resize() {
-        this.$.renderer.resize();
+        if (this.$) {
+          this.$.renderer.resize();
+        }
       }
 
       _cursorChanged(cursor) {
@@ -671,7 +689,6 @@
           l1Normal.cross(referenceNormal);
 
           if (l1Normal.length() > 0.01) {
-            console.log(this.localizer1);
             this.localizerHelper.plane2 = this.localizer1;
             this.localizerHelper.color2 = new THREE.Color(0x00ff00);
           } else {
@@ -695,7 +712,8 @@
             this.localizerHelper.plane3 = l2Normal;
           }
         }
-        this.$.renderer.resize();
+
+        this.$.renderer._sceneChanged();
       }
 
       _orientationChanged() {
@@ -726,7 +744,7 @@
 
         // notify other renderer of new plane position
         this.localizer = this.localizerHelper.referencePlane;
-        this.$.renderer.resize();
+        this.$.renderer._sceneChanged();
       }
 
       _indexSyncChanged(indexSync) {

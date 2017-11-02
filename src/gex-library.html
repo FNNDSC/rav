@@ -560,20 +560,17 @@
             this.queryInstance = Number(response.data[0].data.id);
             this.feedLink = response.data[0].links.feed;
             this.push('loadingSteps', 'Contacting the PACS Server...');
-            console.log(response);
             return response;
           })
           // https://github.com/FNNDSC/ChRIS_ultron_backEnd/issues/17
           .then(this.__wait.bind(this, 20000))
           .then((response) => {
             this.push('loadingSteps', 'Waiting for answer...');
-            console.log(response);
             return response;
           })
           .then(this.__waitEndPlugin.bind(this, this.$.API, data))
           .then((response) => {
             this.push('loadingSteps', 'Processing results...');
-            console.log(response);
             return response;
           })
           .then(this.__wait.bind(this, 1000))
@@ -584,7 +581,6 @@
       }
 
       _getFileContent(files) {
-        console.log(files);
         // return this._resultsJson();
         let index = 0;
         for (let i = 0; i<files.data.length; i++) {
@@ -593,9 +589,6 @@
             break;
           }
         }
-
-        console.log(index);
-
         const file = files.data[index].links.file_resource;
         const data = {};
         data.auth = {
@@ -617,84 +610,153 @@
       }
 
       retrieveData() {
+        this._initPacsRetrieve();
+        this._initNormalsRetrieve();
+      }
+
+      _initPacsRetrieve() {
         const data = {};
         data.auth = {
           type: 'token',
           token: sessionStorage.getItem('token'),
         };
 
-        console.log(this.s3PathLink);
-        console.log(this.s3RetrieveLink);
-        console.log(this.selection);
+        // update body parameters
+        data.body = {};
+        data.body.template = {};
+        data.body.template.data = [
+          {name: 'series_uids', value: ''},
+        ];
 
-        // run pacs retrieve
-        // pass to store
+        data.body.data = {};
+        data.body.data['series_uids'] = '0'; // build from selection
 
-        // run s3path and s3 retrieve
-        // start plugin
-        // wait
-        // wait end plugin
-        // get file
-        // start plugin
-        // pass to store
-
-        //
-        // data.body = {};
-        // data.body.template = {};
-        // data.body.template.data = [
-        //   {name: 'aet', value: ''},
-        //   {name: 'aec', value: ''},
-        //   {name: 'server_ip', value: ''},
-        //   {name: 'server_port', value: ''},
-        //   {name: 'previous_id', value: ''},
-        // ];
-
-        // data.body.data = {};
-        // data.body.data['aet'] = this.aet;
-        // data.body.data['aet_listener'] = this.aetListener;
-        // data.body.data['aec'] = this.aec;
-        // data.body.data['server_ip'] = this.serverIp;
-        // data.body.data['server_port'] = this.serverPort;
-        // data.body.data['previous_id'] = this.queryInstance;
-
-        // const uids = [];
-        // for (let j=0; j<this.selection.length; j++) {
-        //   uids.push(this.selection[j]['uid'].value);
-        // }
-        // if (uids.length > 0) {
-        //   data.body.template.data.push(
-        //     {name: 'series_uids', value: ''});
-        //   data.body.data['series_uids'] = uids.join(',');
-        // }
-
-        // const start = this.__startPlugin(this.$.API, this.moveLink, data);
-        // start.then(this._handleRetrieveResponse.bind(this))
-        //   .catch(this._handleRetrieveError.bind(this));
-
-        // also get the atlases
+        const start = this.__startPlugin(this.$.API, this.s3PathLink, data);
+        start
+          .then(this._handlePacsRetrieveResponse.bind(this))
+          .catch(this._handlePacsRetrieveError.bind(this));
       }
 
-      _handleRetrieveResponse(response) {
-        this.set('moveInstance', response.data[0]);
-        // go to the viewer
-        const moveStarted = new CustomEvent(
-          'start-move',
-          {
-            detail: {
-              feedLink: this.feedLink,
-              pluginInstance: this.moveInstance,
-          },
-        });
+      _handlePacsRetrieveResponse(response) {
+        // notify datastore to watch this guy until data is ready
 
-        // booo :(
-        // backend hangs if we do not wait a bit....
-        window.setTimeout(
-          () => {
-            this.dispatchEvent(moveStarted);
-          }, 1000);
+        // this.set('moveInstance', response.data[0]);
+        // // go to the viewer
+        // const moveStarted = new CustomEvent(
+        //   'start-move',
+        //   {
+        //     detail: {
+        //       feedLink: this.feedLink,
+        //       pluginInstance: this.moveInstance,
+        //   },
+        // });
+
+        // // booo :(
+        // // backend hangs if we do not wait a bit....
+        // window.setTimeout(
+        //   () => {
+        //     this.dispatchEvent(moveStarted);
+        //   }, 1000);
       }
 
-      _handleRetrieveError(error) {
+      _initNormalsRetrieve() {
+        const data = {};
+        data.auth = {
+          type: 'token',
+          token: sessionStorage.getItem('token'),
+        };
+
+        // update body parameters
+        data.body = {};
+        data.body.template = {};
+        data.body.template.data = [
+          {name: 'series_uids', value: ''},
+        ];
+
+        data.body.data = {};
+        data.body.data['series_uids'] = '0'; // build from selection
+
+        // PROBABLY ALSO NEED PREFIX
+
+        const start = this.__startPlugin(this.$.API, this.s3PathLink, data);
+        start
+          .then(this.__waitEndPlugin.bind(this, this.$.API, data))
+          .then(this.__getFilesPlugin.bind(this, this.$.API, data))
+          .then(this._getS3PathFileContent.bind(this))
+          .then(this._initS3Retrieve.bind(this));
+      }
+
+      _getS3PathFileContent(files) {
+        // return this._resultsJson();
+        let index = 0;
+        for (let i = 0; i<files.data.length; i++) {
+          if (files.data[i].data.path === '/output.meta.json') {
+            index = i;
+            break;
+          }
+        }
+        const file = files.data[index].links.file_resource;
+        const data = {};
+        data.auth = {
+          type: 'token',
+          token: sessionStorage.getItem('token'),
+        };
+        return this.$.API.request('GET', file, data);
+      }
+
+      _initS3Retrieve(response) {
+        // JSON obect, look for "prefix"
+        // response.prefix
+        const data = {};
+        data.auth = {
+          type: 'token',
+          token: sessionStorage.getItem('token'),
+        };
+
+        // update body parameters
+        data.body = {};
+        data.body.template = {};
+        data.body.template.data = [
+          {name: 'prefix', value: ''},
+          {name: 'bucket', value: ''},
+          {name: 'awskeyid', value: ''},
+          {name: 'awssecretkey', value: ''},
+        ];
+
+        data.body.data = {};
+        data.body.data['prefix'] = response.prefix;
+        data.body.data['bucket'] = 'bch-fnndsc';
+        data.body.data['awskeyid'] = 'that is';
+        data.body.data['awssecretkey'] = 'a secret';
+
+        const start = this.__startPlugin(this.$.API, this.s3RetrieveLink, data);
+        start
+          .then(this._handleS3RetrieveResponse.bind(this));
+      }
+
+      _handleS3RetrieveResponse(response) {
+        // notify datastore to watch this guy until data is ready
+
+        // this.set('moveInstance', response.data[0]);
+        // // go to the viewer
+        // const moveStarted = new CustomEvent(
+        //   'start-move',
+        //   {
+        //     detail: {
+        //       feedLink: this.feedLink,
+        //       pluginInstance: this.moveInstance,
+        //   },
+        // });
+
+        // // booo :(
+        // // backend hangs if we do not wait a bit....
+        // window.setTimeout(
+        //   () => {
+        //     this.dispatchEvent(moveStarted);
+        //   }, 1000);
+      }
+
+      _handlePacsRetrieveError(error) {
         console.log('retrieve error');
         console.log(error);
       }

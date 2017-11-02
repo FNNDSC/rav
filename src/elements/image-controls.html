@@ -122,10 +122,9 @@
 
       static get properties() {
         return {
-          activate: {
+          activated: {
             type: Boolean,
             value: false,
-            observer: '_activateChanged',
           },
           colorLut: {
             type: String,
@@ -175,7 +174,6 @@
 
       ready() {
         super.ready();
-        console.log('ready');
       }
 
       connectedCallback() {
@@ -265,7 +263,6 @@
             },
           },
         });
-        console.log('images-controls connected');
       }
 
       _histogramChanged() {
@@ -336,21 +333,14 @@
         this.$.chart.redraw();
       }
 
-      _activateChanged(activate) {
-        console.log(this.activate);
-        console.log(this.highchart);
-        if (this.highchart && this.activate) {
+      reflow() {
+        if (this.highchart && !this.activated) {
           if (!this.$.container.contains(this.$.chart)) {
             this.$.container.appendChild(this.$.chart);
             this.highchart.reflow();
-            console.log('reflow');
+            this.activated = true;
           }
         }
-      }
-
-      _reflow() {
-        this.$.container.appendChild(this.$.chart);
-        this.highchart.reflow();
       }
 
       reset() {

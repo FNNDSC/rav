@@ -209,7 +209,6 @@
       }
 
       _layoutChanged(layout) {
-        console.log(layout);
         this.tick = !this.tick;
       }
 
@@ -231,7 +230,6 @@
       }
 
       _seriesInLayout(layout, series, tick) {
-        console.log(layout, series);
         if (
           layout === undefined ||
           series === undefined) {
@@ -241,8 +239,6 @@
         const seriesUid = series.details.series.uid;
         for (let i = 0; i<layout.length; i++) {
           if (layout[i] === seriesUid) {
-            console.log(layout[i]);
-            console.log(seriesUid);
             return true;
           }
         }

@@ -246,7 +246,7 @@
       }
 
       _initCamera() {
-        this._camera = new AMI.default.Cameras.Orthographic(
+        this._camera = new AMI.OrthographicCamera(
           this._container.clientWidth / -2,
           this._container.clientWidth / 2,
           this._container.clientHeight / -2,
@@ -256,7 +256,7 @@
 
       _initControls() {
         this._controls =
-          new AMI.default.Controls.TrackballOrtho(this._camera, this._container);
+          new AMI.TrackballOrthoControl(this._camera, this._container);
         this._controls.staticMoving = true;
         this._controls.noRotate = true;
         this._controls.target.set(0, 0, 0);
@@ -272,13 +272,13 @@
       }
 
       _initLutColor() {
-        this._lutColor = new AMI.default.Helpers.Lut(
+        this._lutColor = new AMI.LutHelper(
           this.$.lut,
           'default',
           'linear',
           [[0, 0, 0, 0], [1, 1, 1, 1]],
           [[0, 1], [1, 1]]);
-        this._lutColor.luts = AMI.default.Helpers.Lut.presetLuts();
+        this._lutColor.luts = AMI.LutHelper.presetLuts();
       }
 
       _initRenderer() {
@@ -302,7 +302,6 @@
           this._renderer.clear();
           this._renderer.render( this._scene, this._camera );
           if (this.localizerScene) {
-            console.log(this.localizerScene);
             this._renderer.render(this.localizerScene, this._camera);
           }
           this._changed = false;
@@ -333,14 +332,12 @@
 
         // update info to draw borders properly
         if (this.stackHelper && this.stackHelper.slice) {
-          console.log(this.stackHelper);
           this.stackHelper.slice.canvasWidth = width;
           this.stackHelper.slice.canvasHeight = height;
         }
 
         // update localizer scene
         if (this.localizerHelper) {
-          console.log(this.localizerHelper);
           this.localizerHelper.canvasWidth = width;
           this.localizerHelper.canvasHeight = height;
         }
@@ -383,14 +380,14 @@
           // update IJK of current view
           const stack = this.stackHelper.stack;
           let ijk =
-            AMI.default.Core.Utils.worldToData(stack.lps2IJK, intersects[0].point);
+            AMI.UtilsCor.worldToData(stack.lps2IJK, intersects[0].point);
 
           // update overlay
           this.mouseI = ijk.x;
           this.mouseJ = ijk.y;
           this.mouseK = ijk.z;
           this.mouseValue =
-            AMI.default.Core.Utils.getPixelData(this.stackHelper.stack, ijk);
+            AMI.UtilsCor.getPixelData(this.stackHelper.stack, ijk);
 
           // notify others if shift click
           // update cursor position
@@ -451,14 +448,14 @@
 
           // ijk coordinates of the cursor
           let ijk =
-            AMI.default.Core.Utils.worldToData(stack.lps2IJK, cursor);
+            AMI.UtilsCor.worldToData(stack.lps2IJK, cursor);
 
           // update overlay
           this.mouseI = ijk.x;
           this.mouseJ = ijk.y;
           this.mouseK = ijk.z;
           this.mouseValue =
-            AMI.default.Core.Utils.getPixelData(this.stackHelper.stack, ijk);
+            AMI.UtilsCor.getPixelData(this.stackHelper.stack, ijk);
 
           // update stack index
           // for instance to synchronize viewers if cursor was changed from parent

@@ -15,15 +15,12 @@
 <link rel="import" href="../bower_components/chips-api/behaviors/chips-plugin-behavior.html">
 
 <!-- Local components  -->
-<link rel="import" href="elements/ami-viewer-2d.html">
 <link rel="import" href="elements/ami-viewer.html">
 <link rel="import" href="elements/gex-panel.html">
 <link rel="import" href="elements/gex-layout-manager.html">
 <link rel="import" href="elements/series-preview.html">
 <link rel="import" href="elements/image-controls.html">
 <link rel="import" href="elements/viewer-global-controls.html">
-
-<link rel="import" href="import-ami.html">
 
 <link rel="import" href="shared-styles.html">
 <link rel="import" href="layout-icons.html">
@@ -228,6 +225,12 @@
         margin: 4px;
       }
 
+      app-toolbar.data {
+        height: auto;
+        background: var(--default-primary-color);
+        border: 1px solid var(--divider-color);
+      }
+
       [hidden] {
         display: none;
       }
@@ -240,8 +243,11 @@
       class="border-right"
       hidden$=[[!_isReady(dataStatusBch)]]
       on-is-open-changed="_panelIsOpenChanged">
-        <div slot="title">Series</div>
+        <div slot="title">Data</div>
         <div slot="content">
+          <app-toolbar class="data">
+            <div main-title>Series</div>
+          </app-toolbar>
           <div class="series">
               <!-- Fetching ready -->
               <template is="dom-if" if="[[_isReady(dataStatusBch)]]">
@@ -256,21 +262,19 @@
               </template>
 
             </div>
-            <div class="ge" hidden$="[[!_isSelected(dataSelectedBch)]]">
-              <app-toolbar>
-                <div main-title>Reference</div>
-              </app-toolbar>
-              <div class="series">
-                <template is="dom-repeat" items="[[dataGe]]">
-                  <series-preview
-                    active="[[active]]"
-                    layout="[[currentLayout]]"
-                    draggable="true"
-                    on-dragstart="_onDragStart"
-                    series="[[item]]"
-                    on-tap="_handleSeriesSelectedGe"><series-preview>
-                </template>
-              </div>
+            <app-toolbar class="data">
+              <div main-title>Reference</div>
+            </app-toolbar>
+            <div class="series">
+              <template is="dom-repeat" items="[[dataGe]]">
+                <series-preview
+                  active="[[active]]"
+                  layout="[[currentLayout]]"
+                  draggable="true"
+                  on-dragstart="_onDragStart"
+                  series="[[item]]"
+                  on-tap="_handleSeriesSelectedGe"><series-preview>
+              </template>
             </div>
             <div class="label">
               Copyright (c) 2017 FNNDSC, BCH. All rights reserved.</iron-icon>
@@ -399,7 +403,6 @@
       </div>
       </div>
     </div>
-    <paper-icon-button icon="gex-icons:chevron-left" on-tap="_activate"></paper-icon-button>
     <gex-panel
       class="border-left"
       size="large"
@@ -411,7 +414,6 @@
         <image-controls
           id="ic0"
           hidden$="[[_hideControls(0, active)]]"
-          activate="[[_hideControls(0, active)]]"
           color-lut="{{colorLut0}}"
           histogram="[[histogram0]]"
           min-max="[[minMax0]]"
@@ -421,8 +423,8 @@
           window-width="{{windowWidth0}}"></image-controls>
 
         <image-controls
+          id="ic1"
           hidden$="[[_hideControls(1, active)]]"
-          activate="[[_hideControls(1, active)]]"
           color-lut="{{colorLut1}}"
           histogram="[[histogram1]]"
           min-max="[[minMax1]]"
@@ -432,8 +434,8 @@
           window-width="{{windowWidth1}}"></image-controls>
 
         <image-controls
+          id="ic2"
           hidden$="[[_hideControls(2, active)]]"
-          activate="[[_hideControls(2, active)]]"
           color-lut="{{colorLut2}}"
           histogram="[[histogram2]]"
           min-max="[[minMax2]]"
@@ -443,8 +445,8 @@
           window-width="{{windowWidth2}}"></image-controls>
 
         <image-controls
+          id="ic3"
           hidden$="[[_hideControls(3, active)]]"
-          activate="[[_hideControls(3, active)]]"
           color-lut="{{colorLut3}}"
           histogram="[[histogram3]]"
           min-max="[[minMax3]]"
@@ -453,9 +455,6 @@
           window-level="{{windowLevel3}}"
           window-width="{{windowWidth3}}"></image-controls>
         </div>
-    </div>
-    <div hidden$="[[visibleInfo]]" class="ge">
-      <paper-icon-button icon="gex-icons:chevron-left" on-tap="showInfo"></paper-icon-button>
     </div>
   </template>
 
@@ -527,7 +526,50 @@
           },
           dataGe: {
             type: Array,
-            value: [],
+            value: [
+              {
+                details: {
+                  series: {
+                    uid: 3,
+                    description: 'Normal T1',
+                    date: '2011-05-20',
+                    files: '159',
+                    preview: {
+                      blob: null,
+                      url: '../images/demo/sag.jpg',
+                    },
+                  },
+                },
+              },
+              {
+                details: {
+                  series: {
+                    uid: 4,
+                    description: 'Normal T2',
+                    date: '2013-05-27',
+                    files: '176',
+                    preview: {
+                      blob: null,
+                      url: '../images/demo/sag.jpg',
+                    },
+                  },
+                },
+              },
+              {
+                details: {
+                  series: {
+                    uid: 5,
+                    description: 'Normal DTI',
+                    date: '2012-12-03',
+                    files: '90',
+                    preview: {
+                      blob: null,
+                      url: '../images/demo/sag.jpg',
+                    },
+                  },
+                },
+              },
+            ],
           },
           dataStatusGe: {
             type: String,
@@ -689,7 +731,6 @@
       }
 
       _isEmpty(status) {
-        console.log(status);
         return status === 'empty';
       }
 
@@ -944,22 +985,16 @@
       }
 
       _isActive(active) {
-        console.log('ACTIVE!!');
-        console.log(active > -1);
-        // this.$.ic0._reflow();
         return active > -1;
-      }
-
-      _activate() {
-        this.$.ic0._reflow();
       }
 
       _activeChanged(active) {
         if (active === undefined || active === -1) {
           return;
         }
-        console.log(active);
-        this.$[`ic${active}`]._reflow();
+
+        this.$[`ic${active}`].reflow();
+        this.$[`viewer${active}`].resize();
       }
     }
 
