@@ -334,12 +334,11 @@
       }
 
       reflow() {
-        if (this.highchart && !this.activated) {
+        if (this.highchart) {
           if (!this.$.container.contains(this.$.chart)) {
             this.$.container.appendChild(this.$.chart);
-            this.highchart.reflow();
-            this.activated = true;
           }
+          this.highchart.reflow();
         }
       }
 

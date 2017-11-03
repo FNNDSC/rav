@@ -116,6 +116,11 @@
         z-index: 3;
       }
 
+
+      .overlay.opaque {
+        background-color: var(--dark-primary-color);
+      }
+
       .drag > div {
         padding: 45px;
         border: 5px dashed var(--accent-color);
@@ -154,7 +159,7 @@
       <div hidden$=[[!drag]] class="overlay drag">
         <div> Drop data! </div>
       </div>
-      <div hidden$=[[!loading]] class="overlay"> Loading images ([[imagesLoaded]]/[[imagesTotal]]) </div>
+      <div hidden$=[[!loading]] class="overlay opaque"> Loading images ([[imagesLoaded]]/[[imagesTotal]]) </div>
       <div hidden$=[[!loaded]] class="renderer-container"> 
         <div class="renderer">
           <ami-renderer
@@ -167,6 +172,7 @@
             stack-scene="[[stackScene]]"
             localizer-scene="[[localizerScene]]"
             stack-index="{{index}}"
+            on-stack-index-changed="_indexPropagate"
             stack-max-index="{{indexMax}}"
             window-center="{{windowCenter}}"
             window-level="{{windowLevel}}"
@@ -179,7 +185,9 @@
             immediate-value="{{index}}"
             snaps
             min="[[indexMin]]"
-            max="[[indexMax]]"></paper-slider>
+            max="[[indexMax]]"
+            on-value-changed="_indexPropagate"
+            on-immediate-value-changed="_indexPropagate"></paper-slider>
             <div class="toolbar-controls">
               <paper-icon-button icon$="{{_playIcon(play)}}" on-tap="_togglePlay"></paper-icon-button>
               [[index]] / [[indexMax]]
@@ -210,6 +218,10 @@
 
       static get properties() {
         return {
+          myId: {
+            type: String,
+            value: '',
+          },
           empty: {
             type: Boolean,
             value: false,
@@ -269,20 +281,25 @@
             type: Number,
             value: 0,
           },
+          indexReference: {
+            type: Number,
+            value: 0,
+          },
           images: {
             type: Array,
             value: [],
             observer: '_imagesChanged',
           },
-          indexSync: {
+          offsetSync: {
             type: Number,
             value: 0,
             notify: true,
-            observer: '_indexSyncChanged',
+            observer: '_offsetSyncChanged',
           },
           linked: {
             type: Boolean,
             value: false,
+            observer: '_linkedChanged',
           },
           imagesTotal: {
             type: Number,
@@ -721,13 +738,32 @@
         this._localizerChanged();
       }
 
-      _indexChanged() {
+      _indexChanged(value, oldValue, more) {
         this._updateLocalizer();
+      }
 
-        // if sync'ed, update value: this.indexSync = this.index;
-        if (this.linked) {
-          this.indexSync = this.index;
+      _offsetToIndex(offset) {
+        let index = 0;
+        const orientation = this.stackHelper.orientation;
+        const spacing =
+          this.stackHelper.stack._spacing.getComponent((orientation + 2)%3);
+        index = Math.round(offset/spacing);
+        let newIndex = this.indexReference - index;
+        if (newIndex < 0) {
+          newIndex = 0;
+        } else if (newIndex > this.indexMax) {
+          newIndex = this.indexMax;
         }
+        return newIndex;
+      }
+
+      _indexToOffset(index) {
+        let offset = 0;
+        const orientation = this.stackHelper.orientation;
+        const spacing =
+          this.stackHelper.stack._spacing.getComponent((orientation + 2)%3);
+        offset = index * spacing;
+        return offset;
       }
 
       _updateLocalizer() {
@@ -747,10 +783,11 @@
         this.$.renderer._sceneChanged();
       }
 
-      _indexSyncChanged(indexSync) {
+      _offsetSyncChanged(offset) {
        // if synced, update index this.index = indexSunc;
        if (this.linked) {
-          this.index = indexSync;
+          // map offset to index
+          this.index = this._offsetToIndex(offset);
         }
       }
 
@@ -771,6 +808,25 @@
 
       _hideControls() {
         this.showControls = false;
+      }
+
+      _linkedChanged(linked) {
+        if (linked) {
+          this.indexReference = this.index;
+        }
+      }
+
+
+      _indexPropagate(event) {
+        if (event.type === 'immediate-value-changed') {
+          // synchronize event...
+          // we only want user actions to trigger the synchronization
+          if (this.linked) {
+            // map index to offset
+            this.offsetSync =
+              this._indexToOffset(this.indexReference - event.detail.value);
+          }
+        }
       }
     }
     window.customElements.define(AmiViewer.is, AmiViewer);
