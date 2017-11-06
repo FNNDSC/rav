@@ -66,6 +66,7 @@
         left: 0;
         right: 0;
         background-color: rgba(0, 0, 0, .7);
+        padding-top: 6px;
         z-index: 2;
         height: 40px;
       }
@@ -86,6 +87,8 @@
         z-index: 2;
         background-color: rgba(0, 0, 0, .7);
         border-radius: 50%;
+        display: flex;
+        align-items: center;
       }
 
       paper-icon-button {
@@ -135,7 +138,7 @@
         --paper-slider-knob-color: var(--accent-color);
         margin: 0;
         margin-top: -20px;
-        margin-bottom: -20px;
+        margin-bottom: -10px;
       }
 
       paper-menu-button {
@@ -172,22 +175,22 @@
             stack-scene="[[stackScene]]"
             localizer-scene="[[localizerScene]]"
             stack-index="{{index}}"
-            on-stack-index-changed="_indexPropagate"
             stack-max-index="{{indexMax}}"
             window-center="{{windowCenter}}"
             window-level="{{windowLevel}}"
             window-width="{{windowWidth}}"></ami-renderer>
         </div>
-        <paper-icon-button hidden$="{{!linked}}" class$="shortcut {{_isLinked(linked)}}" icon="icons:link" on-tap="_toggleLinked"></paper-icon-button>
+        <div hidden$="{{!linked}}" class="shortcut">
+          Linked index: [[indexReference]]
+          <paper-icon-button  class$="{{_isLinked(linked)}}" icon="icons:link" on-tap="_toggleLinked"></paper-icon-button>
+        </div>
         <div hidden$="{{!showControls}}" class="toolbar" on-tap="_activateViewer">
             <paper-slider
             value="{{index}}"
             immediate-value="{{index}}"
             snaps
             min="[[indexMin]]"
-            max="[[indexMax]]"
-            on-value-changed="_indexPropagate"
-            on-immediate-value-changed="_indexPropagate"></paper-slider>
+            max="[[indexMax]]"></paper-slider>
             <div class="toolbar-controls">
               <paper-icon-button icon$="{{_playIcon(play)}}" on-tap="_togglePlay"></paper-icon-button>
               [[index]] / [[indexMax]]
@@ -218,9 +221,9 @@
 
       static get properties() {
         return {
-          myId: {
-            type: String,
-            value: '',
+          active: {
+            type: Boolean,
+            value: false,
           },
           empty: {
             type: Boolean,
@@ -542,6 +545,10 @@
             this.stackHelper.bbox.visible = false;
             this.stackHelper.border.visible = false;
             this.stackHelper.slice.intensityAuto = false;
+            this.stackHelper.slice.borderColor = 0xe91e63;
+            this.stackHelper.slice._uniforms.uBorderWidth.value = 1;
+            this.stackHelper.slice._uniforms.uBorderDashLength.value = 4;
+
 
             // init the localizer
             this.localizer = helper.slice.cartesianEquation();
@@ -738,8 +745,13 @@
         this._localizerChanged();
       }
 
-      _indexChanged(value, oldValue, more) {
+      _indexChanged(value, oldValue) {
         this._updateLocalizer();
+        if (this.linked && (this.active || this.play)) {
+          // map index to offset
+          this.offsetSync =
+            this._indexToOffset(this.indexReference - value);
+        }
       }
 
       _offsetToIndex(offset) {
@@ -784,7 +796,7 @@
       }
 
       _offsetSyncChanged(offset) {
-       // if synced, update index this.index = indexSunc;
+       // if synced, update index
        if (this.linked) {
           // map offset to index
           this.index = this._offsetToIndex(offset);
@@ -821,7 +833,7 @@
         if (event.type === 'immediate-value-changed') {
           // synchronize event...
           // we only want user actions to trigger the synchronization
-          if (this.linked) {
+          if (this.linked && (this.active || this.play)) {
             // map index to offset
             this.offsetSync =
               this._indexToOffset(this.indexReference - event.detail.value);

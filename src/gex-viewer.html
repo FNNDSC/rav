@@ -297,9 +297,9 @@
           on-iron-resize="_layoutSizeChanged">
             <ami-viewer
               id="viewer0"
-              my-id="v0"
               data-uid="0"
               slot="s0"
+              active="[[_isActive(0, active)]]"
               color-lut="{{colorLut0}}"
               cursor="{{cursor}}"
               histogram="{{histogram0}}"
@@ -324,9 +324,9 @@
 
             <ami-viewer
               id="viewer1"
-              my-id="v1"
               data-uid="1"
               slot="s1"
+              active="[[_isActive(1, active)]]"
               color-lut="{{colorLut1}}"
               cursor="{{cursor}}"
               histogram="{{histogram1}}"
@@ -353,6 +353,7 @@
               id="viewer2"
               data-uid="2"
               slot="s2"
+              active="[[_isActive(2, active)]]"
               color-lut="{{colorLut2}}"
               cursor="{{cursor}}"
               histogram="{{histogram2}}"
@@ -379,6 +380,7 @@
               id="viewer3"
               data-uid="3"
               slot="s3"
+              active="[[_isActive(3, active)]]"
               color-lut="{{colorLut3}}"
               cursor="{{cursor}}"
               histogram="{{histogram3}}"
@@ -408,14 +410,14 @@
     <gex-panel
       class="border-left"
       size="large"
-      hidden$="[[!_isActive(active)]]"
+      hidden$="[[!_isSomethingActive(active)]]"
       on-is-open-changed="_panelIsOpenChanged">
 
       <div slot="title">Active view</div>
       <div slot="content">
         <image-controls
           id="ic0"
-          hidden$="[[_hideControls(0, active)]]"
+          hidden$="[[!_isActive(0, active)]]"
           color-lut="{{colorLut0}}"
           histogram="[[histogram0]]"
           min-max="[[minMax0]]"
@@ -426,7 +428,7 @@
 
         <image-controls
           id="ic1"
-          hidden$="[[_hideControls(1, active)]]"
+          hidden$="[[!_isActive(1, active)]]"
           color-lut="{{colorLut1}}"
           histogram="[[histogram1]]"
           min-max="[[minMax1]]"
@@ -437,7 +439,7 @@
 
         <image-controls
           id="ic2"
-          hidden$="[[_hideControls(2, active)]]"
+          hidden$="[[!_isActive(2, active)]]"
           color-lut="{{colorLut2}}"
           histogram="[[histogram2]]"
           min-max="[[minMax2]]"
@@ -448,7 +450,7 @@
 
         <image-controls
           id="ic3"
-          hidden$="[[_hideControls(3, active)]]"
+          hidden$="[[!_isActive(3, active)]]"
           color-lut="{{colorLut3}}"
           histogram="[[histogram3]]"
           min-max="[[minMax3]]"
@@ -947,12 +949,12 @@
         this._layoutSizeChanged();
       }
 
-      _hideControls(current, target) {
+      _isActive(current, target) {
         if (Number(current) === 0 && Number(target) === -1) {
           return false;
         }
 
-        return (Number(current) !== Number(target));
+        return (Number(current) === Number(target));
       }
 
       _resizeListener() {
@@ -984,7 +986,7 @@
         this.$.viewer3.resize();
       }
 
-      _isActive(active) {
+      _isSomethingActive(active) {
         return active > -1;
       }
 
