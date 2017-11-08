@@ -428,8 +428,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           if (this.plugins[i].data.name === 's3retrieve') {
             this.s3RetrieveLink = plugins[i].links.instances;
           }
+          console.log(this.plugins[i].data.name);
           if (this.plugins[i].data.name === 'geretrieve') {
             this.geRetrieveLink = plugins[i].links.instances;
+            console.log(this.geRetrieveLink);
           }
         }
       }

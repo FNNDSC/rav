@@ -2,7 +2,7 @@
 const exec = require('child_process').exec;
 
 const targetImage =
-    '../images/gex.png';
+    '../images/ra5.png';
 const destination =
     '../images/manifest/';
 

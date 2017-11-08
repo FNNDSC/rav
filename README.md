@@ -6,6 +6,12 @@ Project was initialized with the [Polymer Starter Kit v2](https://github.com/Pol
 
 ## Develop
 
+``` bash
+
+polymer serve
+
+```
+
 ## Build
 
 es5-bundled preset includes:
@@ -16,12 +22,31 @@ es5-bundled preset includes:
 * css-minify
 * [more](https://www.polymer-project.org/1.0/docs/tools/polymer-cli)
 
-``` code
+``` bash
 
-$> polymer build --verbose --preset es5-bundled
+polymer build --verbose --preset es5-bundled && \
+polymer serve build/es5-bundled
 
 ```
 
 ## Deploy
 
 ## Citations
+
+## CUBE Setup
+
+Start CUBE:
+
+``` bash
+
+docker-compose up
+
+```
+
+Startpfdcm with right port
+
+``` bash
+
+....
+
+```
