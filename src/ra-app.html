@@ -40,7 +40,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="lazy-import" href="gex-viewer.html">
 <link rel="lazy-import" href="gex-view404.html">
 
-<dom-module id="gex-app">
+<dom-module id="ra-app">
   <template>
     <style>
       :host {
@@ -220,11 +220,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   </template>
 
   <script>
-    class GEXApp extends CHIPSPluginBehavior(
+    class RaApp extends CHIPSPluginBehavior(
       Polymer.GestureEventListeners(Polymer.Element)) {
 
       static get is() {
-        return 'gex-app';
+        return 'ra-app';
       }
 
       static get properties() {
@@ -496,6 +496,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     }
 
-    window.customElements.define(GEXApp.is, GEXApp);
+    window.customElements.define(RaApp.is, RaApp);
   </script>
 </dom-module>

@@ -1,6 +1,6 @@
 {
   "entrypoint": "index.html",
-  "shell": "src/gex-app.html",
+  "shell": "src/ra-app.html",
   "fragments": [
     "src/gex-viewer.html",
     "src/gex-library.html",

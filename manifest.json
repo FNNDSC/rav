@@ -1,10 +1,10 @@
 {
-  "name": "GEX",
-  "short_name": "GEX",
+  "name": "Radiology Viewer",
+  "short_name": "RaV",
   "start_url": "./?homescreen=1",
   "display": "standalone",
-  "theme_color": "#3f51b5",
-  "background_color": "#3f51b5",
+  "theme_color": "#212121",
+  "background_color": "#212121",
   "icons": [
     {
       "src": "images/manifest/icon-192x192.png",

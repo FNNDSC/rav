@@ -1,8 +1,18 @@
-# GE Xplorer
+# RaV
 
-GE Xplorer by FNNDSC.
+Radiology Viewer by FNNDSC.
 
 Project was initialized with the [Polymer Starter Kit v2](https://github.com/PolymerElements/polymer-starter-kit).
+
+## Update
+
+``` bash
+
+git pull origin master && \
+rm -rf bower_components && \
+bower update
+
+```
 
 ## Develop
 
@@ -24,8 +34,9 @@ es5-bundled preset includes:
 
 ``` bash
 
+cd ~/src/gex && \
 polymer build --verbose --preset es5-bundled && \
-polymer serve build/es5-bundled
+polymer serve --port --hostname 0.0.0.0 8060 build/es5-bundled
 
 ```
 

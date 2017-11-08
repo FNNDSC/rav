@@ -1,5 +1,5 @@
 {
-  "name": "ge-xplorer",
+  "name": "radiology-viewer",
   "license": "Apache 2.0",
   "devDependencies": {
     "eslint": "^3.19.0",
