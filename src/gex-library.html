@@ -47,7 +47,8 @@
 
       .left-panel {
         width: 172px;
-        background-color: red;
+        color: #f9f9f9;
+        /* background-color: red; */
       }
 
       .main-panel {
@@ -136,7 +137,7 @@
       }
 
       vaadin-grid {
-        background-color: var(--dark-primary-color);
+        background-color: var(--default-primary-color);
         height: 100%;
       }
       
@@ -220,7 +221,7 @@
 
     <div class="container">
       <div class="left-panel">
-        ADVANCED RESULTS FILTERING
+        DEBUG PANEL
         <paper-button on-tap="addData">Add data</paper-button>
         <paper-button on-tap="removeData">Remove data</paper-button>
         <paper-button on-tap="statusInitial">Initial</paper-button>        
@@ -269,8 +270,7 @@
             aria-label="Basic Binding Example"
             multi-sort="true"
             items="[[data]]"
-            selected-items="{{selection}}"      
-            active-item="{{activeItem}}">
+            selected-items="{{selection}}">
 
             <vaadin-grid-selection-column id="selectionColumn" auto-select>
             </vaadin-grid-selection-column>
@@ -362,6 +362,9 @@
             type: String,
           },
           moveLink: {
+            type: String,
+          },
+          geRetrieveLink: {
             type: String,
           },
           s3PathLink: {
@@ -611,10 +614,70 @@
 
       retrieveData() {
         this._initPacsRetrieve();
-        this._initNormalsRetrieve();
+        this._initGeRetrieve();
+        // this._initNormalsRetrieve();
+      }
+
+      _initGeRetrieve() {
+        const data = {};
+        data.auth = {
+          type: 'token',
+          token: sessionStorage.getItem('token'),
+        };
+
+        // update body parameters
+        data.body = {};
+        data.body.template = {};
+        data.body.template.data = [
+          {name: 'prefix', value: ''},
+        ];
+
+        data.body.data = {};
+        data.body.data['prefix'] = 'demo-upload/viewer/212'; // build from selection
+
+        const start = this.__startPlugin(this.$.API, this.geRetrieveLink, data);
+        start
+          .then(this.__wait.bind(this, 30000))
+          .then(this.__waitEndPlugin.bind(this, this.$.API, data))
+          .then(this._handleGeRetrieveResponse.bind(this))
+          .catch(this._handleGeRetrieveError.bind(this));
+      }
+
+      _handleGeRetrieveResponse(response) {
+        //
+        const geRetrieveInstance = response.data[0];
+        const geRetrieveStarted = new CustomEvent(
+          'start-ge-retrieve',
+          {
+            detail: {
+              feedLink: this.feedLink,
+              pluginInstance: geRetrieveInstance,
+          },
+        });
+
+        // booo :(
+        // backend hangs if we do not wait a bit....
+        window.setTimeout(
+          () => {
+            this.dispatchEvent(geRetrieveStarted);
+          }, 1000);
+      }
+
+      _handleGeRetrieveError(error) {
+        console.log(error);
       }
 
       _initPacsRetrieve() {
+        // FAKE event emitted.
+        const fakeRetrieve = new CustomEvent(
+          'fake-finish-retrieve',
+          {
+            detail: {},
+        });
+
+        this.dispatchEvent(fakeRetrieve);
+        return;
+
         const data = {};
         data.auth = {
           type: 'token',

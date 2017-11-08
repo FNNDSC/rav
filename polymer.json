@@ -2,7 +2,8 @@
   "entrypoint": "index.html",
   "shell": "src/gex-app.html",
   "fragments": [
-    "src/gex-home.html",
+    "src/gex-viewer.html",
+    "src/gex-library.html",
     "src/gex-login.html",
     "src/gex-view404.html"
   ],

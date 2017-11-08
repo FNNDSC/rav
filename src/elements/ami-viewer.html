@@ -577,7 +577,7 @@
             for (let i = 0; i < this.stackHelper.stack.frame.length; i++) {
               const frame = this.stackHelper.stack.frame[i];
               for (let j = 0; j < frame.pixelData.length; j++) {
-                const value = AMI.UtilsCor.rescaleSlopeIntercept(
+                const value = AMI.UtilsCore.rescaleSlopeIntercept(
                   frame.pixelData[j],
                   slope,
                   intercept)

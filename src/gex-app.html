@@ -112,6 +112,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         font-size: 14px;
       }
 
+      paper-tabs {
+        --paper-tabs-selection-bar-color: var(--accent-color);
+      }
+
+
       ra-logo {
         margin-right: 2px;
       }
@@ -189,18 +194,24 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           aet-listener="[[aetListener]]"
           move-link="[[pacsRetrieveLink]]"
           query-link="[[pacsQueryLink]]"
+          ge-retrieve-link="[[geRetrieveLink]]"
           s3-path-link="[[s3PathLink]]"
           s3-retrieve-link="[[s3RetrieveLink]]"
           server-ip="[[serverIp]]"
           server-port="[[serverPort]]"
           on-open-pacs-settings-dialog="handleOpenPacsSettingsDialog"
-          on-start-move="_handleStartMove"></gex-library>
+          on-start-move="_handleStartMove"
+          on-start-ge-retrieve="_handleStartGE"
+          on-fake-finish-retrieve="handleFakeFinishRetrieve"></gex-library>
         <gex-viewer
           name="viewer"
           previous-instance="[[pluginBch]]"
+          data-bch="[[data]]"
+          data-status-bch="[[dataStatus]]"
+          data-ge="[[dataGE]]"
+          data-status-ge="[[dataGEStatus]]"
           ge-link="[[geLink]]"
-          on-open-dialog="handleOpenDialog"
-          on-start-ge="_handleStartGE"></gex-viewer>
+          on-open-dialog="handleOpenDialog"></gex-viewer>
         <gex-view404
           name="view404"></gex-view404>
       </iron-pages>
@@ -252,6 +263,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             value: '',
           },
           s3RetrieveLink: {
+            type: String,
+            value: '',
+          },
+          geRetrieveLink: {
             type: String,
             value: '',
           },
@@ -364,6 +379,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       _handleStartGE(event) {
         const detail = event.detail;
+        this.set('feed', {
+            href: detail.feedLink,
+          }
+        );
         this.set('pluginGe', detail.pluginInstance);
       }
 
@@ -396,7 +415,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         if (plugins === undefined) {
           return;
         }
-        console.log(plugins);
         for (let i = 0; i < this.plugins.length; i++) {
           if (this.plugins[i].data.name === 'pacsquery') {
             this.pacsQueryLink = plugins[i].links.instances;
@@ -410,6 +428,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           if (this.plugins[i].data.name === 's3retrieve') {
             this.s3RetrieveLink = plugins[i].links.instances;
           }
+          if (this.plugins[i].data.name === 'geretrieve') {
+            this.geRetrieveLink = plugins[i].links.instances;
+          }
         }
       }
 
@@ -420,6 +441,56 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       handleOpenPacsSettingsDialog() {
         this.$.pacsSettingsDialog.open();
+      }
+
+      handleFakeFinishRetrieve() {
+        this.data = [
+        {
+          details: {
+            series: {
+              uid: 1,
+              description: 'Sag FLAIR CUBE',
+              date: '2011-05-20',
+              files: '159',
+              preview: {
+                blob: null,
+                url: '../images/demo/sag.jpg',
+              },
+            },
+          },
+        },
+        {
+          details: {
+            series: {
+              uid: 0,
+              description: 'Borjan SAG T2',
+              date: '2013-05-27',
+              files: '176',
+              preview: {
+                blob: null,
+                url: '../images/demo/sag.jpg',
+              },
+            },
+          },
+        },
+        {
+          details: {
+            series: {
+              uid: 2,
+              description: 'SAG 3D IR',
+              date: '2012-12-03',
+              files: '90',
+              preview: {
+                blob: null,
+                url: '../images/demo/sag.jpg',
+              },
+            },
+          },
+        },
+        ];
+
+        this.dataStatus = 'ready';
+        this.set('route.path', `/viewer/`);
       }
     }
 

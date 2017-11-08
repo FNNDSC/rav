@@ -382,14 +382,14 @@
           // update IJK of current view
           const stack = this.stackHelper.stack;
           let ijk =
-            AMI.UtilsCor.worldToData(stack.lps2IJK, intersects[0].point);
+            AMI.UtilsCore.worldToData(stack.lps2IJK, intersects[0].point);
 
           // update overlay
           this.mouseI = ijk.x;
           this.mouseJ = ijk.y;
           this.mouseK = ijk.z;
           this.mouseValue =
-            AMI.UtilsCor.getPixelData(this.stackHelper.stack, ijk);
+            AMI.UtilsCore.getPixelData(this.stackHelper.stack, ijk);
 
           // notify others if shift click
           // update cursor position
@@ -450,14 +450,14 @@
 
           // ijk coordinates of the cursor
           let ijk =
-            AMI.UtilsCor.worldToData(stack.lps2IJK, cursor);
+            AMI.UtilsCore.worldToData(stack.lps2IJK, cursor);
 
           // update overlay
           this.mouseI = ijk.x;
           this.mouseJ = ijk.y;
           this.mouseK = ijk.z;
           this.mouseValue =
-            AMI.UtilsCor.getPixelData(this.stackHelper.stack, ijk);
+            AMI.UtilsCore.getPixelData(this.stackHelper.stack, ijk);
 
           // update stack index
           // for instance to synchronize viewers if cursor was changed from parent

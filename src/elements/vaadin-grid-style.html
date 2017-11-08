@@ -9,7 +9,7 @@
         background-color: var(--material-background-color);
         font-family: var(--material-font-family);
         font-size: 13px;
-        color: var(--material-body-text-color);
+        color: var(--primary-text-color);
         border: 1px solid var(--material-divider-color);
       }
 
@@ -22,8 +22,8 @@
 
       [part~="header-cell"],
       [part~="footer-cell"] {
-        background-color: var(--material-background-color);
-        color: var(--material-secondary-text-color);
+        background-color: var(--default-primary-color);
+        color: var(--primary-text-color);
       }
 
       [part~="header-cell"] ::slotted(*),
@@ -55,11 +55,13 @@
       /* Body rows/cells */
 
       [part~="body-cell"] {
-        background-color: var(--material-background-color);
+        background-color: var(--light-primary-color);
+        /* var(--material-background-color); */
       }
 
       [part~="row"]:hover [part~="body-cell"] {
-        background: linear-gradient(var(---material-grid-row-hover-background-color, rgba(0,0,0,0.06)), var(---material-grid-row-hover-background-color, rgba(0,0,0,0.06))) var(--material-background-color);
+        background: #039be5;
+        /* background: linear-gradient(var(---material-grid-row-hover-background-color, rgba(0,0,0,0.06)), var(---material-grid-row-hover-background-color, rgba(0,0,0,0.06))) var(--material-background-color); */
       }
 
       @media (pointer: coarse) {
@@ -71,7 +73,8 @@
       /* Selected row */
 
       :host(:not([reordering])) [part~="row"][selected] [part~="cell"] {
-        background-color: var(--material-secondary-background-color);
+        /* background-color: var(--material-secondary-background-color); */
+        background: #0288d1;
       }
 
       /* Column reordering */
@@ -145,7 +148,7 @@
       }
 
       :host([direction]) {
-        color: var(--material-body-text-color);
+        color: var(--primary-text-color);
       }
 
       [part="content"] {
