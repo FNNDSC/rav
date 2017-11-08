@@ -1,8 +1,13 @@
-# RaV
 
-Radiology Viewer by FNNDSC.
+<p align="center"><img width="256px" src ="https://user-images.githubusercontent.com/214063/32576569-9cf89f9a-c4d7-11e7-9bd8-9fe838ed2915.png" /></p>
 
-Project was initialized with the [Polymer Starter Kit v2](https://github.com/PolymerElements/polymer-starter-kit).
+<p align="center">
+Radiology Viewer by FNNDSC
+</p>
+
+<p align="center">
+Project was initialized with the <a href="https://github.com/PolymerElements/polymer-starter-kit">Polymer Starter Kit v2</a>
+</p>
 
 ## Update
 
