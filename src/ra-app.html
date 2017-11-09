@@ -200,6 +200,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           server-ip="[[serverIp]]"
           server-port="[[serverPort]]"
           on-open-pacs-settings-dialog="handleOpenPacsSettingsDialog"
+          on-open-viewer="handleOpenViewer"
           on-start-move="_handleStartMove"
           on-start-ge-retrieve="_handleStartGE"
           on-fake-finish-retrieve="handleFakeFinishRetrieve"></gex-library>
@@ -450,27 +451,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         {
           details: {
             series: {
-              uid: 1,
-              description: 'Sag FLAIR CUBE',
-              date: '2011-05-20',
-              files: '159',
-              preview: {
-                blob: null,
-                url: '../images/demo/sag.jpg',
-              },
-            },
-          },
-        },
-        {
-          details: {
-            series: {
               uid: 0,
-              description: 'Borjan SAG T2',
-              date: '2013-05-27',
-              files: '176',
+              description: 'SAG T1',
+              date: '2011-05-09',
+              files: '22',
               preview: {
                 blob: null,
-                url: '../images/demo/sag.jpg',
+                url: '../ge/flat/SAG_T1-ORBITS_2011_3-187345/preview.jpg',
               },
             },
           },
@@ -479,12 +466,96 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           details: {
             series: {
               uid: 2,
-              description: 'SAG 3D IR',
-              date: '2012-12-03',
-              files: '90',
+              description: 'AX FSE T2',
+              date: '2011-05-09',
+              files: '26',
               preview: {
                 blob: null,
-                url: '../images/demo/sag.jpg',
+                url: '../ge/flat/AX_FSE_T2-ORBITS_2011_4-187346/preview.jpg',
+              },
+            },
+          },
+        },
+        {
+          details: {
+            series: {
+              uid: 1,
+              description: '+C AX T1 hi res FS',
+              date: '2011-05-09',
+              files: '18',
+              preview: {
+                blob: null,
+                url: '../ge/flat/_C_AX_T1__hi_res_FS-ORBITS_2011_10-187355/preview.jpg',
+              },
+            },
+          },
+        },
+        {
+          details: {
+            series: {
+              uid: 3,
+              description: 'AX T2 FLAIR',
+              date: '2011-05-09',
+              files: '26',
+              preview: {
+                blob: null,
+                url: '../ge/flat/AX_T2_FLAIR-ORBITS_2011_5-187342/preview.jpg',
+              },
+            },
+          },
+        },
+        {
+          details: {
+            series: {
+              uid: 4,
+              description: 'AX T2 HI RES FS',
+              date: '2011-05-09',
+              files: '18',
+              preview: {
+                blob: null,
+                url: '../ge/flat/AX_t2_HI_RES_FS-ORBITS_2011_12-187349/preview.jpg',
+              },
+            },
+          },
+        },
+        {
+          details: {
+            series: {
+              uid: 5,
+              description: '+C COR T1 hi res FS',
+              date: '2011-05-09',
+              files: '24',
+              preview: {
+                blob: null,
+                url: '../ge/flat/_C_COR_T1_hi_res_FS-ORBITS_2011_11-187357/preview.jpg',
+              },
+            },
+          },
+        },
+        {
+          details: {
+            series: {
+              uid: 6,
+              description: 'COR T1 hi res',
+              date: '2011-05-09',
+              files: '24',
+              preview: {
+                blob: null,
+                url: '../ge/flat/COR_T1_hi_res-ORBITS_2011_6-187352/preview.jpg',
+              },
+            },
+          },
+        },
+        {
+          details: {
+            series: {
+              uid: 7,
+              description: 'AX T1 hi res',
+              date: '2011-05-09',
+              files: '18',
+              preview: {
+                blob: null,
+                url: '../ge/flat/AX_T1_hi_res-ORBITS_2011_9-187344/preview.jpg',
               },
             },
           },
@@ -492,6 +563,69 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         ];
 
         this.dataStatus = 'ready';
+
+        this.dataGE = [
+        {
+          details: {
+            series: {
+              uid: 992,
+              description: 'Axial T2',
+              date: '7_months',
+              files: '56',
+              preview: {
+                blob: null,
+                url: '../ge/flat/Axial_T2-7_months-6/preview.jpg',
+              },
+            },
+          },
+        },
+        {
+          details: {
+            series: {
+              uid: 993,
+              description: 'Coronal T2',
+              date: '7_months',
+              files: '56',
+              preview: {
+                blob: null,
+                url: '../ge/flat/Coronal_T2-7_months-19/preview.jpg',
+              },
+            },
+          },
+        },
+        {
+          details: {
+            series: {
+              uid: 994,
+              description: 'Sagittal T1',
+              date: '7_months',
+              files: '128',
+              preview: {
+                blob: null,
+                url: '../ge/flat/Sagittal_T1-7_months-5/preview.jpg',
+              },
+            },
+          },
+        },
+        {
+          details: {
+            series: {
+              uid: 991,
+              description: 'Axial FLAIR',
+              date: '7_months',
+              files: '138',
+              preview: {
+                blob: null,
+                url: '../ge/flat/Axial_FLAIR-7_months-100/preview.jpg',
+              },
+            },
+          },
+        },
+        ];
+        this.dataGEStatus = 'ready';
+      }
+
+      handleOpenViewer() {
         this.set('route.path', `/viewer/`);
       }
     }

@@ -220,7 +220,7 @@
     </app-toolbar>
 
     <div class="container">
-      <div class="left-panel">
+      <div hidden$="[[_isDemo]]" class="left-panel">
         DEBUG PANEL
         <paper-button on-tap="addData">Add data</paper-button>
         <paper-button on-tap="removeData">Remove data</paper-button>
@@ -557,6 +557,22 @@
         this.loadingSteps = [];
         this.loadingSteps.push('Starting PACS Query...');
 
+        this.isReady = true;
+        this.set('data', this._resultsJson().query.data);
+
+        return; 
+        // fake response
+        // just start plugin
+        const fakeStart = this.__startPlugin(this.$.API, this.queryLink, data);
+        return fakeStart.then((response) => {
+            // go pacs query
+            this.queryInstance = Number(response.data[0].data.id);
+            this.feedLink = response.data[0].links.feed;
+            this.isReady = true;
+            this.set('data', this._resultsJson().query.data);
+            return response;
+          });
+
         const start = this.__startPlugin(this.$.API, this.queryLink, data);
         start.then((response) => {
             // go pacs query
@@ -613,12 +629,35 @@
       }
 
       retrieveData() {
-        this._initPacsRetrieve();
-        this._initGeRetrieve();
-        // this._initNormalsRetrieve();
+        const pacsRetrievePromise = this._initPacsRetrieve();
+        const geRetrievePromise = this._initGeRetrieve();
+
+        Promise.all([pacsRetrievePromise, geRetrievePromise]).then(
+        (values) => {
+          // Open viewer once both plugin started
+          const openViewerEvent = new CustomEvent(
+          'open-viewer',
+          {
+            detail: {},
+          });
+
+          this.dispatchEvent(openViewerEvent);
+          return;
+        });
       }
 
       _initGeRetrieve() {
+        // FAKE event emitted.
+        const fakeRetrieve = new CustomEvent(
+          'fake-finish-retrieve',
+          {
+            detail: {},
+        });
+
+        this.dispatchEvent(fakeRetrieve);
+        return;
+
+        console.log('GE Retrieve');
         const data = {};
         data.auth = {
           type: 'token',
@@ -630,17 +669,23 @@
         data.body.template = {};
         data.body.template.data = [
           {name: 'prefix', value: ''},
+          {name: 'previous_id', value: ''},
         ];
 
         data.body.data = {};
-        data.body.data['prefix'] = 'demo-upload/viewer/212'; // build from selection
+        data.body.data['prefix'] = 'demo-upload/viewer/212';
+        data.body.data['previous_id'] = this.queryInstance;
 
         const start = this.__startPlugin(this.$.API, this.geRetrieveLink, data);
-        start
-          .then(this.__wait.bind(this, 30000))
-          .then(this.__waitEndPlugin.bind(this, this.$.API, data))
-          .then(this._handleGeRetrieveResponse.bind(this))
-          .catch(this._handleGeRetrieveError.bind(this));
+        return start
+          .then((response) => {
+            // fire fake event to pull fake data
+            return response;
+          });
+        //   .then(this.__wait.bind(this, 30000))
+        //   .then(this.__waitEndPlugin.bind(this, this.$.API, data))
+        //   .then(this._handleGeRetrieveResponse.bind(this))
+        //   .catch(this._handleGeRetrieveError.bind(this));
       }
 
       _handleGeRetrieveResponse(response) {
@@ -924,6 +969,10 @@
         this.isEmpty = (data.base.length === 0);
       }
 
+      _isDemo() {
+        return sessionStorage.getItem('username') === 'demo';
+      }
+
       _resultsJson() {
         return {
           "query": {
@@ -938,7 +987,7 @@
                       "ModalitiesInStudy": {
                           "label": "ModalitiesInStudy",
                           "tag": "0008,0061",
-                          "value": "no value provided"
+                          "value": "MR"
                       },
                       "NumberOfSeriesRelatedInstances": {
                           "label": "NumberOfSeriesRelatedInstances",
@@ -948,7 +997,7 @@
                       "PatientAge": {
                           "label": "PatientAge",
                           "tag": "0010,1010",
-                          "value": "017M"
+                          "value": "07M"
                       },
                       "PatientBirthDate": {
                           "label": "PatientBirthDate",
@@ -958,12 +1007,12 @@
                       "PatientID": {
                           "label": "PatientID",
                           "tag": "0010,0020",
-                          "value": "LILLA-9731"
+                          "value": "4473430"
                       },
                       "PatientName": {
                           "label": "PatientName",
                           "tag": "0010,0010",
-                          "value": "LILLA-9731"
+                          "value": "BREA^FRANKLIN"
                       },
                       "PatientSex": {
                           "label": "PatientSex",
@@ -988,7 +1037,7 @@
                       "SeriesDescription": {
                           "label": "SeriesDescription",
                           "tag": "0008,103e",
-                          "value": "AAHScout"
+                          "value": "SAG T1"
                       },
                       "SeriesInstanceUID": {
                           "label": "SeriesInstanceUID",
@@ -1008,7 +1057,7 @@
                       "StudyDescription": {
                           "label": "StudyDescription",
                           "tag": "0008,1030",
-                          "value": "anonymized"
+                          "value": "MR-Orbits/Face/Neck w/ + w/o Contrast"
                       },
                       "StudyInstanceUID": {
                           "label": "StudyInstanceUID",
@@ -1030,7 +1079,7 @@
                       "ModalitiesInStudy": {
                           "label": "ModalitiesInStudy",
                           "tag": "0008,0061",
-                          "value": "no value provided"
+                          "value": "MR"
                       },
                       "NumberOfSeriesRelatedInstances": {
                           "label": "NumberOfSeriesRelatedInstances",
@@ -1040,7 +1089,7 @@
                       "PatientAge": {
                           "label": "PatientAge",
                           "tag": "0010,1010",
-                          "value": "017M"
+                          "value": "07M"
                       },
                       "PatientBirthDate": {
                           "label": "PatientBirthDate",
@@ -1050,12 +1099,12 @@
                       "PatientID": {
                           "label": "PatientID",
                           "tag": "0010,0020",
-                          "value": "LILLA-9731"
+                          "value": "4473430"
                       },
                       "PatientName": {
                           "label": "PatientName",
                           "tag": "0010,0010",
-                          "value": "LILLA-9731"
+                          "value": "BREA^FRANKLIN"
                       },
                       "PatientSex": {
                           "label": "PatientSex",
@@ -1080,7 +1129,7 @@
                       "SeriesDescription": {
                           "label": "SeriesDescription",
                           "tag": "0008,103e",
-                          "value": "AAHScout_MPR"
+                          "value": "+C AX T1 hi res FS"
                       },
                       "SeriesInstanceUID": {
                           "label": "SeriesInstanceUID",
@@ -1100,7 +1149,7 @@
                       "StudyDescription": {
                           "label": "StudyDescription",
                           "tag": "0008,1030",
-                          "value": "anonymized"
+                          "value": "MR-Orbits/Face/Neck w/ + w/o Contrast"
                       },
                       "StudyInstanceUID": {
                           "label": "StudyInstanceUID",
@@ -1122,7 +1171,7 @@
                       "ModalitiesInStudy": {
                           "label": "ModalitiesInStudy",
                           "tag": "0008,0061",
-                          "value": "no value provided"
+                          "value": "MR"
                       },
                       "NumberOfSeriesRelatedInstances": {
                           "label": "NumberOfSeriesRelatedInstances",
@@ -1132,7 +1181,7 @@
                       "PatientAge": {
                           "label": "PatientAge",
                           "tag": "0010,1010",
-                          "value": "017M"
+                          "value": "07M"
                       },
                       "PatientBirthDate": {
                           "label": "PatientBirthDate",
@@ -1142,12 +1191,12 @@
                       "PatientID": {
                           "label": "PatientID",
                           "tag": "0010,0020",
-                          "value": "LILLA-9731"
+                          "value": "4473430"
                       },
                       "PatientName": {
                           "label": "PatientName",
                           "tag": "0010,0010",
-                          "value": "LILLA-9731"
+                          "value": "BREA^FRANKLIN"
                       },
                       "PatientSex": {
                           "label": "PatientSex",
@@ -1192,7 +1241,7 @@
                       "StudyDescription": {
                           "label": "StudyDescription",
                           "tag": "0008,1030",
-                          "value": "anonymized"
+                          "value": "MR-Orbits/Face/Neck w/ + w/o Contrast"
                       },
                       "StudyInstanceUID": {
                           "label": "StudyInstanceUID",
@@ -1214,7 +1263,7 @@
                       "ModalitiesInStudy": {
                           "label": "ModalitiesInStudy",
                           "tag": "0008,0061",
-                          "value": "no value provided"
+                          "value": "MR"
                       },
                       "NumberOfSeriesRelatedInstances": {
                           "label": "NumberOfSeriesRelatedInstances",
@@ -1224,7 +1273,7 @@
                       "PatientAge": {
                           "label": "PatientAge",
                           "tag": "0010,1010",
-                          "value": "017M"
+                          "value": "07M"
                       },
                       "PatientBirthDate": {
                           "label": "PatientBirthDate",
@@ -1234,104 +1283,12 @@
                       "PatientID": {
                           "label": "PatientID",
                           "tag": "0010,0020",
-                          "value": "LILLA-9731"
+                          "value": "4473430"
                       },
                       "PatientName": {
                           "label": "PatientName",
                           "tag": "0010,0010",
-                          "value": "LILLA-9731"
-                      },
-                      "PatientSex": {
-                          "label": "PatientSex",
-                          "tag": "0010,0040",
-                          "value": "M"
-                      },
-                      "PerformedStationAETitle": {
-                          "label": "PerformedStationAETitle",
-                          "tag": "0040,0241",
-                          "value": "no value provided"
-                      },
-                      "QueryRetrieveLevel": {
-                          "label": "QueryRetrieveLevel",
-                          "tag": "0008,0052",
-                          "value": "SERIES"
-                      },
-                      "SeriesDate": {
-                          "label": "SeriesDate",
-                          "tag": "0008,0021",
-                          "value": "20111206"
-                      },
-                      "SeriesDescription": {
-                          "label": "SeriesDescription",
-                          "tag": "0008,103e",
-                          "value": "AX MPRAGE RECON"
-                      },
-                      "SeriesInstanceUID": {
-                          "label": "SeriesInstanceUID",
-                          "tag": "0020,000e",
-                          "value": "1.3.12.2.1107.5.2.32.35235.30000011120415032007800030559"
-                      },
-                      "SpecificCharacterSet": {
-                          "label": "SpecificCharacterSet",
-                          "tag": "0008,0005",
-                          "value": "ISO_IR 100"
-                      },
-                      "StudyDate": {
-                          "label": "StudyDate",
-                          "tag": "0008,0020",
-                          "value": "20111206"
-                      },
-                      "StudyDescription": {
-                          "label": "StudyDescription",
-                          "tag": "0008,1030",
-                          "value": "anonymized"
-                      },
-                      "StudyInstanceUID": {
-                          "label": "StudyInstanceUID",
-                          "tag": "0020,000d",
-                          "value": "1.2.840.113845.11.1000000001785349915.20111206061530.5737676"
-                      },
-                      "uid": {
-                          "label": "uid",
-                          "tag": 0,
-                          "value": 3
-                      }
-                  },
-                  {
-                      "InstanceNumber": {
-                          "label": "InstanceNumber",
-                          "tag": "0020,0013",
-                          "value": "1"
-                      },
-                      "ModalitiesInStudy": {
-                          "label": "ModalitiesInStudy",
-                          "tag": "0008,0061",
-                          "value": "no value provided"
-                      },
-                      "NumberOfSeriesRelatedInstances": {
-                          "label": "NumberOfSeriesRelatedInstances",
-                          "tag": "0020,1209",
-                          "value": "30"
-                      },
-                      "PatientAge": {
-                          "label": "PatientAge",
-                          "tag": "0010,1010",
-                          "value": "017M"
-                      },
-                      "PatientBirthDate": {
-                          "label": "PatientBirthDate",
-                          "tag": "0010,0030",
-                          "value": "19000101"
-                      },
-                      "PatientID": {
-                          "label": "PatientID",
-                          "tag": "0010,0020",
-                          "value": "LILLA-9731"
-                      },
-                      "PatientName": {
-                          "label": "PatientName",
-                          "tag": "0010,0010",
-                          "value": "LILLA-9731"
+                          "value": "BREA^FRANKLIN"
                       },
                       "PatientSex": {
                           "label": "PatientSex",
@@ -1361,6 +1318,98 @@
                       "SeriesInstanceUID": {
                           "label": "SeriesInstanceUID",
                           "tag": "0020,000e",
+                          "value": "1.3.12.2.1107.5.2.32.35235.30000011120415032007800030559"
+                      },
+                      "SpecificCharacterSet": {
+                          "label": "SpecificCharacterSet",
+                          "tag": "0008,0005",
+                          "value": "ISO_IR 100"
+                      },
+                      "StudyDate": {
+                          "label": "StudyDate",
+                          "tag": "0008,0020",
+                          "value": "20111206"
+                      },
+                      "StudyDescription": {
+                          "label": "StudyDescription",
+                          "tag": "0008,1030",
+                          "value": "MR-Orbits/Face/Neck w/ + w/o Contrast"
+                      },
+                      "StudyInstanceUID": {
+                          "label": "StudyInstanceUID",
+                          "tag": "0020,000d",
+                          "value": "1.2.840.113845.11.1000000001785349915.20111206061530.5737676"
+                      },
+                      "uid": {
+                          "label": "uid",
+                          "tag": 0,
+                          "value": 3
+                      }
+                  },
+                  {
+                      "InstanceNumber": {
+                          "label": "InstanceNumber",
+                          "tag": "0020,0013",
+                          "value": "1"
+                      },
+                      "ModalitiesInStudy": {
+                          "label": "ModalitiesInStudy",
+                          "tag": "0008,0061",
+                          "value": "MR"
+                      },
+                      "NumberOfSeriesRelatedInstances": {
+                          "label": "NumberOfSeriesRelatedInstances",
+                          "tag": "0020,1209",
+                          "value": "30"
+                      },
+                      "PatientAge": {
+                          "label": "PatientAge",
+                          "tag": "0010,1010",
+                          "value": "07M"
+                      },
+                      "PatientBirthDate": {
+                          "label": "PatientBirthDate",
+                          "tag": "0010,0030",
+                          "value": "19000101"
+                      },
+                      "PatientID": {
+                          "label": "PatientID",
+                          "tag": "0010,0020",
+                          "value": "4473430"
+                      },
+                      "PatientName": {
+                          "label": "PatientName",
+                          "tag": "0010,0010",
+                          "value": "BREA^FRANKLIN"
+                      },
+                      "PatientSex": {
+                          "label": "PatientSex",
+                          "tag": "0010,0040",
+                          "value": "M"
+                      },
+                      "PerformedStationAETitle": {
+                          "label": "PerformedStationAETitle",
+                          "tag": "0040,0241",
+                          "value": "no value provided"
+                      },
+                      "QueryRetrieveLevel": {
+                          "label": "QueryRetrieveLevel",
+                          "tag": "0008,0052",
+                          "value": "SERIES"
+                      },
+                      "SeriesDate": {
+                          "label": "SeriesDate",
+                          "tag": "0008,0021",
+                          "value": "20111206"
+                      },
+                      "SeriesDescription": {
+                          "label": "SeriesDescription",
+                          "tag": "0008,103e",
+                          "value": "AX T2 HI RES FS"
+                      },
+                      "SeriesInstanceUID": {
+                          "label": "SeriesInstanceUID",
+                          "tag": "0020,000e",
                           "value": "1.3.12.2.1107.5.2.32.35235.2011120608060183769230384.0.0.0"
                       },
                       "SpecificCharacterSet": {
@@ -1376,7 +1425,7 @@
                       "StudyDescription": {
                           "label": "StudyDescription",
                           "tag": "0008,1030",
-                          "value": "anonymized"
+                          "value": "MR-Orbits/Face/Neck w/ + w/o Contrast"
                       },
                       "StudyInstanceUID": {
                           "label": "StudyInstanceUID",
@@ -1398,7 +1447,7 @@
                       "ModalitiesInStudy": {
                           "label": "ModalitiesInStudy",
                           "tag": "0008,0061",
-                          "value": "no value provided"
+                          "value": "MR"
                       },
                       "NumberOfSeriesRelatedInstances": {
                           "label": "NumberOfSeriesRelatedInstances",
@@ -1408,7 +1457,7 @@
                       "PatientAge": {
                           "label": "PatientAge",
                           "tag": "0010,1010",
-                          "value": "017M"
+                          "value": "07M"
                       },
                       "PatientBirthDate": {
                           "label": "PatientBirthDate",
@@ -1418,12 +1467,12 @@
                       "PatientID": {
                           "label": "PatientID",
                           "tag": "0010,0020",
-                          "value": "LILLA-9731"
+                          "value": "4473430"
                       },
                       "PatientName": {
                           "label": "PatientName",
                           "tag": "0010,0010",
-                          "value": "LILLA-9731"
+                          "value": "BREA^FRANKLIN"
                       },
                       "PatientSex": {
                           "label": "PatientSex",
@@ -1448,7 +1497,7 @@
                       "SeriesDescription": {
                           "label": "SeriesDescription",
                           "tag": "0008,103e",
-                          "value": "COR MPRAGE RECON"
+                          "value": "localizer"
                       },
                       "SeriesInstanceUID": {
                           "label": "SeriesInstanceUID",
@@ -1468,7 +1517,7 @@
                       "StudyDescription": {
                           "label": "StudyDescription",
                           "tag": "0008,1030",
-                          "value": "anonymized"
+                          "value": "MR-Orbits/Face/Neck w/ + w/o Contrast"
                       },
                       "StudyInstanceUID": {
                           "label": "StudyInstanceUID",
@@ -1490,7 +1539,7 @@
                       "ModalitiesInStudy": {
                           "label": "ModalitiesInStudy",
                           "tag": "0008,0061",
-                          "value": "no value provided"
+                          "value": "MR"
                       },
                       "NumberOfSeriesRelatedInstances": {
                           "label": "NumberOfSeriesRelatedInstances",
@@ -1500,7 +1549,7 @@
                       "PatientAge": {
                           "label": "PatientAge",
                           "tag": "0010,1010",
-                          "value": "017M"
+                          "value": "07M"
                       },
                       "PatientBirthDate": {
                           "label": "PatientBirthDate",
@@ -1510,12 +1559,12 @@
                       "PatientID": {
                           "label": "PatientID",
                           "tag": "0010,0020",
-                          "value": "LILLA-9731"
+                          "value": "4473430"
                       },
                       "PatientName": {
                           "label": "PatientName",
                           "tag": "0010,0010",
-                          "value": "LILLA-9731"
+                          "value": "BREA^FRANKLIN"
                       },
                       "PatientSex": {
                           "label": "PatientSex",
@@ -1540,7 +1589,7 @@
                       "SeriesDescription": {
                           "label": "SeriesDescription",
                           "tag": "0008,103e",
-                          "value": "ep_moco_nav_set (move FOV above shoulders)"
+                          "value": "+C COR T1 hi res FS"
                       },
                       "SeriesInstanceUID": {
                           "label": "SeriesInstanceUID",
@@ -1560,7 +1609,7 @@
                       "StudyDescription": {
                           "label": "StudyDescription",
                           "tag": "0008,1030",
-                          "value": "anonymized"
+                          "value": "MR-Orbits/Face/Neck w/ + w/o Contrast"
                       },
                       "StudyInstanceUID": {
                           "label": "StudyInstanceUID",
@@ -1582,7 +1631,7 @@
                       "ModalitiesInStudy": {
                           "label": "ModalitiesInStudy",
                           "tag": "0008,0061",
-                          "value": "no value provided"
+                          "value": "MR"
                       },
                       "NumberOfSeriesRelatedInstances": {
                           "label": "NumberOfSeriesRelatedInstances",
@@ -1592,7 +1641,7 @@
                       "PatientAge": {
                           "label": "PatientAge",
                           "tag": "0010,1010",
-                          "value": "017M"
+                          "value": "07M"
                       },
                       "PatientBirthDate": {
                           "label": "PatientBirthDate",
@@ -1602,12 +1651,12 @@
                       "PatientID": {
                           "label": "PatientID",
                           "tag": "0010,0020",
-                          "value": "LILLA-9731"
+                          "value": "4473430"
                       },
                       "PatientName": {
                           "label": "PatientName",
                           "tag": "0010,0010",
-                          "value": "LILLA-9731"
+                          "value": "BREA^FRANKLIN"
                       },
                       "PatientSex": {
                           "label": "PatientSex",
@@ -1632,7 +1681,7 @@
                       "SeriesDescription": {
                           "label": "SeriesDescription",
                           "tag": "0008,103e",
-                          "value": "mocoMEMPRAGE_192FOV RMS"
+                          "value": "COR T1 hi res"
                       },
                       "SeriesInstanceUID": {
                           "label": "SeriesInstanceUID",
@@ -1652,7 +1701,7 @@
                       "StudyDescription": {
                           "label": "StudyDescription",
                           "tag": "0008,1030",
-                          "value": "anonymized"
+                          "value": "MR-Orbits/Face/Neck w/ + w/o Contrast"
                       },
                       "StudyInstanceUID": {
                           "label": "StudyInstanceUID",
@@ -1674,7 +1723,7 @@
                       "ModalitiesInStudy": {
                           "label": "ModalitiesInStudy",
                           "tag": "0008,0061",
-                          "value": "no value provided"
+                          "value": "MR"
                       },
                       "NumberOfSeriesRelatedInstances": {
                           "label": "NumberOfSeriesRelatedInstances",
@@ -1684,7 +1733,7 @@
                       "PatientAge": {
                           "label": "PatientAge",
                           "tag": "0010,1010",
-                          "value": "017M"
+                          "value": "07M"
                       },
                       "PatientBirthDate": {
                           "label": "PatientBirthDate",
@@ -1694,12 +1743,12 @@
                       "PatientID": {
                           "label": "PatientID",
                           "tag": "0010,0020",
-                          "value": "LILLA-9731"
+                          "value": "4473430"
                       },
                       "PatientName": {
                           "label": "PatientName",
                           "tag": "0010,0010",
-                          "value": "LILLA-9731"
+                          "value": "BREA^FRANKLIN"
                       },
                       "PatientSex": {
                           "label": "PatientSex",
@@ -1724,7 +1773,7 @@
                       "SeriesDescription": {
                           "label": "SeriesDescription",
                           "tag": "0008,103e",
-                          "value": "T2 SPC AXIAL THRU  IAC'S"
+                          "value": "AXT1 hi res"
                       },
                       "SeriesInstanceUID": {
                           "label": "SeriesInstanceUID",
@@ -1744,7 +1793,7 @@
                       "StudyDescription": {
                           "label": "StudyDescription",
                           "tag": "0008,1030",
-                          "value": "anonymized"
+                          "value": "MR-Orbits/Face/Neck w/ + w/o Contrast"
                       },
                       "StudyInstanceUID": {
                           "label": "StudyInstanceUID",
@@ -1766,7 +1815,7 @@
                       "ModalitiesInStudy": {
                           "label": "ModalitiesInStudy",
                           "tag": "0008,0061",
-                          "value": "no value provided"
+                          "value": "MR"
                       },
                       "NumberOfSeriesRelatedInstances": {
                           "label": "NumberOfSeriesRelatedInstances",
@@ -1776,7 +1825,7 @@
                       "PatientAge": {
                           "label": "PatientAge",
                           "tag": "0010,1010",
-                          "value": "017M"
+                          "value": "07M"
                       },
                       "PatientBirthDate": {
                           "label": "PatientBirthDate",
@@ -1786,12 +1835,12 @@
                       "PatientID": {
                           "label": "PatientID",
                           "tag": "0010,0020",
-                          "value": "LILLA-9731"
+                          "value": "4473430"
                       },
                       "PatientName": {
                           "label": "PatientName",
                           "tag": "0010,0010",
-                          "value": "LILLA-9731"
+                          "value": "BREA^FRANKLIN"
                       },
                       "PatientSex": {
                           "label": "PatientSex",
@@ -1816,7 +1865,7 @@
                       "SeriesDescription": {
                           "label": "SeriesDescription",
                           "tag": "0008,103e",
-                          "value": "T2 SPC SAG OBL LT IAC"
+                          "value": "FUJI Basic Text SR for HL7 RR"
                       },
                       "SeriesInstanceUID": {
                           "label": "SeriesInstanceUID",
@@ -1836,7 +1885,7 @@
                       "StudyDescription": {
                           "label": "StudyDescription",
                           "tag": "0008,1030",
-                          "value": "anonymized"
+                          "value": "MR-Orbits/Face/Neck w/ + w/o Contrast"
                       },
                       "StudyInstanceUID": {
                           "label": "StudyInstanceUID",
@@ -1849,98 +1898,6 @@
                           "value": 9
                       }
                   },
-                  {
-                      "InstanceNumber": {
-                          "label": "InstanceNumber",
-                          "tag": "0020,0013",
-                          "value": "1"
-                      },
-                      "ModalitiesInStudy": {
-                          "label": "ModalitiesInStudy",
-                          "tag": "0008,0061",
-                          "value": "no value provided"
-                      },
-                      "NumberOfSeriesRelatedInstances": {
-                          "label": "NumberOfSeriesRelatedInstances",
-                          "tag": "0020,1209",
-                          "value": "60"
-                      },
-                      "PatientAge": {
-                          "label": "PatientAge",
-                          "tag": "0010,1010",
-                          "value": "017M"
-                      },
-                      "PatientBirthDate": {
-                          "label": "PatientBirthDate",
-                          "tag": "0010,0030",
-                          "value": "19000101"
-                      },
-                      "PatientID": {
-                          "label": "PatientID",
-                          "tag": "0010,0020",
-                          "value": "LILLA-9731"
-                      },
-                      "PatientName": {
-                          "label": "PatientName",
-                          "tag": "0010,0010",
-                          "value": "LILLA-9731"
-                      },
-                      "PatientSex": {
-                          "label": "PatientSex",
-                          "tag": "0010,0040",
-                          "value": "M"
-                      },
-                      "PerformedStationAETitle": {
-                          "label": "PerformedStationAETitle",
-                          "tag": "0040,0241",
-                          "value": "no value provided"
-                      },
-                      "QueryRetrieveLevel": {
-                          "label": "QueryRetrieveLevel",
-                          "tag": "0008,0052",
-                          "value": "SERIES"
-                      },
-                      "SeriesDate": {
-                          "label": "SeriesDate",
-                          "tag": "0008,0021",
-                          "value": "20111206"
-                      },
-                      "SeriesDescription": {
-                          "label": "SeriesDescription",
-                          "tag": "0008,103e",
-                          "value": "T2 SPC SAG OBL RT IAC"
-                      },
-                      "SeriesInstanceUID": {
-                          "label": "SeriesInstanceUID",
-                          "tag": "0020,000e",
-                          "value": "1.3.12.2.1107.5.2.32.35235.2011120608335936039431226.0.0.0"
-                      },
-                      "SpecificCharacterSet": {
-                          "label": "SpecificCharacterSet",
-                          "tag": "0008,0005",
-                          "value": "ISO_IR 100"
-                      },
-                      "StudyDate": {
-                          "label": "StudyDate",
-                          "tag": "0008,0020",
-                          "value": "20111206"
-                      },
-                      "StudyDescription": {
-                          "label": "StudyDescription",
-                          "tag": "0008,1030",
-                          "value": "anonymized"
-                      },
-                      "StudyInstanceUID": {
-                          "label": "StudyInstanceUID",
-                          "tag": "0020,000d",
-                          "value": "1.2.840.113845.11.1000000001785349915.20111206061530.5737676"
-                      },
-                      "uid": {
-                          "label": "uid",
-                          "tag": 0,
-                          "value": 10
-                      }
-                  }
               ],
               "status": "success"
           },

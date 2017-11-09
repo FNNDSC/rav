@@ -63,6 +63,15 @@ Startpfdcm with right port
 
 ``` bash
 
-....
+./pfdcm --forever --httpResponse --startlistener --setPACS \
+'{
+    "orthanc" : {
+        "server_ip": "%HOST_IP",
+        "aet": "CHIPS",
+        "aet_listener": "CHIPS",
+        "aec": "ORTHANC",
+        "server_port": "4242"
+    }
+}'
 
 ```
