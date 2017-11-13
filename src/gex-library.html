@@ -560,18 +560,18 @@
         this.isReady = true;
         this.set('data', this._resultsJson().query.data);
 
-        return; 
-        // // fake response
-        // // just start plugin
-        // const fakeStart = this.__startPlugin(this.$.API, this.queryLink, data);
-        // return fakeStart.then((response) => {
-        //     // go pacs query
-        //     this.queryInstance = Number(response.data[0].data.id);
-        //     this.feedLink = response.data[0].links.feed;
-        //     this.isReady = true;
-        //     this.set('data', this._resultsJson().query.data);
-        //     return response;
-        //   });
+        // return; 
+        // fake response
+        // just start plugin
+        const fakeStart = this.__startPlugin(this.$.API, this.queryLink, data);
+        return fakeStart.then((response) => {
+            // go pacs query
+            this.queryInstance = Number(response.data[0].data.id);
+            this.feedLink = response.data[0].links.feed;
+            this.isReady = true;
+            this.set('data', this._resultsJson().query.data);
+            return response;
+          });
 
         const start = this.__startPlugin(this.$.API, this.queryLink, data);
         start.then((response) => {
@@ -647,17 +647,16 @@
       }
 
       _initGeRetrieve() {
-        // FAKE event emitted.
-        const fakeRetrieve = new CustomEvent(
-          'fake-finish-retrieve',
-          {
-            detail: {},
-        });
+        // // FAKE event emitted.
+        // const fakeRetrieve = new CustomEvent(
+        //   'fake-finish-retrieve',
+        //   {
+        //     detail: {},
+        // });
 
-        this.dispatchEvent(fakeRetrieve);
-        return;
+        // this.dispatchEvent(fakeRetrieve);
+        // return;
 
-        console.log('GE Retrieve');
         const data = {};
         data.auth = {
           type: 'token',
@@ -673,19 +672,19 @@
         ];
 
         data.body.data = {};
-        data.body.data['prefix'] = 'demo-upload/viewer/212';
+        data.body.data['prefix'] = 'demo-upload/data/212';
         data.body.data['previous_id'] = this.queryInstance;
 
         const start = this.__startPlugin(this.$.API, this.geRetrieveLink, data);
         return start
-          .then((response) => {
-            // fire fake event to pull fake data
-            return response;
-          });
-        //   .then(this.__wait.bind(this, 30000))
+        //   .then((response) => {
+        //     // fire fake event to pull fake data
+        //     return response;
+        //   });
+          .then(this.__wait.bind(this, 5000))
         //   .then(this.__waitEndPlugin.bind(this, this.$.API, data))
-        //   .then(this._handleGeRetrieveResponse.bind(this))
-        //   .catch(this._handleGeRetrieveError.bind(this));
+          .then(this._handleGeRetrieveResponse.bind(this))
+          .catch(this._handleGeRetrieveError.bind(this));
       }
 
       _handleGeRetrieveResponse(response) {
@@ -1007,12 +1006,12 @@
                       "PatientID": {
                           "label": "PatientID",
                           "tag": "0010,0020",
-                          "value": "4473430"
+                          "value": "PATIENT^7^MONTHS"
                       },
                       "PatientName": {
                           "label": "PatientName",
                           "tag": "0010,0010",
-                          "value": "BREA^FRANKLIN"
+                          "value": "PATIENT^7^MONTHS"
                       },
                       "PatientSex": {
                           "label": "PatientSex",
@@ -1099,12 +1098,12 @@
                       "PatientID": {
                           "label": "PatientID",
                           "tag": "0010,0020",
-                          "value": "4473430"
+                          "value": "PATIENT^7^MONTHS"
                       },
                       "PatientName": {
                           "label": "PatientName",
                           "tag": "0010,0010",
-                          "value": "BREA^FRANKLIN"
+                          "value": "PATIENT^7^MONTHS"
                       },
                       "PatientSex": {
                           "label": "PatientSex",
@@ -1191,12 +1190,12 @@
                       "PatientID": {
                           "label": "PatientID",
                           "tag": "0010,0020",
-                          "value": "4473430"
+                          "value": "PATIENT^7^MONTHS"
                       },
                       "PatientName": {
                           "label": "PatientName",
                           "tag": "0010,0010",
-                          "value": "BREA^FRANKLIN"
+                          "value": "PATIENT^7^MONTHS"
                       },
                       "PatientSex": {
                           "label": "PatientSex",
@@ -1283,12 +1282,12 @@
                       "PatientID": {
                           "label": "PatientID",
                           "tag": "0010,0020",
-                          "value": "4473430"
+                          "value": "PATIENT^7^MONTHS"
                       },
                       "PatientName": {
                           "label": "PatientName",
                           "tag": "0010,0010",
-                          "value": "BREA^FRANKLIN"
+                          "value": "PATIENT^7^MONTHS"
                       },
                       "PatientSex": {
                           "label": "PatientSex",
@@ -1375,12 +1374,12 @@
                       "PatientID": {
                           "label": "PatientID",
                           "tag": "0010,0020",
-                          "value": "4473430"
+                          "value": "PATIENT^7^MONTHS"
                       },
                       "PatientName": {
                           "label": "PatientName",
                           "tag": "0010,0010",
-                          "value": "BREA^FRANKLIN"
+                          "value": "PATIENT^7^MONTHS"
                       },
                       "PatientSex": {
                           "label": "PatientSex",
@@ -1467,12 +1466,12 @@
                       "PatientID": {
                           "label": "PatientID",
                           "tag": "0010,0020",
-                          "value": "4473430"
+                          "value": "PATIENT^7^MONTHS"
                       },
                       "PatientName": {
                           "label": "PatientName",
                           "tag": "0010,0010",
-                          "value": "BREA^FRANKLIN"
+                          "value": "PATIENT^7^MONTHS"
                       },
                       "PatientSex": {
                           "label": "PatientSex",
@@ -1559,12 +1558,12 @@
                       "PatientID": {
                           "label": "PatientID",
                           "tag": "0010,0020",
-                          "value": "4473430"
+                          "value": "PATIENT^7^MONTHS"
                       },
                       "PatientName": {
                           "label": "PatientName",
                           "tag": "0010,0010",
-                          "value": "BREA^FRANKLIN"
+                          "value": "PATIENT^7^MONTHS"
                       },
                       "PatientSex": {
                           "label": "PatientSex",
@@ -1651,12 +1650,12 @@
                       "PatientID": {
                           "label": "PatientID",
                           "tag": "0010,0020",
-                          "value": "4473430"
+                          "value": "PATIENT^7^MONTHS"
                       },
                       "PatientName": {
                           "label": "PatientName",
                           "tag": "0010,0010",
-                          "value": "BREA^FRANKLIN"
+                          "value": "PATIENT^7^MONTHS"
                       },
                       "PatientSex": {
                           "label": "PatientSex",
@@ -1743,12 +1742,12 @@
                       "PatientID": {
                           "label": "PatientID",
                           "tag": "0010,0020",
-                          "value": "4473430"
+                          "value": "PATIENT^7^MONTHS"
                       },
                       "PatientName": {
                           "label": "PatientName",
                           "tag": "0010,0010",
-                          "value": "BREA^FRANKLIN"
+                          "value": "PATIENT^7^MONTHS"
                       },
                       "PatientSex": {
                           "label": "PatientSex",
@@ -1835,12 +1834,12 @@
                       "PatientID": {
                           "label": "PatientID",
                           "tag": "0010,0020",
-                          "value": "4473430"
+                          "value": "PATIENT^7^MONTHS"
                       },
                       "PatientName": {
                           "label": "PatientName",
                           "tag": "0010,0010",
-                          "value": "BREA^FRANKLIN"
+                          "value": "PATIENT^7^MONTHS"
                       },
                       "PatientSex": {
                           "label": "PatientSex",
