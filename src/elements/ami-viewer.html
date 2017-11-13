@@ -49,7 +49,16 @@
 
       .renderer-container {
         flex-direction: column;
-        margin: 2px;
+        border: 2px solid rgba(0, 0, 0, 0);
+      }
+
+      .renderer-container {
+        flex-direction: column;
+        border: 2px solid rgba(0, 0, 0, 0);
+      }
+
+      .renderer-container.iron-selected {
+        border: 2px solid #4caf50;
       }
 
       .toolbar {
@@ -163,7 +172,7 @@
         <div> Drop data! </div>
       </div>
       <div hidden$=[[!loading]] class="overlay opaque"> Loading images ([[imagesLoaded]]/[[imagesTotal]]) </div>
-      <div hidden$=[[!loaded]] class="renderer-container"> 
+      <div hidden$=[[!loaded]] class$="renderer-container {{_isLinked(linked)}}"> 
         <div class="renderer">
           <ami-renderer
             id="renderer"
@@ -180,10 +189,10 @@
             window-level="{{windowLevel}}"
             window-width="{{windowWidth}}"></ami-renderer>
         </div>
-        <div hidden$="{{!linked}}" class="shortcut">
+        <!-- <div hidden$="{{!linked}}" class="shortcut">
           Linked index: [[indexReference]]
           <paper-icon-button  class$="{{_isLinked(linked)}}" icon="icons:link" on-tap="_toggleLinked"></paper-icon-button>
-        </div>
+        </div> -->
         <div hidden$="{{!showControls}}" class="toolbar" on-tap="_activateViewer">
             <paper-slider
             value="{{index}}"
@@ -369,6 +378,11 @@
             notify: true,
             observer: '_localizerChanged',
           },
+          localizerVisible: {
+            type: Boolean,
+            value: false,
+            observer: '_localizerChanged',
+          },
           showControls: {
             type: Boolean,
             value: false,
@@ -483,6 +497,8 @@
       _clear(event) {
         event.preventDefault();
         event.stopPropagation();
+
+        this._activateChanged(true);
 
         this.images = [];
 
@@ -736,6 +752,8 @@
             this.localizerHelper.plane3 = l2Normal;
           }
         }
+
+        this.localizerHelper.visible = this.localizerVisible;
 
         this.$.renderer._sceneChanged();
       }

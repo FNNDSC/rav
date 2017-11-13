@@ -561,17 +561,17 @@
         this.set('data', this._resultsJson().query.data);
 
         return; 
-        // fake response
-        // just start plugin
-        const fakeStart = this.__startPlugin(this.$.API, this.queryLink, data);
-        return fakeStart.then((response) => {
-            // go pacs query
-            this.queryInstance = Number(response.data[0].data.id);
-            this.feedLink = response.data[0].links.feed;
-            this.isReady = true;
-            this.set('data', this._resultsJson().query.data);
-            return response;
-          });
+        // // fake response
+        // // just start plugin
+        // const fakeStart = this.__startPlugin(this.$.API, this.queryLink, data);
+        // return fakeStart.then((response) => {
+        //     // go pacs query
+        //     this.queryInstance = Number(response.data[0].data.id);
+        //     this.feedLink = response.data[0].links.feed;
+        //     this.isReady = true;
+        //     this.set('data', this._resultsJson().query.data);
+        //     return response;
+        //   });
 
         const start = this.__startPlugin(this.$.API, this.queryLink, data);
         start.then((response) => {

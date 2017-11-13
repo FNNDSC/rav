@@ -285,7 +285,10 @@
     <div class="content">
       <!-- global controls -->
       <div class="globalControls border-bottom">
-        <viewer-global-controls layout="{{layout}}" theater-mode="{{theaterMode}}"></viewer-global-controls>
+        <viewer-global-controls
+          layout="{{layout}}"
+          localizer="{{localizerVisible}}"
+          theater-mode="{{theaterMode}}"></viewer-global-controls>
       </div>
 
       <!-- viewers container -->
@@ -308,6 +311,7 @@
               localizer0="{{l1}}"
               localizer1="{{l2}}"
               localizer2="{{l3}}"
+              localizer-visible="[[localizerVisible]]"
               min-max="{{minMax0}}"
               orientation="{{orientation0}}"
               window-center="{{windowCenter0}}"
@@ -335,6 +339,7 @@
               localizer0="{{l0}}"
               localizer1="{{l2}}"
               localizer2="{{l3}}"
+              localizer-visible="[[localizerVisible]]"
               min-max="{{minMax1}}"
               orientation="{{orientation1}}"
               window-center="{{windowCenter1}}"
@@ -362,6 +367,7 @@
               localizer0="{{l0}}"
               localizer1="{{l1}}"
               localizer2="{{l3}}"
+              localizer-visible="[[localizerVisible]]"
               min-max="{{minMax2}}"
               orientation="{{orientation2}}"
               window-center="{{windowCenter2}}"
@@ -389,6 +395,7 @@
               localizer0="{{l0}}"
               localizer1="{{l1}}"
               localizer2="{{l2}}"
+              localizer-visible="[[localizerVisible]]"
               min-max="{{minMax3}}"
               orientation="{{orientation3}}"
               window-center="{{windowCenter3}}"

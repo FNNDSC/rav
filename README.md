@@ -41,7 +41,7 @@ es5-bundled preset includes:
 
 cd ~/src/gex && \
 polymer build --verbose --preset es5-bundled && \
-polymer serve --port --hostname 0.0.0.0 8060 build/es5-bundled
+polymer serve --port 8060 --hostname 0.0.0.0 build/es5-bundled
 
 ```
 
