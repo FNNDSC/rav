@@ -753,7 +753,8 @@
           }
         }
 
-        this.localizerHelper.visible = this.localizerVisible;
+        // show controls if mouse is not over the viewer and if localizers are visible
+        this.localizerHelper.visible = !this.showControls && this.localizerVisible;
 
         this.$.renderer._sceneChanged();
       }
@@ -831,13 +832,12 @@
 
       _showControls() {
         this.showControls = true;
-        // setTimeout(() => {
-        //   this.showControls = false;
-        //   }, 3000);
+        this._localizerChanged();
       }
 
       _hideControls() {
         this.showControls = false;
+        this._localizerChanged();
       }
 
       _linkedChanged(linked) {
