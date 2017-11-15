@@ -225,6 +225,7 @@
         this.$.API.handleAs = 'json';
         this.__waitEndPlugin(this.$.API, data, plugin, true)
         .then((result) => {
+          console.log(result);
           this.__formatPlugin(result, this.feed);
           // compare to know if we are working with latest
           if (plugin.data.id !== result.data.id) {

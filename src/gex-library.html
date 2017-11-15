@@ -204,9 +204,9 @@
         <paper-dropdown-menu disabled$=[[isProgress]] label="Search by">
             <paper-listbox slot="dropdown-content" selected="0">
               <paper-item>Patient ID</paper-item>
-              <paper-item>Patient Name</paper-item>
-              <paper-item>Study Desc.</paper-item>
-              <paper-item>Series Desc.</paper-item>
+              <paper-item disabled>Patient Name</paper-item>
+              <paper-item disabled>Study Desc.</paper-item>
+              <paper-item disabled>Series Desc.</paper-item>
             </paper-listbox>
           </paper-dropdown-menu>
       </div>
@@ -514,6 +514,9 @@
       }
 
       search() {
+        //   this._initGeRetrieve();
+        //   return;
+
         // prepare data
         const data = {};
         data.auth = {
@@ -536,7 +539,7 @@
 
         data.body.data = {};
         data.body.data['str_pfdcm'] = '192.168.1.189:5015';
-        data.body.data['str_patientID'] = 'LILLA-9731';
+        data.body.data['str_patientID'] = '4473430';
         data.body.data['str_PACSservice'] = 'orthanc';
         data.body.data['str_resultFile'] = 'results.json';
         data.body.data['str_summaryKeys'] = 'PatientID';
@@ -557,21 +560,17 @@
         this.loadingSteps = [];
         this.loadingSteps.push('Starting PACS Query...');
 
-        this.isReady = true;
-        this.set('data', this._resultsJson().query.data);
-
-        // return; 
-        // fake response
-        // just start plugin
-        const fakeStart = this.__startPlugin(this.$.API, this.queryLink, data);
-        return fakeStart.then((response) => {
-            // go pacs query
-            this.queryInstance = Number(response.data[0].data.id);
-            this.feedLink = response.data[0].links.feed;
-            this.isReady = true;
-            this.set('data', this._resultsJson().query.data);
-            return response;
+        if(sessionStorage.getItem('username') === 'demo') {
+          this.isReady = true;
+          const data = this._resultsJson().query.data;
+          let lSearchInput = this.searchInput.toLowerCase();
+          const filteredData = data.filter((d) => {
+            let lPatientID = d.PatientID.value.toLocaleLowerCase();
+            return lPatientID.includes(lSearchInput);
           });
+          this.set('data', filteredData);
+          return;
+        }
 
         const start = this.__startPlugin(this.$.API, this.queryLink, data);
         start.then((response) => {
@@ -581,8 +580,6 @@
             this.push('loadingSteps', 'Contacting the PACS Server...');
             return response;
           })
-          // https://github.com/FNNDSC/ChRIS_ultron_backEnd/issues/17
-          .then(this.__wait.bind(this, 20000))
           .then((response) => {
             this.push('loadingSteps', 'Waiting for answer...');
             return response;
@@ -592,7 +589,6 @@
             this.push('loadingSteps', 'Processing results...');
             return response;
           })
-          .then(this.__wait.bind(this, 1000))
           .then(this.__getFilesPlugin.bind(this, this.$.API, data))
           .then(this._getFileContent.bind(this))
           .then(this._handleQueryResponse.bind(this))
@@ -600,15 +596,13 @@
       }
 
       _getFileContent(files) {
-        // return this._resultsJson();
-        let index = 0;
-        for (let i = 0; i<files.data.length; i++) {
-          if (files.data[i].data.path === '/results.json') {
-            index = i;
-            break;
+        let file = null;
+        for (let i = 0; i<files.length; i++) {
+          if (files[i].data.path === '/results.json') {
+            file = files[i].links.file_resource;
           }
         }
-        const file = files.data[index].links.file_resource;
+
         const data = {};
         data.auth = {
           type: 'token',
@@ -647,15 +641,18 @@
       }
 
       _initGeRetrieve() {
-        // // FAKE event emitted.
-        // const fakeRetrieve = new CustomEvent(
-        //   'fake-finish-retrieve',
-        //   {
-        //     detail: {},
-        // });
-
-        // this.dispatchEvent(fakeRetrieve);
-        // return;
+        if(sessionStorage.getItem('username') === 'demo') {
+          const geRetrieveStarted = new CustomEvent(
+            'start-ge-retrieve',
+            {
+              detail: {
+                feedLink: '/1/',
+                pluginInstance: '/1/',
+              },
+            });
+          this.dispatchEvent(geRetrieveStarted);
+          return;
+        }
 
         const data = {};
         data.auth = {
@@ -673,16 +670,11 @@
 
         data.body.data = {};
         data.body.data['prefix'] = 'demo-upload/data/212';
-        data.body.data['previous_id'] = this.queryInstance;
+        data.body.data['previous_id'] = 4; // this.queryInstance;
 
         const start = this.__startPlugin(this.$.API, this.geRetrieveLink, data);
         return start
-        //   .then((response) => {
-        //     // fire fake event to pull fake data
-        //     return response;
-        //   });
-          .then(this.__wait.bind(this, 5000))
-        //   .then(this.__waitEndPlugin.bind(this, this.$.API, data))
+          .then(this.__waitEndPlugin.bind(this, this.$.API, data))
           .then(this._handleGeRetrieveResponse.bind(this))
           .catch(this._handleGeRetrieveError.bind(this));
       }
@@ -712,15 +704,18 @@
       }
 
       _initPacsRetrieve() {
-        // FAKE event emitted.
-        const fakeRetrieve = new CustomEvent(
-          'fake-finish-retrieve',
-          {
-            detail: {},
-        });
-
-        this.dispatchEvent(fakeRetrieve);
-        return;
+        if(sessionStorage.getItem('username') === 'demo') {
+            const geRetrieveStarted = new CustomEvent(
+              'start-move',
+              {
+                detail: {
+                  feedLink: '/1/',
+                  pluginInstance: '/1/',
+                },
+              });
+            this.dispatchEvent(geRetrieveStarted);
+            return;
+          }
 
         const data = {};
         data.auth = {

@@ -68,7 +68,9 @@
       }
 
       .active {
-        border: 1px solid var(--accent-color);
+        border-bottom: 1px solid var(--accent-color);
+        border-left: 1px solid var(--accent-color);
+        border-right: 1px solid var(--accent-color);
       }
 
       [hidden] {
@@ -83,6 +85,8 @@
       <slot id="s1" name="s1"></slot>
       <slot id="s2" name="s2"></slot>
       <slot id="s3" name="s3"></slot>
+      <slot id="s4" name="s4"></slot>
+      <slot id="s5" name="s5"></slot>
     </div>
 
     <!-- Layout fullscreen-->
@@ -119,6 +123,24 @@
       <vaadin-split-layout vertical class="slotter">
         <div class$="v2 slotter viewer [[_active(2, active)]]"></div>
         <div class$="v3 slotter viewer [[_active(3, active)]]"></div>
+      </vaadin-split-layout>
+    </vaadin-split-layout>
+
+    <!-- Layout #5 -->
+    <vaadin-split-layout id= "l4" hidden$="[[_hideLayout(4, layout, fullscreen)]]" class="container">
+      <vaadin-split-layout vertical class="slotter">
+        <div class$="v0 slotter viewer [[_active(0, active)]]"></div>
+        <div class$="v1 slotter viewer [[_active(1, active)]]"></div>
+      </vaadin-split-layout>
+    <vaadin-split-layout>
+      <vaadin-split-layout vertical class="slotter">
+        <div class$="v2 slotter viewer [[_active(2, active)]]"></div>
+        <div class$="v3 slotter viewer [[_active(3, active)]]"></div>
+      </vaadin-split-layout>
+      <vaadin-split-layout vertical class="slotter">
+        <div class$="v4 slotter viewer [[_active(4, active)]]"></div>
+        <div class$="v5 slotter viewer [[_active(5, active)]]"></div>
+      </vaadin-split-layout>
       </vaadin-split-layout>
     </vaadin-split-layout>
 
@@ -167,13 +189,14 @@
 
       _layoutChanged(layout) {
         // do not mess up layout if we are full screen
+        console.log(layout);
         if(this.fullscreen >= 0) {
           return;
         }
 
         const layoutElement = this.$[`l${layout}`];
 
-        for(let i=0; i<4; i++) {
+        for(let i=0; i<6; i++) {
           this._setChild(layoutElement, i, i);
         }
       }

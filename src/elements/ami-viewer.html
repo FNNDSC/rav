@@ -57,10 +57,6 @@
         border: 2px solid rgba(0, 0, 0, 0);
       }
 
-      .renderer-container.iron-selected {
-        border: 2px solid #4caf50;
-      }
-
       .toolbar {
         width: 100%;
         display: flex !important;
@@ -92,7 +88,8 @@
       .shortcut {
         position: absolute;
         top: 0;
-        right: 0;
+        margin: 6px;
+        border: 2px solid var(--accent-color);
         z-index: 2;
         background-color: rgba(0, 0, 0, .7);
         border-radius: 50%;
@@ -189,10 +186,9 @@
             window-level="{{windowLevel}}"
             window-width="{{windowWidth}}"></ami-renderer>
         </div>
-        <!-- <div hidden$="{{!linked}}" class="shortcut">
-          Linked index: [[indexReference]]
+        <div hidden$="{{!linked}}" class="shortcut">
           <paper-icon-button  class$="{{_isLinked(linked)}}" icon="icons:link" on-tap="_toggleLinked"></paper-icon-button>
-        </div> -->
+        </div>
         <div hidden$="{{!showControls}}" class="toolbar" on-tap="_activateViewer">
             <paper-slider
             value="{{index}}"
