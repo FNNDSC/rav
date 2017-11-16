@@ -88,13 +88,32 @@
       .shortcut {
         position: absolute;
         top: 0;
-        margin: 6px;
-        border: 2px solid var(--accent-color);
+        right: 0;
+        border: 2px solid rgba(0, 0, 0, 0);
         z-index: 2;
-        background-color: rgba(0, 0, 0, .7);
+        background-color: rgba(0, 0, 0, 0);
         border-radius: 50%;
         display: flex;
         align-items: center;
+      }
+
+      .shortcut.iron-selected {
+        border: 2px solid #FFF;
+        background-color: rgba(0, 0, 0, .7);
+      }
+
+      .shortcut.patient {
+        color: var(--patient-primary-color);
+      }
+
+      .shortcut > paper-icon-button {
+        padding: 4px;
+        width: 32px;
+        height: 32px;
+      }
+
+      .shortcut.normative {
+        color: var(--normative-primary-color);
       }
 
       paper-icon-button {
@@ -186,8 +205,8 @@
             window-level="{{windowLevel}}"
             window-width="{{windowWidth}}"></ami-renderer>
         </div>
-        <div hidden$="{{!linked}}" class="shortcut">
-          <paper-icon-button  class$="{{_isLinked(linked)}}" icon="icons:link" on-tap="_toggleLinked"></paper-icon-button>
+        <div class$="shortcut {{type}} {{_isLinked(linked)}}">
+          <paper-icon-button icon$="{{_iconType(type, linked)}}" on-tap="_toggleLinked"></paper-icon-button>
         </div>
         <div hidden$="{{!showControls}}" class="toolbar" on-tap="_activateViewer">
             <paper-slider
@@ -382,6 +401,10 @@
           showControls: {
             type: Boolean,
             value: false,
+          },
+          type: {
+            type: String,
+            value: '',
           },
         };
       }
@@ -843,7 +866,6 @@
         }
       }
 
-
       _indexPropagate(event) {
         if (event.type === 'immediate-value-changed') {
           // synchronize event...
@@ -853,6 +875,18 @@
             this.offsetSync =
               this._indexToOffset(this.indexReference - event.detail.value);
           }
+        }
+      }
+
+      _iconType(type, linked) {
+        if (linked) {
+          return 'icons:link';
+        } else if (type === 'patient') {
+          return 'icons:check-box-outline-blank';
+        } else if (type === 'normative') {
+          return 'icons:radio-button-unchecked';
+        } else {
+          return 'icons:code';
         }
       }
     }

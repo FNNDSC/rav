@@ -6,6 +6,9 @@
 <!-- App components  -->
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
 
+<!-- Iron components -->
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+
 <!-- Paper components  -->
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/paper-progress/paper-progress.html">
@@ -145,6 +148,27 @@
         overflow-x: hidden;
       }
 
+      .data {
+        font-size: 18px;
+        padding: 2px;
+      }
+
+      .data > div {
+        display: flex;
+      }
+
+      .data > div > iron-icon {
+        margin-right: 4px;
+      }
+
+      .patient.data > div > iron-icon {
+        color: var(--patient-primary-color);
+      }
+
+      .normative.data > div > iron-icon {
+        color: var(--normative-primary-color);
+      }
+
       .label {
         -webkit-box-flex: 0;
             -ms-flex: 0;
@@ -245,10 +269,12 @@
       on-is-open-changed="_panelIsOpenChanged">
         <div slot="title">Data</div>
         <div slot="content">
-          <app-toolbar class="data">
-            <div main-title>Series</div>
+          <app-toolbar class="patient data">
+            <div main-title>
+              <iron-icon icon="icons:check-box-outline-blank"></iron-icon> Series
+            </div>
           </app-toolbar>
-          <div class="series">
+          <div class="patient series">
               <!-- Fetching ready -->
               <template is="dom-if" if="[[_isReady(dataStatusBch)]]">
                 <template is="dom-repeat" items="[[dataBch]]">
@@ -257,23 +283,25 @@
                     layout="[[currentLayout]]"
                     draggable="true"
                     on-dragstart="_onDragStart"
-                    series="[[item]]"><series-preview>
+                    series="[[item]]"
+                    type="patient"><series-preview>
                 </template>
               </template>
 
             </div>
-            <app-toolbar class="data">
-              <div main-title>Normatives</div>
+            <app-toolbar class="normative data">
+              <div main-title>
+                <iron-icon icon="icons:radio-button-unchecked"></iron-icon> Normatives
+              </div>
             </app-toolbar>
-            <div class="series">
+            <div class="normative series">
               <template is="dom-repeat" items="[[dataGe]]">
                 <series-preview
                   active="[[active]]"
                   layout="[[currentLayout]]"
                   draggable="true"
                   on-dragstart="_onDragStart"
-                  series="[[item]]"
-                  on-tap="_handleSeriesSelectedGe"><series-preview>
+                  series="[[item]]"><series-preview>
               </template>
             </div>
             <div class="label">
@@ -734,16 +762,12 @@
        * @param {*} event
        */
       _onDragStart(event) {
-        // event.stopEvent();
-        // console.log("dragStart");
         this.draggingSeries = event.model.__data.item.details.series;
-        console.log(this.draggingSeries);
-
-        // event.dataTransfer.dropEffect = 'copy';
-        // event.dataTransfer.setData("text/plain", event.target.id);
-        // event.dataTransfer.effectAllowed = "asd";
-        // event.dataTransfer.setData("text/plain", "OK");
-        // event.dataTransfer.setData('foo', 'HI THERE');
+        if (event.path[5].className === 'patient series') {
+          this.draggingSeries.type = 'patient';
+        } else {
+          this.draggingSeries.type = 'normative';
+        }
       }
 
       /**
@@ -760,6 +784,7 @@
           ['currentLayout', targetViewer.dataset.uid], this.draggingSeries.uid);
 
         targetViewer.images = this.draggingSeries.data;
+        targetViewer.type = this.draggingSeries.type;
       }
 
       _onDragEnter(event) {

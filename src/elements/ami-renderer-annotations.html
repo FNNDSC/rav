@@ -35,7 +35,7 @@
       #overlay > div {
         z-index: 1;
         position: absolute;
-        margin: 4px;
+        /* margin: 6px; */
         padding: 2px 10px;
       }
 
@@ -80,6 +80,15 @@
         text-align: right;
       }
 
+      .top.right {
+        margin-right: 0px;
+        margin-top: 6px;
+      }
+
+      .patientname {
+        margin-right: 24px;
+      }
+
       #lutColorCanvas {
         transform-origin: left center;
         transform: rotate(-90deg) translate(-50%, 0);
@@ -103,7 +112,7 @@
         <div>I: [[mouseI]] J: [[mouseJ]] K: [[mouseK]] Val: [[mouseValue]]</div>
       </div>
       <div hidden$=[[_fullAnnotations(annotations)]] id="topRight" class="top right information">
-        <div>[[patientName]]</div>
+        <div class="patientname">[[patientName]]</div>
         <div>[[patientId]] (age: [[patientAge]], dob: [[patientBirthdate]])</div>
         <div>[[studyDescription]]</div>
         <div>[[seriesDescription]]</div>
