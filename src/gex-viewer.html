@@ -630,7 +630,7 @@
           },
           cacheLayout: {
             type: Array,
-            value: [-1, -1, -1, -1],
+            value: [-1, -1, -1, -1, -1, -1],
           },
           currentLayout: {
             type: Array,
@@ -875,6 +875,11 @@
 
       _layoutSizeChanged(layout) {
         if (Number.isInteger(layout)) {
+          // layout is not the number of available viewers
+          if (layout === 4) {
+            layout = 5;
+          }
+
           if (this.currentLayout.length > layout + 1) {
             // cache what is being removed
             for (let i = 0; i < this.currentLayout.length; i++) {

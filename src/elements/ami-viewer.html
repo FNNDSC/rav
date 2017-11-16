@@ -85,34 +85,38 @@
         flex: 1;
       }
 
-      .shortcut {
+      .linked {
         position: absolute;
         top: 0;
-        right: 0;
-        border: 2px solid rgba(0, 0, 0, 0);
+        border: 2px solid var(--accent-color);
         z-index: 2;
-        background-color: rgba(0, 0, 0, 0);
+        background-color: rgba(255, 255, 255, 0.2);
         border-radius: 50%;
         display: flex;
         align-items: center;
       }
 
-      .shortcut.iron-selected {
-        border: 2px solid #FFF;
-        background-color: rgba(0, 0, 0, .7);
+      .type {
+        position: absolute;
+        top: 0;
+        right: 0;
+        z-index: 2;
+        background-color: rgba(0, 0, 0, 0);
+        display: flex;
+        align-items: center;
       }
 
-      .shortcut.patient {
+      .type.patient {
         color: var(--patient-primary-color);
       }
 
-      .shortcut > paper-icon-button {
+      .type > paper-icon-button {
         padding: 4px;
         width: 32px;
         height: 32px;
       }
 
-      .shortcut.normative {
+      .type.normative {
         color: var(--normative-primary-color);
       }
 
@@ -205,8 +209,11 @@
             window-level="{{windowLevel}}"
             window-width="{{windowWidth}}"></ami-renderer>
         </div>
-        <div class$="shortcut {{type}} {{_isLinked(linked)}}">
-          <paper-icon-button icon$="{{_iconType(type, linked)}}" on-tap="_toggleLinked"></paper-icon-button>
+        <div hidden$="{{!linked}}" class="linked">
+            <paper-icon-button icon="icons:link" on-tap="_toggleLinked"></paper-icon-button>
+          </div>
+        <div class$="type {{type}}">
+          <paper-icon-button icon$="{{_iconType(type)}}"></paper-icon-button>
         </div>
         <div hidden$="{{!showControls}}" class="toolbar" on-tap="_activateViewer">
             <paper-slider
@@ -878,10 +885,8 @@
         }
       }
 
-      _iconType(type, linked) {
-        if (linked) {
-          return 'icons:link';
-        } else if (type === 'patient') {
+      _iconType(type) {
+        if (type === 'patient') {
           return 'icons:check-box-outline-blank';
         } else if (type === 'normative') {
           return 'icons:radio-button-unchecked';

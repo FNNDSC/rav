@@ -25,29 +25,37 @@
 
 
       /* L0 */
-      .l1.rl0, .l2.rl0, .l3.rl0 {
+      .l1.rl0, .l2.rl0, .l3.rl0, .l4.rl0 {
         stroke: none;
       }
+      
 
       /* L1 */
-      .l2.rl1, .l3.rl1 {
+      .l2.rl1, .l3.rl1, .l4.rl1 {
         stroke: none;
       }
 
       /* L2 */
-      .l3.rl2 {
+      .l3.rl2, .l4.rl2 {
         stroke: none;
       }
 
       /* L3 */
-      /* Show it all! */
+      .l4.rl3 {
+        stroke: none;
+      }
+
+      /* L4 */
+      /* SHOW IT ALL */
     </style>
 
-    <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width$="{{size}}" height$="{{size}}" viewBox="0 0 32 32">
+    <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width$="{{size}}" height$="{{size}}" viewBox="0 0 48 32">
         <path class$="cube {{_fill(0, tick, layout, seriesUid)}}" d="M0 0 L16 0 L16 16 L0 16 L0 0"></path>
         <path class$="cube {{_fill(1, tick, layout, seriesUid)}}" d="M16 0 L32 0 L32 16 L16 16 L16 0"></path>
         <path class$="cube {{_fill(2, tick, layout, seriesUid)}}" d="M0 16 L16 16 L16 32 L0 32 L0 16"></path>
         <path class$="cube {{_fill(3, tick, layout, seriesUid)}}" d="M16 16 L32 16 L32 32 L16 32 L16 16"></path>
+        <path class$="cube {{_fill(4, tick, layout, seriesUid)}}" d="M32 0 L48 0 L48 16 L32 16 L32 0"></path>
+        <path class$="cube {{_fill(5, tick, layout, seriesUid)}}" d="M32 16 L48 16 L48 32 L32 32 L32 16"></path>
 
         <path class$="layout l0 rl[[layoutType]]" d="M0 0 L32 0 L32 32 L0 32 L 0 0">
         </path>
@@ -56,6 +64,8 @@
         <path class$="layout l2 rl[[layoutType]]" d="M16 16 L32 16">
         </path>
         <path class$="layout l3 rl[[layoutType]]" d="M0 16 L16 16">
+        </path>
+        <path class$="layout l4 rl[[layoutType]]" d="M32 0 L48 0 L48 32 L32 32 M32 16 L48 16">
         </path>
     </svg>
 
@@ -112,7 +122,9 @@
         //
         if (layout.length === 1) {
           if (layout[0] === seriesUid) {
-            return 'full';
+            if(quarter < 4) {
+              return 'full';
+            }
           }
         }
 
@@ -175,6 +187,47 @@
 
           if (layout[3] === seriesUid) {
             if (quarter === 3) {
+              return 'full';
+            }
+          }
+        }
+
+        // layout 4
+        console.log(layout);
+        console.log(seriesUid);
+        if (layout.length === 6) {
+          if (layout[0] === seriesUid) {
+            if (quarter === 0) {
+              return 'full';
+            }
+          }
+
+          if (layout[1] === seriesUid) {
+            if (quarter === 2) {
+              return 'full';
+            }
+          }
+
+          if (layout[2] === seriesUid) {
+            if (quarter === 1) {
+              return 'full';
+            }
+          }
+
+          if (layout[3] === seriesUid) {
+            if (quarter === 3) {
+              return 'full';
+            }
+          }
+
+          if (layout[4] === seriesUid) {
+            if (quarter === 4) {
+              return 'full';
+            }
+          }
+
+          if (layout[5] === seriesUid) {
+            if (quarter === 5) {
               return 'full';
             }
           }
