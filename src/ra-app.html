@@ -55,10 +55,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         --disabled-text-color:      #BDBDBD;
         --divider-color:            #424242;
 
-        --patient-primary-color: #CCFF00;
+        --patient-primary-color: #2196f3;
         --patient-light-color: #EFA;
 
-        --normative-primary-color: #21f344;
+        --normative-primary-color: #2196f3;
         --normative-light-color: #e3f2fd;
 
         --paper-dialog-background-color: var(--default-primary-color);
@@ -116,9 +116,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         --paper-tabs-selection-bar-color: var(--accent-color);
       }
 
-
       ra-logo {
         margin-right: 2px;
+      }
+
+      .subtitle {
+        font-size: 12px;
+        color: var(--accent-color);
       }
 
       [hidden] {
@@ -163,8 +167,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       <app-header slot="header" condenses reveals effects="waterfall">
         <app-toolbar>
-          <ra-logo size="small"></ra-logo>
-          <div main-title>dio viewer</div>
+          <div style="flex: 1;">
+          <div style="display: flex;">
+            <ra-logo style="height: 24px; margin-top: -18px;"size="small"></ra-logo>
+            <div>dio viewer</div>
+          </div>
+          <div class="subtitle">developed with clinicians and researchers at Boston Children's Hospital</div>
+          </div>
           <div hidden$="[[!login]]" class="toolbar-login-actions">
             <paper-tabs 
               selected="[[page]]"

@@ -110,12 +110,6 @@
         color: var(--patient-primary-color);
       }
 
-      .type > paper-icon-button {
-        padding: 4px;
-        width: 32px;
-        height: 32px;
-      }
-
       .type.normative {
         color: var(--normative-primary-color);
       }
@@ -213,7 +207,7 @@
             <paper-icon-button icon="icons:link" on-tap="_toggleLinked"></paper-icon-button>
           </div>
         <div class$="type {{type}}">
-          <paper-icon-button icon$="{{_iconType(type)}}"></paper-icon-button>
+          <iron-icon icon$="{{_iconType(type)}}"></iron-icon>
         </div>
         <div hidden$="{{!showControls}}" class="toolbar" on-tap="_activateViewer">
             <paper-slider
