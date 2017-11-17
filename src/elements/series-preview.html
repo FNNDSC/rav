@@ -38,11 +38,15 @@
         bottom: 0;
         left: 0;
         right: 0;
-        background: var(--accent-color);
-        opacity: .5;
+        background: var(--accent-color) ;
+        opacity: .3;
         z-index: 1;
         pointer-events: none;
       }
+
+      /* .seriesPreview:hover .overlay {
+        opacity: 0;
+      } */
 
       img {
         min-width: 128px;
@@ -59,6 +63,10 @@
         opacity: .7;
         /* z-index: 2; */
       }
+
+      /* .seriesPreview:hover .about {
+        opacity: 0.4;
+      } */
 
       .about.description{
         top: 50%;
@@ -107,8 +115,7 @@
     </style>
 
     <div class="seriesPreview">
-      <div hidden$={{!_seriesActive(active,layout,series)}} class="overlay">
-      </div>
+      <div hidden$={{!_seriesActive(active,layout,series)}} class="overlay"></div>
       <div class="previewContainer">
         <img
           id="image"
@@ -209,7 +216,7 @@
       }
 
       _activeChanged(active) {
-        console.log(active);
+        // console.log(active);
       }
 
       _seriesActive(activeWindow, layout, series) {
