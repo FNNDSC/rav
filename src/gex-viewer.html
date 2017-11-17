@@ -8,6 +8,7 @@
 
 <!-- Iron components -->
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/iron-icons/social-icons.html">
 
 <!-- Paper components  -->
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
@@ -26,8 +27,6 @@
 <link rel="import" href="elements/viewer-global-controls.html">
 
 <link rel="import" href="shared-styles.html">
-<link rel="import" href="layout-icons.html">
-<link rel="import" href="gex-icons.html">
 
 <dom-module id="gex-viewer">
   <template>
@@ -170,16 +169,6 @@
         color: var(--normative-primary-color);
       }
 
-      .label {
-        -webkit-box-flex: 0;
-            -ms-flex: 0;
-                flex: 0;
-        padding: 2px;
-        /*min-width: 0;*/
-        font-size: 12px;
-        color: var(--secondary-text-color);
-      }
-
       .border-bottom {
         border-bottom: 1px solid var(--divider-color);
       }
@@ -272,7 +261,7 @@
         <div slot="content">
           <app-toolbar class="patient data">
             <div main-title>
-              <iron-icon icon="icons:check-box-outline-blank"></iron-icon> Series
+              <iron-icon icon="social:person"></iron-icon> Patient
             </div>
           </app-toolbar>
           <div class="patient series">
@@ -292,7 +281,7 @@
             </div>
             <app-toolbar class="normative data">
               <div main-title>
-                <iron-icon icon="icons:radio-button-unchecked"></iron-icon> Normatives
+                <iron-icon icon="social:school"></iron-icon> Normatives
               </div>
             </app-toolbar>
             <div class="normative series">
@@ -304,9 +293,6 @@
                   on-dragstart="_onDragStart"
                   series="[[item]]"><series-preview>
               </template>
-            </div>
-            <div class="label">
-              Copyright (c) 2017 FNNDSC, BCH.</iron-icon>
             </div>
         </div>
     </gex-panel>

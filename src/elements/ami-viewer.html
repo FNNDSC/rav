@@ -1,23 +1,24 @@
-<link rel="import" href="../../bower_components/polymer/polymer-element.html">
-<link rel="import" href="../../bower_components/polymer/lib/mixins/gesture-event-listeners.html">
+<link href="../../bower_components/polymer/polymer-element.html" rel="import" >
+<link href="../../bower_components/polymer/lib/mixins/gesture-event-listeners.html" rel="import" >
 
 <!-- Paper components  -->
-<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
-<link rel="import" href="../../bower_components/paper-item/paper-item.html">
-<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
-<link rel="import" href="../../bower_components/paper-menu-button/paper-menu-button.html">
-<link rel="import" href="../../bower_components/paper-slider/paper-slider.html">
+<link href="../../bower_components/paper-icon-button/paper-icon-button.html" rel="import" >
+<link href="../../bower_components/paper-item/paper-item.html" rel="import" >
+<link href="../../bower_components/paper-listbox/paper-listbox.html" rel="import" >
+<link href="../../bower_components/paper-menu-button/paper-menu-button.html" rel="import" >
+<link href="../../bower_components/paper-slider/paper-slider.html" rel="import" >
 
 <!-- Iron components  -->
 <link href="../../bower_components/iron-icons/iron-icons.html" rel="import">
 <link href="../../bower_components/iron-icons/av-icons.html" rel="import">
+<link href="../../bower_components/iron-icons/social-icons.html" rel="import" >
 
 <!-- CHIPS components -->
-<link rel="import" href="../../bower_components/chips-api/chips-api.html">
+<link href="../../bower_components/chips-api/chips-api.html" rel="import" >
 
 <!-- Local components -->
-<link rel="import" href="../import-ami.html">
-<link rel="import" href="./ami-renderer.html">
+<link href="../import-ami.html" rel="import" >
+<link href="./ami-renderer.html" rel="import" >
 
 <dom-module id="ami-viewer">
   <template>
@@ -881,9 +882,9 @@
 
       _iconType(type) {
         if (type === 'patient') {
-          return 'icons:check-box-outline-blank';
+          return 'social:person';
         } else if (type === 'normative') {
-          return 'icons:radio-button-unchecked';
+          return 'social:school';
         } else {
           return 'icons:code';
         }
