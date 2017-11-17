@@ -293,7 +293,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           },
           demoPrefix: {
             type: String,
-            value: '../ge/flat',
+            value: '../ge',
           },
         };
       }
@@ -384,8 +384,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       _handleStartMove(event) {
         if(sessionStorage.getItem('username') === 'demo') {
           // pass some info about the actual IDs to get
-          this.data = this.demoPatients();
-          this.addDemoPrefixTo(this.data);
+          const patientsData = this.demoPatients();
+          const tmpData = [];
+          const selection = event.detail.selection;
+          console.log('demo patient and normative objects shouls come from library so we only have to upldate 1 place.');
+          for (let i=0; i<selection.length; i++) {
+            const patientID = selection[i].PatientID.value;
+            const seriesUID = selection[i].SeriesInstanceUID.value;
+            const selectedData = [patientsData[seriesUID]];
+            this.addDemoPrefixTo(selectedData, `/patients/${patientID}/`);
+            tmpData.push(selectedData[0]);
+          }
+
+          this.data = tmpData;
           this.dataStatus = 'ready';
           return;
         }
@@ -401,8 +412,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       _handleStartGE(event) {
         if(sessionStorage.getItem('username') === 'demo') {
           // pass some info about the actual age to get
-          this.dataGE = this.demoNormatives();
-          this.addDemoPrefixTo(this.dataGE);
+          const patientID = event.detail.selection[0].PatientID.value;
+          this.dataGE = this.demoNormatives()[patientID];
+          // filter by ID
+          // key mapping
+          this.addDemoPrefixTo(this.dataGE, `/normatives/${patientID}/`);
           this.dataGEStatus = 'ready';
           return;
         }
@@ -476,21 +490,21 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.set('route.path', `/viewer/`);
       }
 
-      addDemoPrefixTo(demoDatasets) {
+      addDemoPrefixTo(demoDatasets, location) {
         for (let i=0; i<demoDatasets.length; i++) {
           const demoDataset = demoDatasets[i];
           demoDataset.details.series.preview.url =
-            this.demoPrefix + '/' + demoDataset.details.series.preview.url;
+            this.demoPrefix + '/' + location + '/' + demoDataset.details.series.preview.url;
           const data = demoDataset.details.series.data.map((v) => {
-            return this.demoPrefix + '/' + v;
+            return this.demoPrefix + '/' + location + '/' + v;
           });
           demoDataset.details.series.data = data;
         }
       }
 
       demoPatients() {
-        return [
-          {
+        return {
+          '1.3.12.2.1107.5.2.32.35235.2011120607520430264805764.0.0.0': {
             details: {
               series: {
                 uid: 0,
@@ -528,7 +542,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               },
             },
           },
-          {
+          '1.3.12.2.1107.5.2.32.35235.2011120608041225195630230.0.0.0': {
             details: {
               series: {
                 uid: 2,
@@ -570,7 +584,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               },
             },
           },
-          {
+          '1.3.12.2.1107.5.2.32.35235.2011120607520430331505768.0.0.0': {
             details: {
               series: {
                 uid: 1,
@@ -604,7 +618,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               },
             },
           },
-          {
+          '1.3.12.2.1107.5.2.32.35235.30000011120415032007800030559': {
             details: {
               series: {
                 uid: 3,
@@ -646,7 +660,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               },
             },
           },
-          {
+          '1.3.12.2.1107.5.2.32.35235.2011120608060183769230384.0.0.0': {
             details: {
               series: {
                 uid: 4,
@@ -680,7 +694,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               },
             },
           },
-          {
+          '1.3.12.2.1107.5.2.32.35235.2011120607550721381806658.0.0.0': {
             details: {
               series: {
                 uid: 5,
@@ -720,7 +734,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               },
             },
           },
-          {
+          '1.3.12.2.1107.5.2.32.35235.2011120607550716203206654.0.0.0': {
             details: {
               series: {
                 uid: 6,
@@ -760,45 +774,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               },
             },
           },
-          {
-            details: {
-              series: {
-                uid: 7,
-                description: 'AX T1 hi res',
-                date: '2011-05-09',
-                data: [
-                  'AX_T1_hi_res-ORBITS_2011_9-187344/0001-1.2.840.113619.2.244.6945.200386.22154.1304514017.611.dcm',
-                  'AX_T1_hi_res-ORBITS_2011_9-187344/0002-1.2.840.113619.2.244.6945.200386.22154.1304514017.612.dcm',
-                  'AX_T1_hi_res-ORBITS_2011_9-187344/0003-1.2.840.113619.2.244.6945.200386.22154.1304514017.613.dcm',
-                  'AX_T1_hi_res-ORBITS_2011_9-187344/0004-1.2.840.113619.2.244.6945.200386.22154.1304514017.614.dcm',
-                  'AX_T1_hi_res-ORBITS_2011_9-187344/0005-1.2.840.113619.2.244.6945.200386.22154.1304514017.615.dcm',
-                  'AX_T1_hi_res-ORBITS_2011_9-187344/0006-1.2.840.113619.2.244.6945.200386.22154.1304514017.616.dcm',
-                  'AX_T1_hi_res-ORBITS_2011_9-187344/0007-1.2.840.113619.2.244.6945.200386.22154.1304514017.617.dcm',
-                  'AX_T1_hi_res-ORBITS_2011_9-187344/0008-1.2.840.113619.2.244.6945.200386.22154.1304514017.618.dcm',
-                  'AX_T1_hi_res-ORBITS_2011_9-187344/0009-1.2.840.113619.2.244.6945.200386.22154.1304514017.619.dcm',
-                  'AX_T1_hi_res-ORBITS_2011_9-187344/0010-1.2.840.113619.2.244.6945.200386.22154.1304514017.620.dcm',
-                  'AX_T1_hi_res-ORBITS_2011_9-187344/0011-1.2.840.113619.2.244.6945.200386.22154.1304514017.621.dcm',
-                  'AX_T1_hi_res-ORBITS_2011_9-187344/0012-1.2.840.113619.2.244.6945.200386.22154.1304514017.622.dcm',
-                  'AX_T1_hi_res-ORBITS_2011_9-187344/0013-1.2.840.113619.2.244.6945.200386.22154.1304514017.623.dcm',
-                  'AX_T1_hi_res-ORBITS_2011_9-187344/0014-1.2.840.113619.2.244.6945.200386.22154.1304514017.624.dcm',
-                  'AX_T1_hi_res-ORBITS_2011_9-187344/0015-1.2.840.113619.2.244.6945.200386.22154.1304514017.625.dcm',
-                  'AX_T1_hi_res-ORBITS_2011_9-187344/0016-1.2.840.113619.2.244.6945.200386.22154.1304514017.626.dcm',
-                  'AX_T1_hi_res-ORBITS_2011_9-187344/0017-1.2.840.113619.2.244.6945.200386.22154.1304514017.627.dcm',
-                  'AX_T1_hi_res-ORBITS_2011_9-187344/0018-1.2.840.113619.2.244.6945.200386.22154.1304514017.628.dcm',
-                ],
-                files: '18',
-                preview: {
-                  blob: null,
-                  url: 'AX_T1_hi_res-ORBITS_2011_9-187344/preview.jpg',
-                },
-              },
-            },
-          },
-        ];
+        };
       }
 
       demoNormatives() {
-        return [
+        return {
+          'PATIENT^7^MONTHS': [
           {
             details: {
               series: {
@@ -1239,7 +1220,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               },
             },
           },
-        ];
+        ]};
       }
     }
 
