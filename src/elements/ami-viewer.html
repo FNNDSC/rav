@@ -636,10 +636,9 @@
 
             // update series information
             this.$.renderer.patientID = series.patientID;
-            this.$.renderer.patientName =
-              series.patientName !== 'Normative patient' ? 'Patient 7 months' : 'Normative patient';
+            this.$.renderer.patientName = series.patientName;
             this.$.renderer.patientAge = series.patientAge;
-            this.$.renderer.patientBorthdate = series.patientBorthdate;
+            this.$.renderer.patientBirthdate = series.patientBirthdate;
             this.$.renderer.studyDate = series.studyDate;
             this.$.renderer.studyDescription = series.studyDescription;
             this.$.renderer.seriesDescription = series.seriesDescription;

@@ -8,7 +8,7 @@
     "src/gex-view404.html"
   ],
   "sources": [
-    "ge/**/*",
+    "RSNA/**/*",
     "src/**/*",
     "images/**/*",
     "bower.json"
