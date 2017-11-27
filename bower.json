@@ -21,7 +21,7 @@
     "chips-api": "FNNDSC/chips-api",
     "paper-input": "PolymerElements/paper-input#^2.0.0",
     "paper-spinner": "PolymerElements/paper-spinner#^2.0.0",
-    "vaadin-grid": "v4.0.0-alpha3",
+    "vaadin-grid": "v4.0.0-alpha5",
     "iron-collapse": "PolymerElements/iron-collapse#^2.0.0",
     "three.js": "mrdoob/three.js#dev",
     "ami": "fnndsc/ami#dev",

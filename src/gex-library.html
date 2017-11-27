@@ -35,13 +35,22 @@
   <template>
     <style>
       :host {
+        display: -webkit-box;
+        display: -ms-flexbox;
         display: flex;
         height: 100%;
-        flex-direction: column;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+            -ms-flex-direction: column;
+                flex-direction: column;
       }
 
       .container {
-        flex: 1;
+        -webkit-box-flex: 1;
+            -ms-flex: 1;
+                flex: 1;
+        display: -webkit-box;
+        display: -ms-flexbox;
         display: flex;
       }
 
@@ -52,17 +61,31 @@
       }
 
       .main-panel {
-        flex: 1;
-        flex-direction: column;
+        -webkit-box-flex: 1;
+            -ms-flex: 1;
+                flex: 1;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+            -ms-flex-direction: column;
+                flex-direction: column;
+        display: -webkit-box;
+        display: -ms-flexbox;
         display: flex;
       }
 
       .query-selection {
         height: 72px;
-        flex-shrink: 0;
+        -ms-flex-negative: 0;
+            flex-shrink: 0;
+        display: -webkit-box;
+        display: -ms-flexbox;
         display: flex;
-        align-items: center;
-        justify-content: center;
+        -webkit-box-align: center;
+            -ms-flex-align: center;
+                align-items: center;
+        -webkit-box-pack: center;
+            -ms-flex-pack: center;
+                justify-content: center;
         background: var(--default-primary-color);
       }
 
@@ -72,9 +95,15 @@
         bottom: 0;
         left: 0;
         right: 0;
+        display: -webkit-box;
+        display: -ms-flexbox;
         display: flex;
-        align-items: center;
-        justify-content: center;
+        -webkit-box-align: center;
+            -ms-flex-align: center;
+                align-items: center;
+        -webkit-box-pack: center;
+            -ms-flex-pack: center;
+                justify-content: center;
         color: var(--text-primary-color);
         font-weight: lighter;
       }
@@ -84,11 +113,18 @@
       }
 
       .query-results {
-        flex: 1;
+        -webkit-box-flex: 1;
+            -ms-flex: 1;
+                flex: 1;
         background-color: var(--default-primary-color);
         position: relative;
+        display: -webkit-box;
+        display: -ms-flexbox;
         display: flex;
-        flex-direction: column;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+            -ms-flex-direction: column;
+                flex-direction: column;
       }
 
       paper-button {
@@ -138,23 +174,36 @@
 
       vaadin-grid {
         background-color: var(--default-primary-color);
-        height: 100%;
+        height: calc(100vh - 64px - 48px);
+      }
+
+      vaadin-grid.with-selection {
+        background-color: var(--default-primary-color);
+        height: calc(100vh - 64px - 48px - 72px);
       }
       
       .section {
+        display: -webkit-box;
+        display: -ms-flexbox;
         display: flex;
-        align-items: center;
+        -webkit-box-align: center;
+            -ms-flex-align: center;
+                align-items: center;
         height: 80%;
         padding-left: 6px;
         padding-right: 6px;
       }
 
       .section.search {
-        flex: 1;
+        -webkit-box-flex: 1;
+            -ms-flex: 1;
+                flex: 1;
       }
 
       .section.search paper-input {
-        flex:1;
+        -webkit-box-flex:1;
+            -ms-flex:1;
+                flex:1;
       }
 
       .section.parameters {
@@ -169,9 +218,14 @@
       }
 
       .section .values {
+        display:-webkit-box;
+        display:-ms-flexbox;
         display:flex;
-        flex-wrap: wrap;
-        align-items: center;
+        -ms-flex-wrap: wrap;
+            flex-wrap: wrap;
+        -webkit-box-align: center;
+            -ms-flex-align: center;
+                align-items: center;
         height: 100%;
       }
 
@@ -266,6 +320,7 @@
           </div>
           <vaadin-grid
             hidden$="[[!isReadyAndNotEmpty(isReady, isEmpty)]]"
+            class$="[[withSelection(isSelectionEmpty)]]"
             id="grid"
             aria-label="Basic Binding Example"
             multi-sort="true"
@@ -468,7 +523,6 @@
 
       noValueOrIsProgress(value, progress) {
         const test = value === '' || progress;
-        console.log(test);
         return test;
       }
 
@@ -477,12 +531,10 @@
       }
 
       isSelectionEmpty(selection) {
-        console.log(selection);
         return selection.length === 0;
       }
 
       _selectionChanged() {
-        console.log(this.selection);
         this.isSelectionEmpty = (this.selection.length <= 0);
       }
 
@@ -960,16 +1012,22 @@
       }
 
       _dataChanged(data) {
-        console.log(data);
         if (data === undefined) {
           return;
         }
 
         this.isEmpty = (data.base.length === 0);
+        //  show not be require, maybe some timing issues with is empty
+        console.log(data);
+        this.$.grid.notifyResize();
       }
 
       _isDemo() {
         return sessionStorage.getItem('username') === 'demo';
+      }
+
+      withSelection(selectionEmpty) {
+        return selectionEmpty? '' : 'with-selection';
       }
 
       _resultsJson() {
