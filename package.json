@@ -1,5 +1,6 @@
 {
   "name": "radiology-viewer",
+  "version": "0.2.0",
   "license": "Apache 2.0",
   "devDependencies": {
     "eslint": "^3.19.0",
