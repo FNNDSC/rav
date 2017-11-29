@@ -45,6 +45,28 @@ polymer serve --port 8060 --hostname 0.0.0.0 build/es5-bundled
 
 ```
 
+## Docker container
+
+### Build the app
+
+See above
+
+### Build the docker container
+
+``` bash
+
+docker build -t fnndsc/rav:dev .
+
+```
+
+### Deploy to dockerhub
+
+``` bash
+
+docker push fnndsc/rav:dev
+
+```
+
 ## Deploy
 
 ## Citations

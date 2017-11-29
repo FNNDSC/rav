@@ -126,10 +126,14 @@
       });
 
       Promise.all(loadSequences).then((results)=> {
-          console.log(results);
+        let patientData = [];
         for (let i=0; i<results.length; i++) {
-          this.push('patientData', results[i].query.data[0]);
+          patientData.push(results[i].query.data[0]);
         }
+
+        // setTimeout(() => {
+          this.set('patientData', patientData);
+        // }, 10000);
       });
 
       // 6 MONTHS NORMATIVES

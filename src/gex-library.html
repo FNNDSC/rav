@@ -57,7 +57,6 @@
       .left-panel {
         width: 172px;
         color: #f9f9f9;
-        /* background-color: red; */
       }
 
       .main-panel {
@@ -106,6 +105,8 @@
                 justify-content: center;
         color: var(--text-primary-color);
         font-weight: lighter;
+        background-color: var(--default-primary-color);
+        z-index: 2;
       }
 
       .overlay > * {
@@ -318,8 +319,8 @@
               <div>If the error persists, contact dev@babymry.org for assistance.</div>
             </div>
           </div>
+
           <vaadin-grid
-            hidden$="[[!isReadyAndNotEmpty(isReady, isEmpty)]]"
             class$="[[withSelection(isSelectionEmpty)]]"
             id="grid"
             aria-label="Basic Binding Example"
@@ -398,6 +399,7 @@
       CHIPSPluginBehavior(
         Polymer.GestureEventListeners(
           Polymer.Element)) {
+
       static get is() {
         return 'gex-library';
       }
@@ -616,6 +618,11 @@
         this.loadingSteps.push('Starting PACS Query...');
 
         if(sessionStorage.getItem('username') === 'demo') {
+          // demo data is not there yet
+          if (this.patientData === undefined || this.patientData.length <= 0) {
+            return window.setTimeout(this.search.bind(this), 2000);
+          }
+
           this.isReady = true;
           const data = this._resultsJson().query.data;
           let lSearchInput = this.searchInput.toLowerCase();
@@ -1018,7 +1025,6 @@
 
         this.isEmpty = (data.base.length === 0);
         //  show not be require, maybe some timing issues with is empty
-        console.log(data);
         this.$.grid.notifyResize();
       }
 
