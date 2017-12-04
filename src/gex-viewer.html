@@ -108,6 +108,11 @@
                 flex-direction: row;
       }
 
+      gex-layout-manager {
+        flex: 1;
+        height: 100%;
+      }
+
       .viewers {
         -webkit-box-flex: 1;
             -ms-flex: 1;
@@ -292,7 +297,8 @@
                   layout="[[currentLayout]]"
                   draggable="true"
                   on-dragstart="_onDragStart"
-                  series="[[item]]"><series-preview>
+                  series="[[item]]"
+                  type="normative"><series-preview>
               </template>
             </div>
         </div>
@@ -750,12 +756,13 @@
        * @param {*} event
        */
       _onDragStart(event) {
-        this.draggingSeries = event.model.__data.item.details.series;
-        if (event.path[5].className === 'patient series') {
-          this.draggingSeries.type = 'patient';
-        } else {
-          this.draggingSeries.type = 'normative';
-        }
+        // Must setData "anything" before anything else to make sure element
+        // is draggable in Firefox < 58
+        event.dataTransfer.setData('type', event.target.getAttribute('type'));
+
+        const draggingSeries = event.model.__data.item.details.series;
+        event.dataTransfer.setData('images', draggingSeries.data);
+        event.dataTransfer.setData('uid', draggingSeries.uid);
       }
 
       /**
@@ -767,12 +774,13 @@
         event.preventDefault();
         event.target.drag = false;
 
+        const dataTransfer = event.dataTransfer;
+
         const targetViewer = event.target;
         this.set(
-          ['currentLayout', targetViewer.dataset.uid], this.draggingSeries.uid);
-
-        targetViewer.images = this.draggingSeries.data;
-        targetViewer.type = this.draggingSeries.type;
+          ['currentLayout', targetViewer.dataset.uid], dataTransfer.getData('uid'));
+        targetViewer.images = dataTransfer.getData('images').split(',');
+        targetViewer.type = dataTransfer.getData('type');
       }
 
       _onDragEnter(event) {

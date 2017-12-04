@@ -28,21 +28,29 @@
   <template>
     <style>
       :host {
-        flex: 1;
+      }
+
+      #lfs, #l0, vaadin-split-layout {
+        height: 100%;
         display: flex;
       }
 
-      :host ::slotted(*) {
+      #lfs, #l0 {
+        /* width: 100%; */
+      }
+
+      /* For overlays to not flow out */
+      /* :host ::slotted(*) {
         position: absolute;
         top: 0;
         bottom: 0;
         left: 0;
         right: 0;
-      }
+      } */
 
       .container {
-        flex: 1;
-        height: 100%;
+        /* flex: 1;
+        height: 100%; */
       }
 
       .slotter {
@@ -53,9 +61,9 @@
 
       /* Hack Layout Fullscreen and 0 as it is not vaadin based yet */
       #lfs, #l0 {
-        display: flex;
+        /* display: flex;
         height: 100%;
-        width: 100%;
+        width: 100%; */
       }
 
       #lfs > div, #l0 > div {
