@@ -180,20 +180,6 @@
         };
       }
 
-      // connectedCallback() {
-      //   super.connectedCallback();
-      //   this._observer1 =
-      //     new Polymer.FlattenedNodesObserver(this.$.s0, (info) => {
-      //     // this._processNewNodes(info.addedNodes);
-      //     // this._processRemovedNodes(info.removedNodes);
-      //   });
-      // }
-
-      // disconnectedCallback() {
-      //   super.disconnectedCallback();
-      //   window.removeEventListener('hashchange', this._boundListener);
-      // }
-
       _layoutChanged(layout) {
         // do not mess up layout if we are full screen
         if(this.fullscreen >= 0) {

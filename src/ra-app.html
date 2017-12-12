@@ -41,6 +41,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="lazy-import" href="gex-view404.html">
 
 <link rel="import" href="ra-data.html">
+<link rel="import" href="ra-demo.html">
 
 <dom-module id="ra-app">
   <template>
@@ -141,6 +142,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         pattern="[[rootPattern]]:page"
         data="{{routeData}}"
         tail="{{subroute}}"></app-route>
+    <app-route
+        route="{{subroute}}"
+        pattern="/:id"
+        data="{{subrouteData}}">
+    </app-route>
 
     <chips-api
       id="API"></chips-api>
@@ -148,6 +154,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <ra-data
       patient-data="{{patientData}}"
       normative-data="{{normativeData}}"></ra-data>
+    <ra-demo
+      demo-id="[[demoId]]"
+      demo-layout="{{demoLayout}}"></ra-data>
 
     <gex-datastore
       feed="[[feed]]"
@@ -224,6 +233,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           on-start-ge-retrieve="_handleStartGE"></gex-library>
         <gex-viewer
           name="viewer"
+          layout="[[layout]]"
+          current-layout="[[currentLayout]]"
           previous-instance="[[pluginBch]]"
           data-bch="[[data]]"
           data-status-bch="[[dataStatus]]"
@@ -256,6 +267,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           rootPattern: String,
           routeData: Object,
           subroute: String,
+          subrouteData: Object,
           login: {
             type: Boolean,
             observer: '_loginChanged',
@@ -309,12 +321,30 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             type: Array,
             value: [],
           },
+          demoId: {
+            type: String,
+            value: '',
+          },
+          demoLayout: {
+            type: Object,
+            value: null,
+          },
+          layout: {
+            type: Number,
+            value: 0,
+          },
+          currentLayout: {
+            type: Array,
+            value: [],
+          },
         };
       }
 
       static get observers() {
         return [
           '_routePageChanged(routeData.page)',
+          '_subroutePageChanged(subrouteData.id)',
+          '_demoLayoutChanged(demoLayout.*)',
         ];
       }
 
@@ -347,6 +377,69 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         // If no page was found in the route data, page will be an empty string.
         // Deault to 'view1' in that case.
         this.page = page || 'login';
+      }
+
+      _subroutePageChanged(id) {
+        if (id === undefined) {
+          return;
+        }
+
+        //
+        if (id !== '') {
+          if (this.page !== 'viewer') {
+            this.set('route.path', `/viewer/${id}`);
+          } else {
+            // auto log in
+            sessionStorage.setItem('username', 'demo');
+            sessionStorage.setItem('token', 'demo');
+            this.login = true;
+            return window.setTimeout(this.loadDemo.bind(this, id), 2000);
+          }
+        }
+      }
+
+      loadDemo(demoId) {
+        // wait for demo data to arrive
+        if (this.patientData === undefined || this.patientData.length <= 0) {
+          return window.setTimeout(this.loadDemo.bind(this, demoId), 2000);
+        }
+
+        // update demo id
+        this.demoId = demoId;
+      }
+
+      _demoLayoutChanged(demoLayout) {
+        if (demoLayout === null || demoLayout.base === null) {
+          return;
+        }
+
+        const value = demoLayout.value;
+        const data =
+          this.patientData.filter(
+            (elt) => (elt.PatientID.value === value.patientID));
+        this.addDemoPrefixTo(data);
+        this.data = data;
+        this.dataStatus = 'ready';
+
+        // load GE data
+        const event = {
+          detail: {
+            selection: [data[0]],
+          },
+        };
+        this._handleStartGE(event);
+
+        this.layout = value.display.layout;
+        // update layout shape
+        this.set('currentLayout', value.display.structure);
+
+        // load content
+        const content = value.display.content;
+        for (let i=0; i<content.length; i++) {
+          if (content[i] !== '') {
+            this.set(['currentLayout', i], content[i]);
+          }
+        }
       }
 
       _pageChanged(page) {
@@ -460,7 +553,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
 
       _handlePluginsError(error) {
-        window.console.log(error);
+        // window.console.log(error);
       }
 
       _pluginsChanged(plugins) {

@@ -650,6 +650,12 @@
         };
       }
 
+      static get observers() {
+        return [
+          '_currentLayoutChanged(currentLayout.*)',
+        ];
+      }
+
       constructor() {
         super();
         this._resizeListenerBound = this._resizeListener.bind(this);
@@ -756,12 +762,7 @@
        * @param {*} event
        */
       _onDragStart(event) {
-        // Must setData "anything" before anything else to make sure element
-        // is draggable in Firefox < 58
-        event.dataTransfer.setData('type', event.target.getAttribute('type'));
-
         const draggingSeries = event.model.__data.item.details.series;
-        event.dataTransfer.setData('images', draggingSeries.data);
         event.dataTransfer.setData('uid', draggingSeries.uid);
       }
 
@@ -779,8 +780,6 @@
         const targetViewer = event.target;
         this.set(
           ['currentLayout', targetViewer.dataset.uid], dataTransfer.getData('uid'));
-        targetViewer.images = dataTransfer.getData('images').split(',');
-        targetViewer.type = dataTransfer.getData('type');
       }
 
       _onDragEnter(event) {
@@ -914,6 +913,45 @@
 
         this.$[`ic${active}`].reflow();
         this.$[`viewer${active}`].resize();
+      }
+
+      _currentLayoutChanged(currentLayout) {
+        // layout changed but no data dragged in
+        if (!currentLayout.path.includes('currentLayout.')) {
+          return false;
+        }
+
+        // something was removed
+        if (currentLayout.value === -1) {
+          return false;
+        }
+
+        // new data dragged in:
+        const uid = currentLayout.value;
+        const target = currentLayout.path.split('.')[1];
+
+        let type = '';
+        let images = [];
+        // loop through patients
+        for (let i = 0; i < this.dataBch.length; i++) {
+          if (this.dataBch[i].details.series.uid === uid) {
+            images = this.dataBch[i].details.series.data;
+            type = 'patient';
+          }
+        }
+
+        // loop through normals
+        if (type !== 'patient') {
+          for (let i = 0; i < this.dataGe.length; i++) {
+            if (this.dataGe[i].details.series.uid === uid) {
+              images = this.dataGe[i].details.series.data;
+              type = 'normative';
+            }
+          }
+        }
+
+        this.$[`viewer${target}`].images = images;
+        this.$[`viewer${target}`].type = type;
       }
     }
 
