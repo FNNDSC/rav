@@ -67,6 +67,22 @@ docker push fnndsc/rav:dev
 
 ```
 
+### Save docker image to a file
+
+``` bash
+
+docker save fnndsc/rav:dev > rav.tar
+
+```
+
+### Load docker image from a file
+
+``` bash
+
+docker load < rav.tar
+
+```
+
 ## Deploy
 
 ## Citations
