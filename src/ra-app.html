@@ -400,7 +400,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       loadDemo(demoId) {
         // wait for demo data to arrive
-        if (this.patientData === undefined || this.patientData.length <= 0) {
+        if (
+          this.patientData === undefined ||
+          this.patientData.length <= 0 ||
+          this.normativeData === undefined ||
+          this.normativeData.length <= 0) {
           return window.setTimeout(this.loadDemo.bind(this, demoId), 2000);
         }
 
