@@ -135,6 +135,14 @@
         // }, 10000);
       });
 
+      const normatives = {
+        'PATIENT1^6^MONTHS^ID': [],
+        'PATIENT2^6^MONTHS^ID': [],
+        'PATIENT^7^MONTHS^ID': [],
+        'PATIENT^25^MONTHS^ID': [],
+        'PATIENT^30^MONTHS^ID': [],
+      };
+
       // 6 MONTHS NORMATIVES
       const normative6Months = [
         '../RSNA/normatives/6^MONTHS/Axial_FLAIR-7_months-100/demo.json',
@@ -151,13 +159,13 @@
           })
         );
       });
-      Promise.all(loadSequencesSixM).then((results)=> {
+      const n6 = Promise.all(loadSequencesSixM).then((results)=> {
         let data = [];
         for (let i=0; i<results.length; i++) {
           data.push(results[i].query.data[0]);
         }
-        this.set(['normativeData', 'PATIENT1^6^MONTHS^ID'], data);
-        this.set(['normativeData', 'PATIENT2^6^MONTHS^ID'], data);
+        normatives['PATIENT1^6^MONTHS^ID'] = data;
+        normatives['PATIENT2^6^MONTHS^ID'] = data;
       });
 
       // 7 MONTHS NORMATIVES
@@ -176,12 +184,12 @@
           })
         );
       });
-      Promise.all(loadSequencesSeveM).then((results)=> {
+      const n7 = Promise.all(loadSequencesSeveM).then((results)=> {
         let data = [];
         for (let i=0; i<results.length; i++) {
           data.push(results[i].query.data[0]);
         }
-        this.set(['normativeData', 'PATIENT^7^MONTHS^ID'], data);
+        normatives['PATIENT^7^MONTHS^ID'] = data;
       });
 
       // 25 MONTHS NORMATIVES
@@ -200,12 +208,12 @@
           })
         );
       });
-      Promise.all(loadSequencesTwentyFiveM).then((results)=> {
+      const n25 = Promise.all(loadSequencesTwentyFiveM).then((results)=> {
         let data = [];
         for (let i=0; i<results.length; i++) {
           data.push(results[i].query.data[0]);
         }
-        this.set(['normativeData', 'PATIENT^25^MONTHS^ID'], data);
+        normatives['PATIENT^25^MONTHS^ID'] = data;
       });
 
       // 30 MONTHS NORMATIVES
@@ -224,12 +232,18 @@
           })
         );
       });
-      Promise.all(loadSequencesThirtyM).then((results)=> {
+      const n30 = Promise.all(loadSequencesThirtyM).then((results)=> {
         let data = [];
         for (let i=0; i<results.length; i++) {
           data.push(results[i].query.data[0]);
         }
-        this.set(['normativeData', 'PATIENT^30^MONTHS^ID'], data);
+        normatives['PATIENT^30^MONTHS^ID'] = data;
+      });
+
+      Promise.all([n6, n7, n25, n30]).then((results)=> {
+        console.log('all normatives ready');
+        console.log(normatives);
+        this.set('normativeData', normatives);
       });
     }
 

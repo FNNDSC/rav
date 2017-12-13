@@ -322,8 +322,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             value: [],
           },
           normativeData: {
-            type: Array,
-            value: [],
+            type: Object,
+            value: {},
           },
           demoId: {
             type: String,
@@ -408,7 +408,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           this.patientData === undefined ||
           this.patientData.length <= 0 ||
           this.normativeData === undefined ||
-          this.normativeData.length <= 0) {
+          this.normativeData['PATIENT^30^MONTHS^ID'].length <= 0) {
           return window.setTimeout(this.loadDemo.bind(this, demoId), 2000);
         }
 
