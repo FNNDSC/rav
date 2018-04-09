@@ -30,15 +30,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/chips-api/chips-api.html">
 <link rel="import" href="../bower_components/chips-api/behaviors/chips-plugin-behavior.html">
 
+<link rel="import" href="../bower_components/wc-periodic-logo/wc-periodic-logo.html">
+
 <link rel="import" href="gex-datastore.html">
 
-<link rel="import" href="elements/ra-logo.html">
 <link rel="import" href="gex-pacs-settings-dialog.html">
 
 <link rel="lazy-import" href="gex-login.html">
 <link rel="lazy-import" href="gex-library.html">
 <link rel="lazy-import" href="gex-viewer.html">
 <link rel="lazy-import" href="gex-view404.html">
+
+<link rel="import" href="global-styles.html">
 
 <link rel="import" href="ra-data.html">
 <link rel="import" href="ra-demo.html">
@@ -47,34 +50,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <template>
     <style>
       :host {
-        --dark-primary-color:       #111111;
-        --default-primary-color:    #303030;
-        --light-primary-color:      #424242;
-        --text-primary-color:       #FFFFFF;
-        --accent-color:             #2196f3;
-        --primary-background-color: #616161;
-        --primary-text-color:       #FAFAFA; /*212121*/
-        --secondary-text-color:     #757575;
-        --disabled-text-color:      #BDBDBD;
-        --divider-color:            #424242;
-
-        --patient-primary-color: #2196f3;
-        --patient-light-color: #EFA;
-
-        --normative-primary-color: #2196f3;
-        --normative-light-color: #e3f2fd;
-
-        --paper-dialog-background-color: var(--default-primary-color);
-
-        /* paper-input */
-        --paper-input-container-focus-color: var(--accent-color);
-        --paper-input-container-invalid-color: red;
-        --paper-input-container-color: var(--secondary-text-color);  
-        --paper-input-container-input-color: var(--primary-text-color);  
-
-        --paper-progress-active-color: var(--accent-color);
-        --paper-progress-secondary-color: var(--accent-color);
-
         position: absolute;
         top: 0;
         bottom: 0;
@@ -122,12 +97,24 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         --paper-tabs-selection-bar-color: var(--accent-color);
       }
 
-      ra-logo {
-        margin-right: 2px;
+      wc-periodic-logo {
+        margin-right: 8px;
+        --accent-color: #2196f3;
+      }
+
+      .titleBox {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .title {
+        font-size: 16px;
       }
 
       .subtitle {
         font-size: 12px;
+        line-height: 12px;
         color: var(--accent-color);
       }
 
@@ -186,11 +173,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <app-header slot="header" condenses reveals effects="waterfall">
         <app-toolbar>
           <div style="flex: 1;">
-          <div style="display: flex;">
-            <ra-logo style="height: 24px; margin-top: -18px;"size="small"></ra-logo>
-            <div>dio viewer</div>
-          </div>
-          <div class="subtitle">developed with clinicians and researchers at Boston Children's Hospital</div>
+            <div style="display: flex;">
+              <wc-periodic-logo
+                element="[[shortname]]"
+                number="[[version]]"
+                size="small">
+              </wc-periodic-logo>
+              <div class="titleBox">
+                <div class="title">[[fullname]]</div>
+                <div class="subtitle">developed with clinicians and researchers at Boston Children's Hospital</div>
+              </div>
+            </div>
           </div>
           <div hidden$="[[!login]]" class="toolbar-login-actions">
             <paper-tabs 
@@ -259,6 +252,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       static get properties() {
         return {
+          fullname: {
+            type: String,
+            value: 'Radiology viewer',
+          },
+          shortname: {
+            type: String,
+            value: 'Ra',
+          },
+          version: {
+            type: String,
+            value: '1',
+          },
           page: {
             type: String,
             reflectToAttribute: true,
@@ -390,6 +395,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         //
         if (id !== '') {
+          // special id, we want to fetch data from CUBE
+          // set tokens
+          // get list of files in datastore
+          // and use it for GE data
           if (this.page !== 'viewer') {
             this.set('route.path', `/viewer/${id}`);
           } else {

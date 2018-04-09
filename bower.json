@@ -37,7 +37,9 @@
     "paper-progress": "PolymerElements/paper-progress#^2.0.1",
     "vaadin-split-layout": "v3.0.0-alpha1",
     "highcharts": "^5.0.14",
-    "vaadin-material-theme": "vaadin/vaadin-material-theme#^0.3.0"
+    "vaadin-material-theme": "vaadin/vaadin-material-theme#^0.3.0",
+    "wc-series-preview": "FNNDSC/wc-series-preview#master",
+    "wc-periodic-logo": "FNNDSC/wc-periodic-logo#master"
   },
   "devDependencies": {
     "web-component-tester": "Polymer/web-component-tester#^6.0.0-prerelease.7"

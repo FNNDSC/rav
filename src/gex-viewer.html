@@ -18,11 +18,12 @@
 <link rel="import" href="../bower_components/chips-api/chips-api.html">
 <link rel="import" href="../bower_components/chips-api/behaviors/chips-plugin-behavior.html">
 
+<link rel="import" href="../bower_components/wc-series-preview/wc-series-preview.html">
+
 <!-- Local components  -->
 <link rel="import" href="elements/ami-viewer.html">
 <link rel="import" href="elements/gex-panel.html">
 <link rel="import" href="elements/gex-layout-manager.html">
-<link rel="import" href="elements/series-preview.html">
 <link rel="import" href="elements/image-controls.html">
 <link rel="import" href="elements/viewer-global-controls.html">
 
@@ -274,13 +275,13 @@
               <!-- Fetching ready -->
               <template is="dom-if" if="[[_isReady(dataStatusBch)]]">
                 <template is="dom-repeat" items="[[dataBch]]">
-                  <series-preview
+                  <wc-series-preview
                     active="[[active]]"
                     layout="[[currentLayout]]"
                     draggable="true"
                     on-dragstart="_onDragStart"
                     series="[[item]]"
-                    type="patient"><series-preview>
+                    type="patient"><wc-series-preview>
                 </template>
               </template>
 
@@ -292,13 +293,13 @@
             </app-toolbar>
             <div class="normative series">
               <template is="dom-repeat" items="[[dataGe]]">
-                <series-preview
+                <wc-series-preview
                   active="[[active]]"
                   layout="[[currentLayout]]"
                   draggable="true"
                   on-dragstart="_onDragStart"
                   series="[[item]]"
-                  type="normative"><series-preview>
+                  type="normative"><wc-series-preview>
               </template>
             </div>
         </div>
