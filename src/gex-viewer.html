@@ -19,9 +19,9 @@
 <link rel="import" href="../bower_components/chips-api/behaviors/chips-plugin-behavior.html">
 
 <link rel="import" href="../bower_components/wc-series-preview/wc-series-preview.html">
+<link rel="import" href="../bower_components/wc-viewer-2d/wc-viewer-2d.html">
 
 <!-- Local components  -->
-<link rel="import" href="elements/ami-viewer.html">
 <link rel="import" href="elements/gex-panel.html">
 <link rel="import" href="elements/gex-layout-manager.html">
 <link rel="import" href="elements/image-controls.html">
@@ -321,7 +321,7 @@
           layout="[[layout]]"
           fullscreen="[[fullscreen]]"
           on-iron-resize="_layoutSizeChanged">
-            <ami-viewer
+            <wc-viewer-2d
               id="viewer0"
               data-uid="0"
               slot="s0"
@@ -347,9 +347,9 @@
               on-drop="_onDrop"
               on-dragenter="_onDragEnter"
               on-dragleave="_onDragLeave"
-              on-dragover="_onDragOver"></ami-viewer>
+              on-dragover="_onDragOver"></wc-viewer-2d>
 
-            <ami-viewer
+            <wc-viewer-2d
               id="viewer1"
               data-uid="1"
               slot="s1"
@@ -375,9 +375,9 @@
               on-drop="_onDrop"
               on-dragenter="_onDragEnter"
               on-dragleave="_onDragLeave"
-              on-dragover="_onDragOver"></ami-viewer>
+              on-dragover="_onDragOver"></wc-viewer-2d>
 
-            <ami-viewer
+            <wc-viewer-2d
               id="viewer2"
               data-uid="2"
               slot="s2"
@@ -403,9 +403,9 @@
               on-drop="_onDrop"
               on-dragenter="_onDragEnter"
               on-dragleave="_onDragLeave"
-              on-dragover="_onDragOver"></ami-viewer>
+              on-dragover="_onDragOver"></wc-viewer-2d>
 
-            <ami-viewer
+            <wc-viewer-2d
               id="viewer3"
               data-uid="3"
               slot="s3"
@@ -431,9 +431,9 @@
               on-drop="_onDrop"
               on-dragenter="_onDragEnter"
               on-dragleave="_onDragLeave"
-              on-dragover="_onDragOver"></ami-viewer>
+              on-dragover="_onDragOver"></wc-viewer-2d>
 
-            <ami-viewer
+            <wc-viewer-2d
               id="viewer4"
               data-uid="4"
               slot="s4"
@@ -459,9 +459,9 @@
               on-drop="_onDrop"
               on-dragenter="_onDragEnter"
               on-dragleave="_onDragLeave"
-              on-dragover="_onDragOver"></ami-viewer>
+              on-dragover="_onDragOver"></wc-viewer-2d>
 
-            <ami-viewer
+            <wc-viewer-2d
               id="viewer5"
               data-uid="5"
               slot="s5"
@@ -487,7 +487,7 @@
               on-drop="_onDrop"
               on-dragenter="_onDragEnter"
               on-dragleave="_onDragLeave"
-              on-dragover="_onDragOver"></ami-viewer>
+              on-dragover="_onDragOver"></wc-viewer-2d>
 
         </gex-layout-manager>
       </div>
