@@ -11,7 +11,7 @@
 <link rel="import" href="../bower_components/wc-periodic-logo/wc-periodic-logo.html">
 <link rel="import" href="../bower_components/chips-api/chips-api.html">
 
-<dom-module id="gex-login">
+<dom-module id="rav-login">
   <template>
     <style include="shared-styles">
       :host {
@@ -150,7 +150,7 @@
         <section>
           <div>
             <br>
-            New to <a href="https://github.com/FNNDSC/gex">RaV</a>? <a href="https://github.com/FNNDSC">Register</a> for an account.
+            New to <a href="https://github.com/FNNDSC/rav">RaV</a>? <a href="https://github.com/FNNDSC">Register</a> for an account.
           </div>
         </section>
 
@@ -160,9 +160,9 @@
   </template>
 
   <script>
-    class GEXLogin extends Polymer.GestureEventListeners(Polymer.Element) {
+    class RAVLogin extends Polymer.GestureEventListeners(Polymer.Element) {
       static get is() {
-        return 'gex-login';
+        return 'rav-login';
       }
 
 
@@ -276,6 +276,6 @@
         }
     }
 
-    window.customElements.define(GEXLogin.is, GEXLogin);
+    window.customElements.define(RAVLogin.is, RAVLogin);
   </script>
 </dom-module>

@@ -32,14 +32,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <link rel="import" href="../bower_components/wc-periodic-logo/wc-periodic-logo.html">
 
-<link rel="import" href="gex-datastore.html">
+<link rel="import" href="rav-datastore.html">
 
-<link rel="import" href="gex-pacs-settings-dialog.html">
+<link rel="import" href="rav-pacs-settings-dialog.html">
 
-<link rel="lazy-import" href="gex-login.html">
-<link rel="lazy-import" href="gex-library.html">
-<link rel="lazy-import" href="gex-viewer.html">
-<link rel="lazy-import" href="gex-view404.html">
+<link rel="lazy-import" href="rav-login.html">
+<link rel="lazy-import" href="rav-library.html">
+<link rel="lazy-import" href="rav-viewer.html">
+<link rel="lazy-import" href="rav-view404.html">
 
 <link rel="import" href="global-styles.html">
 
@@ -145,27 +145,26 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       demo-id="[[demoId]]"
       demo-layout="{{demoLayout}}"></ra-data>
 
-    <gex-datastore
+    <rav-datastore
       feed="[[feed]]"
       plugin="[[pluginBch]]"
       plugin-data="{{data}}"
-      plugin-status="{{dataStatus}}"></gex-datastore>
+      plugin-status="{{dataStatus}}"></rav-datastore>
 
-    <gex-datastore
+    <rav-datastore
       feed="[[feed]]"
       plugin="[[pluginGe]]"
       plugin-data="{{dataGE}}"
-      plugin-status="{{dataGEStatus}}"></gex-datastore>
+      plugin-status="{{dataGEStatus}}"></rav-datastore>
 
-    <!-- gex-pacs-pull-settings dialog -->
     <!-- must be at top level -->
-    <gex-pacs-settings-dialog
+    <rav-pacs-settings-dialog
       id="pacsSettingsDialog"
       aet="{{aet}}"
       aec="{{aec}}"
       aet-listener="{{aetListener}}"
       server-ip="{{serverIp}}"
-      server-port="{{serverPort}}"></gex-pacs-settings-dialog>
+      server-port="{{serverPort}}"></rav-pacs-settings-dialog>
 
     <!-- Main content -->
     <app-header-layout has-scrolling-region>
@@ -204,10 +203,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           attr-for-selected="name"
           fallback-selection="view404"
           role="main">
-        <gex-login
+        <rav-login
           name="login"
-          on-login="handleLogin"></gex-login>
-        <gex-library
+          on-login="handleLogin"></rav-login>
+        <rav-library
           name="library"
           aet="[[aet]]"
           aec="[[aec]]"
@@ -223,8 +222,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           on-open-pacs-settings-dialog="handleOpenPacsSettingsDialog"
           on-open-viewer="handleOpenViewer"
           on-start-move="_handleStartMove"
-          on-start-ge-retrieve="_handleStartGE"></gex-library>
-        <gex-viewer
+          on-start-ge-retrieve="_handleStartGE"></rav-library>
+        <rav-viewer
           name="viewer"
           layout="[[layout]]"
           current-layout="[[currentLayout]]"
@@ -234,9 +233,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           data-ge="[[dataGE]]"
           data-status-ge="[[dataGEStatus]]"
           ge-link="[[geLink]]"
-          on-open-dialog="handleOpenDialog"></gex-viewer>
-        <gex-view404
-          name="view404"></gex-view404>
+          on-open-dialog="handleOpenDialog"></rav-viewer>
+        <rav-view404
+          name="view404"></rav-view404>
       </iron-pages>
     </app-header-layout>
 
@@ -461,7 +460,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       _pageChanged(page) {
         // Load page import on demand. Show 404 page if fails
-        const resolvedPageUrl = this.resolveUrl('gex-' + page + '.html');
+        const resolvedPageUrl = this.resolveUrl('rav-' + page + '.html');
         Polymer.importHref(
           resolvedPageUrl,
           null,

@@ -24,7 +24,7 @@
   </template>
 </dom-module>
 
-<dom-module id="gex-layout-manager">
+<dom-module id="rav-layout-manager">
   <template>
     <style>
       :host {
@@ -155,9 +155,9 @@
   </template>
 
   <script>
-    class GexLayoutManager extends Polymer.Element {
+    class RAVLayoutManager extends Polymer.Element {
       static get is() {
-        return 'gex-layout-manager';
+        return 'rav-layout-manager';
       }
 
       static get properties() {
@@ -234,6 +234,6 @@
         console.log(this.active);
       }
     }
-    window.customElements.define(GexLayoutManager.is, GexLayoutManager);
+    window.customElements.define(RAVLayoutManager.is, RAVLayoutManager);
   </script>
 </dom-module>

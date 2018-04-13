@@ -25,13 +25,14 @@
 <link rel="import" href="../bower_components/vaadin-grid/vaadin-grid-sorter.html">
 <link rel="import" href="../bower_components/vaadin-grid/vaadin-grid-filter.html">
 
-<link rel="import" href="./gex-icons.html">
-
+<!-- fnndsc elements -->
 <link rel="import" href="../bower_components/chips-api/chips-api.html">
 <link rel="import" href="../bower_components/chips-api/behaviors/chips-plugin-behavior.html">
+
+<link rel="import" href="./rav-icons.html">
 <link rel="import" href="./elements/vaadin-grid-style.html">
 
-<dom-module id="gex-library">
+<dom-module id="rav-library">
   <template>
     <style>
       :host {
@@ -395,13 +396,13 @@
   </template>
 
   <script>
-    class GexLibrary extends
+    class RAVLibrary extends
       CHIPSPluginBehavior(
         Polymer.GestureEventListeners(
           Polymer.Element)) {
 
       static get is() {
-        return 'gex-library';
+        return 'rav-library';
       }
 
       static get properties() {
@@ -1049,6 +1050,6 @@
       }
     }
 
-    window.customElements.define(GexLibrary.is, GexLibrary);
+    window.customElements.define(RAVLibrary.is, RAVLibrary);
   </script>
 </dom-module>

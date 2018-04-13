@@ -3,17 +3,17 @@
 <link rel="import" href="../bower_components/chips-api/chips-api.html">
 <link rel="import" href="../bower_components/chips-api/behaviors/chips-plugin-behavior.html">
 
-<dom-module id="gex-datastore">
+<dom-module id="rav-datastore">
   <template>
     <chips-api
       id="API"></chips-api>
   </template>
 
   <script>
-    class GEXDataStore extends CHIPSPluginBehavior(Polymer.Element) {
+    class RAVDataStore extends CHIPSPluginBehavior(Polymer.Element) {
 
       static get is() {
-        return 'gex-datastore';
+        return 'rav-datastore';
       }
 
       static get properties() {
@@ -291,6 +291,6 @@
       }
     }
 
-    window.customElements.define(GEXDataStore.is, GEXDataStore);
+    window.customElements.define(RAVDataStore.is, RAVDataStore);
   </script>
 </dom-module>

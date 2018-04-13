@@ -5,7 +5,7 @@
 <link rel="import" href="../bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
 
-<dom-module id="gex-pacs-settings-dialog">
+<dom-module id="rav-pacs-settings-dialog">
   <template>
     <style>
       :host {
@@ -63,9 +63,9 @@
   </template>
 
   <script>
-    class GexPacsSettingsDialog extends Polymer.Element {
+    class RAVPacsSettingsDialog extends Polymer.Element {
       static get is() {
-        return 'gex-pacs-settings-dialog';
+        return 'rav-pacs-settings-dialog';
       }
     
       static get properties() {
@@ -139,6 +139,6 @@
         this.serverPort = state.serverPort;
       }
     }
-    window.customElements.define(GexPacsSettingsDialog.is, GexPacsSettingsDialog);
+    window.customElements.define(RAVPacsSettingsDialog.is, RAVPacsSettingsDialog);
   </script>
 </dom-module>
