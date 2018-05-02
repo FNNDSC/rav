@@ -648,6 +648,15 @@
             type: Boolean,
             observer: '_theaterModeChanged',
           },
+          serverIp: {
+            type: String,
+          },
+          serverPort: {
+            type: String,
+          },
+          serverNamespace: {
+            type: String,
+          },
         };
       }
 
@@ -933,11 +942,20 @@
 
         let type = '';
         let images = [];
+        let api = {
+          apiRoot: typeof ChipsConfiguration === 'undefined' ? '' : ChipsConfiguration.apiRoot,
+          api: typeof ChipsConfiguration === 'undefined' ? '' : ChipsConfiguration.api,
+          token: sessionStorage.getItem('token'),
+        };
+
         // loop through patients
         for (let i = 0; i < this.dataBch.length; i++) {
           if (this.dataBch[i].details.series.uid === uid) {
             images = this.dataBch[i].details.series.data;
             type = 'patient';
+            if (this.dataBch[i].api) {
+              api = this.dataBch[i].api;
+            }
           }
         }
 
@@ -947,10 +965,12 @@
             if (this.dataGe[i].details.series.uid === uid) {
               images = this.dataGe[i].details.series.data;
               type = 'normative';
+              api = {};
             }
           }
         }
 
+        this.$[`viewer${target}`].api = api;
         this.$[`viewer${target}`].images = images;
         this.$[`viewer${target}`].type = type;
       }

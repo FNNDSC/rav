@@ -138,6 +138,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <chips-api
       id="API"></chips-api>
 
+    <chips-api
+      id="CHRIS"
+      api="ultron"></chips-api>
+
     <ra-data
       patient-data="{{patientData}}"
       normative-data="{{normativeData}}"></ra-data>
@@ -224,6 +228,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           on-start-move="_handleStartMove"
           on-start-ge-retrieve="_handleStartGE"></rav-library>
         <rav-viewer
+          id="library"
           name="viewer"
           layout="[[layout]]"
           current-layout="[[currentLayout]]"
@@ -233,6 +238,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           data-ge="[[dataGE]]"
           data-status-ge="[[dataGEStatus]]"
           ge-link="[[geLink]]"
+          server-ip="[[serverIp]]"
+          server-port="[[serverPort]]"
           on-open-dialog="handleOpenDialog"></rav-viewer>
         <rav-view404
           name="view404"></rav-view404>
@@ -395,10 +402,25 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         //
         if (id !== '') {
           // special id, we want to fetch data from CUBE
+          // this.$.viewer.serverIp = '';
+          // this.$.viewer.serverPort = '';
+          // else fetch from ChipsConfiguration.apiRoot
           // set tokens
           // get list of files in datastore
           // and use it for GE data
-          if (this.page !== 'viewer') {
+          if (this.page === 'viewer' && id == 'chris') {
+            const href = window.location.href;
+            const url = new URL(href);
+            const feedLink = url.searchParams.get('feed-link');
+            const pluginInstanceId = Number(url.searchParams.get('plugin-id'));
+            const chrisIp = url.searchParams.get('chris-ip');
+            const chrisPort = url.searchParams.get('chris-port');
+            const chrisNamespace = url.searchParams.get('chris-namespace');
+            const token = url.searchParams.get('token');
+            this._findImagesFromChris(
+              chrisIp, chrisPort, chrisNamespace, token,
+              feedLink, pluginInstanceId);
+          } else if (this.page !== 'viewer') {
             this.set('route.path', `/viewer/${id}`);
           } else {
             // auto log in
@@ -410,12 +432,78 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }
       }
 
+      _findImagesFromChris(ip, port, namespace, token, feed, pluginInstance) {
+        // wait for demo data to arrive
+        if (
+          this.normativeData === undefined ||
+          !this.normativeData['PATIENT^30^MONTHS^ID'] ||
+          this.normativeData['PATIENT^30^MONTHS^ID'].length <= 0) {
+          return window.setTimeout(this._findImagesFromChris.bind(
+            this, ip, port, namespace, token, feed, pluginInstance), 2000);
+        }
+
+        // update ip/port/namespace for viewer
+        // https://www.w3schools.com/tags/ref_urlencode.asp
+        this.$.CHRIS.apiRoot = `${ip}:${port}/${namespace}`;
+        window.console.log(this.$.CHRIS.apiRoot);
+        const apiData = {};
+        apiData.auth = {
+          type: 'token',
+          token,
+        };
+        apiData.params = {};
+        // fetch ressource then update it all...
+        this.$.CHRIS.handleAs = 'json';
+        console.log('get data');
+        this.$.CHRIS.request(
+          'GET', feed, apiData)
+        .then((response) => {
+          console.log(response);
+          // http://127.0.0.1:8081/viewer/chris?feed-link=/12/files/&plugin-id=31&chris-ip=http://localhost&chris-port=8000&token=b10323b00590a83d74feba23a40728c6084d3db3&chris-namespace=api/v1
+          const files = this._filterByPluginInstance(response.data, pluginInstance);
+          // set patient data
+          // set normative data
+          // patientData
+          console.log(files);
+          const data = [{"ModalitiesInStudy": {"value": "no value provided"}, "StudyDescription": {"value": "Normative.Patient"}, "uid": {"value": "1704a90a.ce51.11e7.83af.7824af84338e"}, "SeriesDescription": {"value": "Axial.FLAIR"}, "SeriesInstanceUID": {"value": "1704a90a.ce51.11e7.83af.7824af84338e"}, "PatientID": {"value": "NORMATIVE.6.MONTHS.ID"}, "details": {"series": {"date": "20130322", "files": "137", "uid": "1704a90a.ce51.11e7.83af.7824af84338e", "data": ["normatives/6^MONTHS/Axial_FLAIR-7_months-100/0001-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032532.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0002-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032533.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0003-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032534.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0004-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032535.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0005-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032536.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0006-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032537.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0007-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032538.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0008-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032539.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0009-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032540.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0010-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032541.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0011-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032542.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0012-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032543.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0013-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032544.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0014-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032545.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0015-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032546.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0016-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032547.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0017-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032548.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0018-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032549.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0019-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032550.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0020-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032551.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0021-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032552.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0022-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032553.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0023-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032554.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0024-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032555.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0025-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032556.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0026-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032557.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0027-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032558.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0028-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032559.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0029-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032560.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0030-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032561.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0031-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032562.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0032-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032563.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0033-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032564.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0034-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032565.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0035-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032566.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0036-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032567.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0037-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032568.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0038-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032569.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0039-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032570.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0040-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032571.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0041-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032572.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0042-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032573.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0043-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032574.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0044-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032575.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0045-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032576.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0046-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032577.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0047-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032578.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0048-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032579.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0049-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032580.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0050-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032581.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0051-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032582.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0052-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032583.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0053-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032584.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0054-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032585.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0055-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032586.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0056-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032587.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0057-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032588.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0058-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032589.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0059-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032590.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0060-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032591.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0061-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032592.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0062-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032593.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0063-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032594.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0064-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032595.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0065-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032596.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0066-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032597.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0067-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032598.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0068-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032599.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0069-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032600.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0070-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032601.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0071-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032602.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0072-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032603.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0073-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032604.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0074-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032605.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0075-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032606.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0076-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032607.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0077-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032608.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0078-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032609.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0079-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032610.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0080-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032611.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0081-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032612.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0082-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032613.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0083-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032614.dcm",
+          "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0084-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032615.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0085-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032616.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0086-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032617.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0087-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032618.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0088-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032619.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0089-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032620.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0090-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032621.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0091-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032622.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0092-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032623.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0093-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032624.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0094-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032625.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0095-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032626.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0096-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032627.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0097-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032628.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0098-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032629.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0099-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032630.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0100-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032631.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0101-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032632.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0102-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032633.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0103-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032634.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0104-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032635.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0105-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032636.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0106-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032637.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0107-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032638.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0108-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032639.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0109-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032640.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0110-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032641.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0111-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032642.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0112-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032643.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0113-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032644.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0114-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032645.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0115-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032646.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0116-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032647.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0117-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032648.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0118-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032649.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0119-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032650.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0120-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032651.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0121-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032652.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0122-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032653.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0123-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032654.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0124-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032655.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0125-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032656.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0126-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032657.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0127-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032658.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0128-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032659.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0129-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032660.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0130-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032661.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0131-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032662.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0132-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032663.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0133-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032664.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0134-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032665.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0135-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032666.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0136-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032667.dcm", "normatives/6^MONTHS/Axial_FLAIR-7_months-100/0137-1.3.12.2.1107.5.2.32.35235.30000013032112552327800032531.dcm"], "preview": {"url": "normatives/6^MONTHS/Axial_FLAIR-7_months-100//preview.jpg", "blob": ""}, "description": "Axial.FLAIR"}}, "PatientName": {"value": "NORMATIVE.6.MONTHS"}}];
+          data[0]['details']['series']['data'] = [files[0].links.file_resource];
+          data[0].api = {
+            token,
+            apiRoot: `${ip}:${port}/${namespace}`,
+            api: 'ultron',
+          };
+          // load data
+          this.data = data;
+          this.dataStatus = 'ready';
+
+          // load normative
+          this.dataGE = this.normativeData['PATIENT^30^MONTHS^ID'];
+          this.addDemoPrefixTo(this.dataGE);
+          this.dataGEStatus = 'ready';
+          })
+        .catch((error) => {
+          console.log(error);
+        });
+      }
+
+
+      _filterByPluginInstance(feedData, pluginInstance) {
+        function myFilter(dataset) {
+          // console.log(dataset);
+          return dataset.data.plugin_inst_id === pluginInstance;
+        }
+
+        return feedData.filter(myFilter);
+      }
+
       loadDemo(demoId) {
         // wait for demo data to arrive
         if (
           this.patientData === undefined ||
           this.patientData.length <= 0 ||
           this.normativeData === undefined ||
+          !this.normativeData['PATIENT^30^MONTHS^ID'] ||
           this.normativeData['PATIENT^30^MONTHS^ID'].length <= 0) {
           return window.setTimeout(this.loadDemo.bind(this, demoId), 2000);
         }
