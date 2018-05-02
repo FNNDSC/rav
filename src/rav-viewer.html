@@ -277,7 +277,8 @@
                 <template is="dom-repeat" items="[[dataBch]]">
                   <wc-series-preview
                     active="[[active]]"
-                    layout="[[currentLayout]]"
+                    layout="[[layout]]"
+                    current-layout="[[currentLayout]]"
                     draggable="true"
                     on-dragstart="_onDragStart"
                     series="[[item]]"
@@ -295,7 +296,8 @@
               <template is="dom-repeat" items="[[dataGe]]">
                 <wc-series-preview
                   active="[[active]]"
-                  layout="[[currentLayout]]"
+                  layout="[[layout]]"
+                  current-layout="[[currentLayout]]"
                   draggable="true"
                   on-dragstart="_onDragStart"
                   series="[[item]]"
@@ -881,21 +883,24 @@
       _layoutSizeChanged(layout) {
         if (Number.isInteger(layout)) {
           // layout is not the number of available viewers
+          let nbOfViewers = layout;
           if (layout === 4) {
-            layout = 5;
+            nbOfViewers = 5;
+          } else if (layout === 5) {
+            nbOfViewers = 2;
           }
 
-          if (this.currentLayout.length > layout + 1) {
+          if (this.currentLayout.length > nbOfViewers + 1) {
             // cache what is being removed
             for (let i = 0; i < this.currentLayout.length; i++) {
               this.cacheLayout[i] = this.currentLayout[i];
             }
             // removing one element
-            this.currentLayout = this.currentLayout.slice(0, layout + 1);
+            this.currentLayout = this.currentLayout.slice(0, nbOfViewers + 1);
           } else {
             //
             const cache =
-              this.cacheLayout.slice(this.currentLayout.length, layout + 1);
+              this.cacheLayout.slice(this.currentLayout.length, nbOfViewers + 1);
             // adding one element
             this.currentLayout = [...this.currentLayout, ...cache];
           }

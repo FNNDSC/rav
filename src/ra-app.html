@@ -409,6 +409,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           // get list of files in datastore
           // and use it for GE data
           if (this.page === 'viewer' && id == 'chris') {
+            sessionStorage.setItem('username', 'demo');
+            sessionStorage.setItem('token', 'demo');
+            this.login = true;
+
             const href = window.location.href;
             const url = new URL(href);
             const feedLink = url.searchParams.get('feed-link');

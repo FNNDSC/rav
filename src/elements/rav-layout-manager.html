@@ -71,6 +71,10 @@
         overflow: auto;
       }
 
+      #l5 > div {
+        flex: .7;
+      }
+
       .viewer {
         border: 1px solid rgba(0, 0, 0, 0);
       }
@@ -149,6 +153,15 @@
         <div class$="v4 slotter viewer [[_active(4, active)]]"></div>
         <div class$="v5 slotter viewer [[_active(5, active)]]"></div>
       </vaadin-split-layout>
+      </vaadin-split-layout>
+    </vaadin-split-layout>
+
+    <!-- Layout #6 -->
+    <vaadin-split-layout id= "l5" hidden$="[[_hideLayout(5, layout, fullscreen)]]" class="container">
+      <div class$="v0 slotter viewer [[_active(0, active)]]"></div>
+      <vaadin-split-layout class="slotter">
+        <div class$="v1 slotter viewer [[_active(1, active)]]"></div>
+        <div class$="v2 slotter viewer [[_active(2, active)]]"></div>
       </vaadin-split-layout>
     </vaadin-split-layout>
 
