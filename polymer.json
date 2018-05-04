@@ -21,5 +21,10 @@
   ],
   "lint": {
     "rules": ["polymer-2"]
-  }
+  },
+  "builds": [
+    {
+      "preset": "es5-bundled"
+    }
+  ]
 }
