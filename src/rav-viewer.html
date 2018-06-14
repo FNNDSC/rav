@@ -281,6 +281,7 @@
                     current-layout="[[currentLayout]]"
                     draggable="true"
                     on-dragstart="_onDragStart"
+                    on-dragend="_onDragEnd"
                     series="[[item]]"
                     type="patient"><wc-series-preview>
                 </template>
@@ -300,6 +301,7 @@
                   current-layout="[[currentLayout]]"
                   draggable="true"
                   on-dragstart="_onDragStart"
+                  on-dragend="_onDragEnd"
                   series="[[item]]"
                   type="normative"><wc-series-preview>
               </template>
@@ -778,6 +780,11 @@
         event.dataTransfer.setData('uid', draggingSeries.uid);
       }
 
+      _onDragEnd(event) {
+        event.target.$.image.style.display = 'block';
+        event.target.positionThumbnail(0.5, event.target.$.image);
+      }
+
       /**
        * Drop a series preview
        *
@@ -947,18 +954,19 @@
 
         let type = '';
         let images = [];
-        let api = {
-          apiRoot: typeof ChipsConfiguration === 'undefined' ? '' : ChipsConfiguration.apiRoot,
-          api: typeof ChipsConfiguration === 'undefined' ? '' : ChipsConfiguration.api,
-          token: sessionStorage.getItem('token'),
-        };
+        let api = {};
+        // {
+        //   apiRoot: typeof ChipsConfiguration === 'undefined' ? '' : ChipsConfiguration.apiRoot,
+        //   api: typeof ChipsConfiguration === 'undefined' ? '' : ChipsConfiguration.api,
+        //   token: sessionStorage.getItem('token'),
+        // };
 
         // loop through patients
         for (let i = 0; i < this.dataBch.length; i++) {
           if (this.dataBch[i].details.series.uid === uid) {
             images = this.dataBch[i].details.series.data;
             type = 'patient';
-            if (this.dataBch[i].api) {
+            if (this.dataBch[i].api !== undefined) {
               api = this.dataBch[i].api;
             }
           }
@@ -970,7 +978,7 @@
             if (this.dataGe[i].details.series.uid === uid) {
               images = this.dataGe[i].details.series.data;
               type = 'normative';
-              api = {};
+              // api = {};
             }
           }
         }

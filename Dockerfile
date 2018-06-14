@@ -1,8 +1,8 @@
-FROM node:7
-MAINTAINER fnndsc "dev@babymri.org"
+FROM node:10
+LABEL maintainer="dev@babymri.org"
 
 # Install polymer cli
-RUN npm install -g polymer-cli serve
+RUN npm install -g polymer-cli --unsafe-perm 
 
 # FNNDSC user
 RUN useradd --user-group --create-home --shell /bin/false fnndsc
